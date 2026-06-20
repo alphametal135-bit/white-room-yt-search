@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE WHITE ROOM — النظام السيبراني المكثف</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #0C0C0E; --bg2: #111116; --bg3: #18181F; --surface: #141419;
+  --border: #242430; --border2: #353545;
+  --text: #E8E8F0; --text2: #A0A0B8; --text3: #505068;
+  --green: #4EA88A; --green2: #357A63; --green-dim: rgba(78, 168, 138, 0.1);
+  --gold: #C8A84A; --gold-dim: rgba(200, 168, 74, 0.08);
+  --red: #E07070; --red-dim: rgba(224, 112, 112, 0.1);
+  --mono: 'Share Tech Mono', monospace; --sans: 'Cairo', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; position: relative; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,.007) 3px, rgba(255,255,255,.007) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* ══ POINTS TOAST ══ */
+.points-toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-130px);
+  z-index: 6000; background: var(--surface); border: 1px solid var(--border2); padding: 14px 22px;
+  display: flex; align-items: center; gap: 14px; transition: transform .45s cubic-bezier(.16,1,.3,1);
+  min-width: 290px; max-width: 92vw; box-shadow: 0 8px 32px rgba(0,0,0,.6);
+}
+.points-toast.show { transform: translateX(-50%) translateY(0); }
+.points-toast.gain { border-top: 3px solid var(--green); }
+.points-toast.lose { border-top: 3px solid var(--red); }
+.points-toast.warn { border-top: 3px solid var(--gold); }
+.toast-icon { font-size: 22px; flex-shrink: 0; }
+.toast-body { flex: 1; }
+.toast-title { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--text); margin-bottom: 3px; }
+.toast-sub { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 1px; }
+.toast-pts { font-family: var(--mono); font-size: 20px; font-weight: 700; flex-shrink: 0; }
+.toast-pts.plus { color: var(--green); }
+.toast-pts.minus { color: var(--red); }
+
+.pts-pill { background: var(--gold-dim); border: 1px solid var(--gold); padding: 2px 10px; font-family: var(--mono); font-size: 11px; color: var(--gold); letter-spacing: 1px; font-weight: bold; }
+
+/* ══ NAV ══ */
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 52px; background: #0A0A0C; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--green); }
+.nav-logo { font-family: var(--mono); font-size: 12px; color: #fff; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
+.nav-logo-bar { width: 3px; height: 16px; background: var(--green); }
+.nav-tabs { display: flex; }
+.tab-btn { padding: 0 16px; height: 52px; border: none; background: transparent; color: #555; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.tab-btn:hover { color: #aaa; }
+.tab-btn.active { color: #fff; border-bottom-color: var(--green); }
+.nav-user { font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 10px; }
+.nav-user-id { color: var(--green); }
+.nav-logout { background: transparent; border: 1px solid var(--border); color: var(--text3); font-family: var(--sans); font-size: 10px; padding: 4px 10px; cursor: pointer; transition: all .15s; }
+.nav-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ══ STATUS BAR ══ */
+.status-bar { background: #0A0A0C; border-bottom: 1px solid var(--border); padding: 5px 28px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.status-item { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--text3); text-transform: uppercase; }
+.status-item span { color: var(--green); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
+@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .2 } }
+
+/* ══ PAGES ══ */
+.page { display: none; padding: 28px; max-width: 1100px; margin: 0 auto; }
+.page.active { display: block; }
+.eyebrow { font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--text2); margin: 28px 0 12px; display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ''; display: block; width: 16px; height: 2px; background: var(--green); }
+.eyebrow:first-child { margin-top: 0; }
+
+/* ══ STATS GRID ══ */
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2px; }
+.stat-card { background: var(--surface); padding: 18px 16px; }
+.stat-num { font-family: var(--mono); font-size: 28px; line-height: 1; margin-bottom: 5px; }
+.stat-num.green { color: var(--green); }
+.stat-num.gold { color: var(--gold); }
+.stat-label { font-family: var(--sans); font-size: 11px; color: var(--text3); }
+
+/* ══ SUBJECTS ══ */
+.list-header { display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 40px; gap: 12px; padding: 8px 16px; background: #0A0A0C; color: var(--text3); font-family: var(--sans); font-size: 11px; border: 1px solid var(--border); border-bottom: none; }
+.subjects-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.subject-card { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 40px; align-items: center; gap: 12px; transition: background .12s; position: relative; }
+.subject-card::before { content: ''; position: absolute; right: 0; top: 0; width: 3px; height: 100%; background: var(--green); opacity: 0; transition: opacity .2s; }
+.subject-card:hover::before { opacity: 1; }
+.subject-card:hover { background: #1A1A22; }
+.subject-name-input { background: transparent; border: none; color: var(--text); font-family: var(--sans); font-size: 14px; font-weight: 700; width: 100%; outline: none; border-bottom: 1px solid transparent; }
+.subject-name-input:focus { border-bottom-color: var(--green); }
+.subject-cat { font-family: var(--sans); font-size: 11px; color: var(--text3); margin-top: 2px; }
+.num-col { display: flex; flex-direction: column; align-items: center; }
+.num-input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 14px; width: 75px; text-align: center; padding: 4px; outline: none; }
+.pts-display { font-family: var(--mono); font-size: 15px; color: var(--green); text-align: center; }
+.del-btn { background: transparent; border: 1px solid transparent; color: var(--text3); cursor: pointer; font-size: 12px; padding: 5px; }
+.del-btn:hover { border-color: var(--red); color: var(--red); }
+.add-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px; background: transparent; border: 1px dashed var(--border2); color: var(--text2); font-family: var(--sans); font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 1px; }
+.add-btn:hover { border-color: var(--green); color: var(--green); border-style: solid; }
+.study-src-btn { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-family: var(--sans); font-size: 11px; padding: 4px 8px; cursor: pointer; font-weight: bold; width: 100%; text-align: center; }
+.study-src-btn:hover { background: var(--green); color: #000; }
+
+/* ══ STREAMING INTERFACE ══ */
+.source-viewer-container { display: grid; grid-template-columns: 320px 1fr; gap: 20px; background: var(--surface); border: 1px solid var(--border); padding: 20px; margin-top: 15px; }
+.source-sidebar { border-left: 1px solid var(--border); padding-left: 15px; display: flex; flex-direction: column; gap: 8px; }
+.source-item-link { background: var(--bg2); border: 1px solid var(--border); padding: 10px; font-size: 12px; cursor: pointer; color: var(--text2); transition: all 0.2s; text-align: right; }
+.source-item-link:hover, .source-item-link.active { border-color: var(--green); color: var(--green); background: var(--bg3); }
+.video-frame-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid var(--border2); }
+.video-frame-wrapper iframe { position: absolute; inset:0; width:100%; height:100%; border:none; }
+.live-reward-ticker { background: #0A0A0C; padding: 10px; border: 1px solid var(--gold); display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; margin-bottom: 10px; }
+
+/* ══ TIME BREAKDOWN ══ */
+.time-breakdown { background: var(--surface); border: 1px solid var(--border); padding: 20px 22px; margin-top: 2px; }
+.time-rows { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); }
+.time-row-item { background: var(--bg2); padding: 14px 12px; text-align: center; }
+.time-row-val { font-family: var(--mono); font-size: 22px; color: var(--green); margin-bottom: 4px; }
+.time-row-unit { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 1px; }
+
+/* ══ TRACKER ══ */
+.week-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.week-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); font-size: 11px; padding: 6px 12px; cursor: pointer; }
+.log-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 1px solid var(--border); }
+.day-cell { background: var(--surface); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+.day-cell.today { outline: 2px solid var(--green); outline-offset: -2px; }
+.day-cell.done { background: rgba(78, 168, 138, 0.1); border: 1px solid rgba(78, 168, 138, 0.25); }
+.day-cell.future { cursor: not-allowed; opacity: .35; }
+
+/* ══ RANKINGS & PROFILES ══ */
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); border: 1px solid var(--border); }
+.profile-card { background: var(--surface); padding: 18px 20px; }
+.rank-circle { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-family: var(--mono); font-size: 24px; background: var(--bg); }
+.progress-bar-wrap { margin-bottom: 12px; }
+.progress-bar-track { height: 3px; background: var(--bg3); margin-top: 4px; }
+.progress-bar-fill { height: 100%; background: var(--green); transition: width 0.5s ease; }
+
+/* ══ CHAT & FRIENDS ══ */
+.chat-container { display: grid; grid-template-columns: 220px 1fr; gap: 2px; background: var(--border); border: 1px solid var(--border); height: 500px; }
+.chat-sidebar { background: var(--surface); display: flex; flex-direction: column; }
+.chat-tabs { flex: 1; overflow-y: auto; }
+.chat-tab-btn { width: 100%; padding: 12px 16px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text2); font-size: 13px; cursor: pointer; }
+.chat-tab-btn.active { background: var(--bg2); color: var(--green); font-weight: bold; }
+.chat-main { background: var(--bg2); display: flex; flex-direction: column; }
+.chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { max-width: 75%; padding: 10px 14px; font-size: 13px; line-height: 1.5; border-radius: 4px; }
+.chat-msg.me { background: var(--green-dim); border: 1px solid var(--green); align-self: flex-start; }
+.chat-msg.other { background: var(--surface); border: 1px solid var(--border); align-self: flex-end; }
+.chat-input-area { padding: 12px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 10px; }
+.chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; outline: none; font-family: var(--sans); }
+.chat-send-btn { background: var(--green); border: none; color: white; padding: 0 16px; cursor: pointer; font-family: var(--mono); font-size: 11px; }
+
+.fr-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+.fr-card { background: var(--surface); padding: 12px 16px; display: flex; align-items: center; gap: 14px; }
+.fr-info { flex: 1; }
+.fr-chat-btn { padding: 6px 12px; background: transparent; border: 1px solid var(--green); color: var(--green); cursor: pointer; font-size: 11px; }
+
+/* ══ AUTH OVERLAY ══ */
+#auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 14px; }
+#auth-overlay.hidden { display: none; }
+.auth-box { width: 100%; max-width: 440px; background: var(--surface); border: 1px solid var(--border2); border-top: 3px solid var(--green); padding: 28px; }
+.auth-field { margin-bottom: 16px; }
+.auth-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); padding: 10px; outline: none; }
+.auth-btn { width: 100%; padding: 12px; background: var(--green); border: none; color: white; cursor: pointer; font-family: var(--sans); font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+.auth-switch { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text3); }
+.auth-switch a { color: var(--green); cursor: pointer; text-decoration: underline; }
+.auth-error { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); padding: 10px; color: var(--red); font-size: 12px; margin-bottom: 14px; display: none; }
+.auth-error.show { display: block; }
+.supervisor-tag { font-size: 11px; color: var(--gold); text-align: center; margin-top: 15px; font-family: var(--sans); border-top: 1px dashed var(--border); padding-top: 10px; }
+
+/* ══ MODAL ══ */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-top: 3px solid var(--green); padding: 24px; width: 380px; }
+.modal-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 9px; outline: none; margin-bottom: 14px; font-family: var(--sans); }
+.modal-hint { font-size: 11px; color: var(--text3); margin: -8px 0 14px; line-height: 1.6; }
+.emoji-options { display: flex; gap: 8px; margin-bottom: 14px; justify-content: center; }
+.emoji-opt { font-size: 20px; cursor: pointer; padding: 5px; border: 1px solid transparent; }
+.emoji-opt.selected { border-color: var(--green); background: var(--bg2); }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+.modal-cancel { background: transparent; border: 1px solid var(--border); color: var(--text3); padding: 8px 16px; cursor: pointer; }
+.modal-ok { background: var(--green); border: none; color: white; padding: 8px 16px; cursor: pointer; font-weight: bold; }
+
+/* Grades Colors */
+.grade-SSS { color: #FF00FF; text-shadow: 0 0 10px rgba(255,0,255,0.5); }
+.grade-SS { color: #FF80FF; }
+.grade-S { color: #4EA88A; }
+.grade-A { color: #C8A84A; }
+.grade-B { color: #5A9AE0; }
+.grade-C { color: #8888BB; }
+.grade-D { color: #606078; }
+.grade-F { color: #E07070; }
+
+/* ══ QUIZ ══ */
+.quiz-progress-track { height: 4px; background: var(--bg3); margin-bottom: 18px; overflow: hidden; }
+.quiz-progress-fill { height: 100%; background: var(--green); transition: width .3s ease; }
+.quiz-opt-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; background: var(--bg2); border: 1px solid var(--border); color: var(--text2); text-align: right; margin-bottom: 8px; font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all .15s; }
+.quiz-opt-btn:hover:not(:disabled) { border-color: var(--green); color: var(--text); }
+.quiz-opt-num { font-family: var(--mono); font-size: 11px; color: var(--text3); border: 1px solid var(--border2); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.quiz-opt-btn.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.quiz-opt-btn.correct .quiz-opt-num { border-color: var(--green); color: var(--green); }
+.quiz-opt-btn.wrong { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+.quiz-opt-btn.wrong .quiz-opt-num { border-color: var(--red); color: var(--red); }
+.quiz-opt-btn:disabled { cursor: default; }
+.quiz-score-pill { font-family: var(--mono); font-size: 11px; color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="points-toast" id="points-toast">
+  <div class="toast-icon" id="toast-icon">✅</div>
+  <div class="toast-body">
+    <div class="toast-title" id="toast-title">TITLE</div>
+    <div class="toast-sub" id="toast-sub">SUBTITLE</div>
+  </div>
+  <div class="toast-pts" id="toast-pts">+0</div>
+</div>
+
+<div class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-bar"></div>
+    THE WHITE ROOM PROTOCOL v2.5
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('subjects', this)">الوحدات والمسارات</button>
+    <button class="tab-btn" onclick="showPage('tracker', this)">الحضور والالتزام</button>
+    <button class="tab-btn" onclick="showPage('quiz', this)">التقييم الديناميكي</button>
+    <button class="tab-btn" onclick="showPage('friends', this)">الشبكة والزملاء</button>
+    <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">الدردشة المشتركة</button>
+    <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
+  </div>
+  <div class="nav-user">
+    SYSTEM ID: <span class="nav-user-id" id="sb-user-id">------</span>
+    <button class="nav-logout" onclick="clearSession()">خروج أمني</button>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-item" id="sb-rank">RANK: <span class="grade-F">F</span></div>
+  <div class="status-item" id="sb-streak">STREAK: <span>0</span></div>
+  <div class="status-item" id="sb-points-container">POINTS: <span class="pts-pill" id="sb-points">0.0000</span></div>
+  <div class="status-item" id="sb-modules">MODULES: <span>0</span></div>
+  <div class="status-item" style="margin-right:auto; display:flex; align-items:center; gap:6px;">
+    <div class="status-dot"></div>
+    <span id="today-date" style="color:var(--text2)">---</span>
+  </div>
+</div>
+
+<div class="page active" id="page-subjects">
+  <div class="eyebrow">إدارة وتخصيص المسارات التعليمية المفتوحة</div>
+  <div class="list-header">
+    <div>رمز</div>
+    <div>اسم الوحدة المنهجية المخصصة / التصنيف</div>
+    <div style="text-align:center">دقيقة/يوم</div>
+    <div style="text-align:center">أيام المستهدفة</div>
+    <div style="text-align:center">ساعات شهرياً</div>
+    <div style="text-align:center">الرتبة</div>
+    <div style="text-align:center">المصادر الذكية</div>
+    <div></div>
+  </div>
+  <div class="subjects-list" id="subjects-list"></div>
+  <button class="add-btn" onclick="openModal()">+ تسجيل وتوليد مسار دراسي جديد من الصفر</button>
+
+  <div id="integrated-resource-viewer" style="display:none;">
+    <div class="eyebrow" id="viewer-eyebrow">بوابة التدريب والمشاهدة الحية المدمجة</div>
+    <div class="live-reward-ticker">
+      <div>المسار الحالي: <span id="reward-track-name" style="color:var(--green)">---</span></div>
+      <div>معدل التراكم الحركي: <span style="color:var(--gold)">+0.001 نقطة / دقيقة دقيقة</span></div>
+      <div>النقاط المجمعة في هذه الجلسة: <span id="session-earned-pts" style="color:var(--green); font-weight:bold;">0.0000</span></div>
+    </div>
+    <div class="source-viewer-container">
+      <div class="source-sidebar" id="source-links-sidebar"></div>
+      <div class="video-frame-wrapper" id="video-wrapper-area">
+        <div style="color:var(--text3); text-align:center; padding-top:20%; font-size:14px;">اختر درساً من القائمة الجانبية لبدء البث المدمج والاحتساب التلقائي</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="eyebrow">تحليل الحجم الزمني والقدرة التشغيلية المستقبلية</div>
+  <div class="time-breakdown">
+    <div class="time-rows">
+      <div class="time-row-item">
+        <div class="time-row-val" id="t-day">0</div>
+        <div class="time-row-unit">MINS</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:2px;">يومياً</div>
+      </div>
+      <div class="time-row-item">
+        <div class="time-row-val" id="t-week">0</div>
+        <div class="time-row-unit">HOURS</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:2px;">أسبوعياً</div>
+      </div>
+      <div class="time-row-item">
+        <div class="time-row-val" id="t-month">0</div>
+        <div class="time-row-unit">HOURS</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:2px;">شهرياً</div>
+      </div>
+      <div class="time-row-item">
+        <div class="time-row-val" id="t-6m">0</div>
+        <div class="time-row-unit">HOURS</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:2px;">خلال 6 أشهر</div>
+      </div>
+      <div class="time-row-item">
+        <div class="time-row-val" id="t-year">0</div>
+        <div class="time-row-unit">HOURS</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:2px;">سنوياً</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-tracker">
+  <div class="eyebrow">سجل الحضور اليومي وتأكيد المهام الروتينية</div>
+  <div class="week-nav">
+    <button class="week-btn" onclick="changeWeek(-1)">◀ الأسبوع السابق</button>
+    <span id="week-label" style="font-family:var(--sans); font-size:13px; color:var(--text2); font-weight:bold;">الأسبوع الحالي</span>
+    <button class="week-btn" onclick="changeWeek(1)">الأسبوع التالي ▶</button>
+  </div>
+  <div class="log-grid" id="log-grid" style="grid-template-columns: repeat(7, 1fr); text-align:center;"></div>
+
+  <div class="eyebrow">مؤشرات الالتزام والأداء للأسبوع المحدد</div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num green" id="days-done">0</div><div class="stat-label">أيام مكتملة</div></div>
+    <div class="stat-card"><div class="stat-num gold" id="streak-count">0</div><div class="stat-label">أيام الالتزام المستمر</div></div>
+    <div class="stat-card"><div class="stat-num" id="week-hours">0</div><div class="stat-label">الساعات المنجزة</div></div>
+    <div class="stat-card"><div class="stat-num" id="completion-pct">0%</div><div class="stat-label">معدل الإنجاز الكلي</div></div>
+  </div>
+</div>
+
+<div class="page" id="page-quiz">
+  <div class="eyebrow">منصة الاختبار التنافسي الموحد والتقييم العشوائي المتغير</div>
+  <div id="quiz-container"></div>
+</div>
+
+<div class="page" id="page-friends">
+  <div class="eyebrow">إضافة مستخدم للشبكة عبر معرف النظام (System ID)</div>
+  <div style="display:flex; gap:10px; margin-bottom:20px;">
+    <input type="text" id="friend-id-input" class="auth-input" placeholder="أدخل SYSTEM ID للمستخدم الآخر" style="max-width:300px">
+    <button class="auth-btn" onclick="sendFriendReq()" style="width:auto; padding:0 24px;">إرسال طلب ارتباط</button>
+  </div>
+  <div class="auth-error" id="fr-err"></div>
+  <div id="fr-ok" style="color:var(--green); font-size:12px; margin-bottom:10px; display:none;">✓ تم إرسال طلب الترابط بنجاح .</div>
+
+  <div class="eyebrow">طلبات الترابط الواردة للغرفة</div>
+  <div id="incoming-requests-list" style="margin-bottom:20px;"></div>
+
+  <div class="eyebrow">شبكة الزملاء المتصلين قيد التقييم المشترك</div>
+  <div id="friends-list-container"></div>
+</div>
+
+<div class="page" id="page-chat">
+  <div class="eyebrow">غرف التواصل والدردشة الداخلية المشتركة للأنظمة السيبرانية</div>
+  <div class="chat-container">
+    <div class="chat-sidebar">
+      <div class="chat-tabs" id="chat-tabs-list"></div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-messages" id="chat-messages-area"></div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-msg-input" class="chat-input" placeholder="اكتب رسالتك الأمنية أو البرمجية هنا..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button class="chat-send-btn" onclick="sendChatMessage()">إرسال بنية التشفير ◢</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-profile">
+  <div class="eyebrow">ملخص كفاءة الطالب ومصفوفة التوزيع الكلي المعياري</div>
+  <div id="profile-content"></div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" style="font-weight:700; font-size:15px; margin-bottom:12px; color:var(--green)">تسجيل مسار دراسي روتيني جديد</div>
+    <div class="emoji-options">
+      <span class="emoji-opt selected" onclick="selectEmoji('💻', this)">💻</span>
+      <span class="emoji-opt" onclick="selectEmoji('🇬🇧', this)">🇬🇧</span>
+      <span class="emoji-opt" onclick="selectEmoji('🧠', this)">🧠</span>
+      <span class="emoji-opt" onclick="selectEmoji('🔬', this)">🔬</span>
+    </div>
+    <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">اسم المادة / المسار التعليمي</label>
+    <input type="text" id="modal-name" class="modal-input" placeholder="مثال: رياضيات، تاريخ، عربي، فيزياء...">
+    <div class="modal-hint" id="modal-name-hint">اكتب اسم أي مادة دراسية، وسيقوم النظام بالبحث تلقائياً عن أنسب سلسلة كورسات لها على يوتيوب.</div>
+
+    <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">التصنيف المنهجي</label>
+    <input type="text" id="modal-cat" class="modal-input" placeholder="مثال: برمجيات، تقني، نووي">
+
+    <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">الزمن المخصص يومياً (بالدقائق)</label>
+    <input type="number" id="modal-mins" class="modal-input" value="60">
+
+    <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">عدد أيام التكرار في الأسبوع</label>
+    <input type="number" id="modal-days" class="modal-input" value="5" max="7" min="1">
+
+    <div class="auth-error" id="modal-err"></div>
+
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">إلغاء</button>
+      <button class="modal-ok" id="modal-save-btn" onclick="addSubject()">حفظ وتوليد المصادر</button>
+    </div>
+  </div>
+</div>
+
+<div id="auth-overlay">
+  <div class="auth-box" id="auth-login">
+    <div class="auth-title" style="font-family:var(--mono); font-weight:900; font-size:18px; color:#fff; letter-spacing:1px; margin-bottom:2px;">THE WHITE ROOM SYSTEM</div>
+    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">نظام تتبع وإدارة وتقييم القدرات البرمجية والأمنية المتقدمة</div>
+    <div class="auth-error" id="login-err"></div>
+    <div class="auth-field">
+      <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">معرف النظام الموحد SYSTEM ID</label>
+      <input type="text" id="login-id" class="auth-input" placeholder="WR-XXXX-XXXX" style="font-family:var(--mono)">
+    </div>
+    <div class="auth-field">
+      <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">كلمة المرور PASSWORD</label>
+      <input type="password" id="login-pass" class="auth-input" placeholder="••••••••">
+    </div>
+    <button class="auth-btn" onclick="login()">المصادقة والدخول الموحد ▶</button>
+    <div style="text-align:center; margin: 8px 0;">
+      <a onclick="forgotPassword()" style="font-size:11px; color:var(--text3); cursor:pointer; font-family:var(--mono); letter-spacing:1px;">نسيت كلمة المرور؟</a>
+    </div>
+    <div class="auth-switch">ليس لديك ملف رقمي؟ <a onclick="switchToRegister()">إنشاء بروتوكول مستخدم جديد</a></div>
+    <div class="supervisor-tag">تم تطوير هذا النظام بإشراف Eng Ahmed Yahia Ahmed</div>
+  </div>
+
+  <div class="auth-box" id="auth-register" style="display:none">
+    <div class="auth-title" style="font-weight:700; font-size:16px; color:var(--green)">توليد بروتوكول مستخدم جديد</div>
+    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">توليد ملف مستخدم جديد مشفر بالكامل في الغرفة البيضاء</div>
+    <div class="auth-error" id="reg-err"></div>
+    
+    <div id="reg-s1">
+      <div class="auth-field">
+        <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">اسم المستخدم الكامل</label>
+        <input type="text" id="reg-name" class="auth-input" placeholder="أدخل اسمك هنا">
+      </div>
+      <div class="auth-field">
+        <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">البريد الإلكتروني الحامي</label>
+        <input type="email" id="reg-email" class="auth-input" placeholder="username@gmail.com">
+      </div>
+      <div class="auth-field">
+        <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">كلمة المرور الأمنية</label>
+        <input type="password" id="reg-pass" class="auth-input" placeholder="6 خانات كحد أدنى">
+      </div>
+      <button class="auth-btn" onclick="registerUser()">إنشاء وتوليد كود التشفير الموحد ▶</button>
+    </div>
+    
+    <div id="reg-s2" style="display:none; text-align:center; margin-top:14px;">
+      <div style="background:#0A0A0C; padding:14px; border:1px solid var(--green); border-radius:4px; margin-bottom:14px;">
+        <div style="font-size:11px; color:var(--text3);">SYSTEM ID الخاص بك (احفظه فوراً في مكان آمن)</div>
+        <div id="display-gen-id" style="font-size:24px; font-family:var(--mono); color:var(--green); letter-spacing:2px; margin:8px 0; font-weight:700;">------</div>
+        <div style="font-size:11px; color:var(--red);">⚠ لا يمكن استرداد هذا المعرف السيادي بأي طريقة في حال فقدانه.</div>
+      </div>
+      <button class="auth-btn" onclick="completeRegistration()">أكدت الحفظ والدخول للغرفة البيضاء ▶</button>
+    </div>
+    <div class="auth-switch" id="reg-switch-footer">لديك حساب مشفر بالفعل؟ <a onclick="switchToLogin()">تسجيل دخول</a></div>
+    <div class="supervisor-tag">تم تطوير هذا النظام بإشراف Eng Ahmed Yahia Ahmed</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     Firebase SDK (مجاني) — يوفّر قاعدة بيانات حقيقية بدون أي سيرفر تستضيفه بنفسك
+     خطوات الإعداد موجودة في ملف FIREBASE_SETUP.md المرفق
+     ════════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ════ 1) الصق إعدادات مشروعك من Firebase Console هنا (انظر FIREBASE_SETUP.md) ════
+const firebaseConfig = {
+  apiKey: "AIzaSyBAVpyA8vf3FeHVHYwX05T6x0XariHXLss",
+  authDomain: "white-room-4845b.firebaseapp.com",
+  projectId: "white-room-4845b",
+  storageBucket: "white-room-4845b.firebasestorage.app",
+  messagingSenderId: "970742751058",
+  appId: "1:970742751058:web:615b1422405dc10443648b",
+  measurementId: "G-0FYQ5PK49F"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const dbFs = firebase.firestore();
+
+// ════ 2) رابط سيرفر البحث عن YouTube Playlists (السيرفر المستقل الصغير) ════
+// عدّل الرابط ده لرابط السيرفر بعد رفعه (مثال: https://my-app.onrender.com)
+const YT_SEARCH_SERVER_URL = "https://YOUR-YOUTUBE-SEARCH-SERVER-URL";
+</script>
+
+<script>
+
+// ════════════════════════════════════════════════════════════
+// نسخة Firebase — لا تحتاج استضافة سيرفر، فقط مشروع Firebase مجاني
+// راجع FIREBASE_SETUP.md لخطوات الإعداد والصق الإعدادات في أعلى الصفحة
+// ════════════════════════════════════════════════════════════
+
+let subjects = [];
+let nextId = 1;
+let selectedEmoji = '💻';
+let currentWeekOffset = 0;
+let doneDays = {};
+let quizHistory = [];
+let userPoints = 0.0000;
+let activeChatTab = 'global';
+let mySysId = null;
+let myName = null;
+let registrationPending = false;
+let pendingRegistrationInfo = null;
+
+let studyTimer = null;
+let activeTrackId = null;
+let activeVideoId = null;
+let sessionPointsAccumulated = 0.0000;
+
+let friendsCache = [];
+let incomingRequestsCache = [];
+let chatCache = { global: [], friends: {} };
+let unsubGlobalChat = null;
+let unsubPrivateChat = null;
+
+// ── أمان: تنظيف أي نص قبل إدراجه كـ HTML لمنع XSS ──
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── أدوات Firestore المساعدة ──
+function genSysId() {
+  const r = () => Math.floor(1000 + Math.random() * 9000);
+  return `WR-${r()}-${r()}`;
+}
+function pairKey(a, b) { return [a, b].sort().join('_'); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+async function getSysIdForUid(uid) {
+  const doc = await dbFs.collection('uidToSysId').doc(uid).get();
+  if (!doc.exists) throw new Error('لا يوجد ملف مرتبط بهذا الحساب');
+  return doc.data().sysId;
+}
+
+function authErrorToArabic(e) {
+  const map = {
+    'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل',
+    'auth/invalid-email': 'صيغة البريد الإلكتروني غير صحيحة',
+    'auth/weak-password': 'كلمة المرور ضعيفة جداً',
+    'auth/wrong-password': 'كلمة المرور غير صحيحة',
+    'auth/user-not-found': 'الحساب غير موجود',
+    'auth/invalid-credential': 'بيانات الدخول غير صحيحة',
+    'auth/too-many-requests': 'محاولات كثيرة جداً، حاول لاحقاً'
+  };
+  return map[e.code] || e.message || 'حدث خطأ غير متوقع';
+}
+
+const COMPREHENSIVE_QUESTION_BANK = {
+  programming: [
+    { q: "في لغة Python، أي من الخيارات التالية يُستعمل لإضافة عنصر جديد تماماً إلى نهاية القائمة (List)؟", o: ["list.add()", "list.insert_last()", "list.append()", "list.push()"], a: 2 },
+    { q: "ما هي القيمة المرتجعة من التعبير التالي في بايثون: type(10 == '10')؟", o: ["int", "bool", "str", "Error"], a: 1 },
+    { q: "في لغة C++، ماذا يحدث عندما تحاول الوصول إلى مؤشر (Pointer) يحمل القيمة NULL؟", o: ["يحدث خطأ تجميع للبرنامج", "يعود بقيمة عشوائية من الذاكرة", "يتسبب في انهيار البرنامج فوراً (Segmentation Fault)", "يقوم بتهيئة الذاكرة تلقائياً"], a: 2 },
+    { q: "ما هو التعقيد الزمني (Time Complexity) لعملية البحث الثنائي Binary Search في أسوأ الحالات؟", o: ["O(N)", "O(log N)", "O(N log N)", "O(1)"], a: 1 },
+    { q: "أي الكلمات المحجوزة التالية في بايثون تستخدم لإنشاء دالة مولد (Generator Function)؟", o: ["return", "emit", "yield", "produce"], a: 2 }
+  ],
+  english: [
+    { q: "Choose the correct sentence structure for formal communication:", o: ["He don't know nothing about the protocol.", "He doesn't know anything about the protocol.", "He doesn't know nothing about the protocol.", "He don't know anything about protocol."], a: 1 },
+    { q: "What is the synonym of the technical term 'Obsolete'?", o: ["Advanced", "Outdated", "Efficient", "Secure"], a: 1 },
+    { q: "Identify the passive voice sentence:", o: ["The security officer inspected the luggage.", "The luggage was inspected by the security officer.", "The officer is inspecting the luggage.", "The luggage has inspecting the officer."], a: 1 },
+    { q: "Complete: If the ESP8266 chip ______ oversupplied with voltage, it will burn down immediately.", o: ["is", "was", "will be", "had been"], a: 0 }
+  ],
+  electronics: [
+    { q: "ما هو المعالج الداخلي الدقيق والمسؤول عن التحكم ومعالجة البيانات في الرقاقة الشهيرة ESP8266؟", o: ["ARM Cortex-M4", "Tensilica L106 32-bit RISC", "Atmega328P", "Intel Core vPro"], a: 1 },
+    { q: "كيف نتجنب مشكلة الـ Overheating والاحتراق والراجع الكهربائي عند ربط لوحة Wemos بمحركات تسحب تياراً عالياً عبر L298N؟", o: ["توصيل تيار المحرك مباشرة من مخرج 3.3V للوحة لتقليل القوة", "فصل دوائر التغذية واستخدم خط أرضي مشترك GND مع تيار خارجي مستقل ومناسب للمحركات", "تقليل سعة الرام في الكود البرمجي وبناء تيار افتراضي", "زيادة التردد اللاسلكي للـ Wi-Fi لتبريد القطع المستهدفة"], a: 1 },
+    { q: "ما وظيفة الـ Diode (الصمام الثنائي) عند وضعه بالتوازي مع ملف الريليه أو المحركات الحثية؟", o: ["تخزين الطاقة الكهربائية لفترات طويلة", "حماية المكونات والمتحكم من التيارات المرتدة والجهد العكسي (Flyback Voltage)", "زيادة سرعة دوران المحرك", "تحويل التيار المستمر لتيار متردد عالي الكفاءة"], a: 1 }
+  ],
+  physics_chemistry: [
+    { q: "في الكيمياء النووية والحسابات الجزيئية، كم عدد الذرات الحقيقي الموجود في مول واحد تماماً من مادة اليورانيوم المشع (U-235)؟", o: ["1000 ذرة مشعة", "عدد أفوغادرو المعياري (6.022 × 10^23 ذرة)", "نسبة ثابت الغازات الكلي الكوني", "3.14 × 10^10 ذرة من الكتلة الحرجة"], a: 1 },
+    { q: "وفقاً لقانون الغاز المثالي (Ideal Gas Law)، ماذا يمثل الرمز (R) في المعادلة الشهيرة PV = nRT؟", o: ["المقاومة الكهربائية المرجعية للغاز", "نصف قطر الجزيئات النووية المترابطة", "ثابت الغازات العام الكوني (Universal Gas Constant)", "معدل الإشعاع الكلي المنبعث"], a: 2 },
+    { q: "ما هي المعادلة الرياضية والفيزيائية الشهيرة لآينشتاين التي تفسر الطاقة الهائلة المتولدة من الانشطار النووي لكتلة اليورانيوم؟", o: ["E = mc²", "F = ma", "PV = nRT", "V = IR"], a: 0 }
+  ]
+};
+
+const SUBJECT_SOURCE_MAP = [
+  {
+    keywords: ["برمجة", "python", "بايثون", "c++", "سي بلس", "برمجيات", "كود", "كوداينج", "تطوير"],
+    label: "البرمجة (Python / C++)",
+    sources: [
+      { title: "أساسيات لغة بايثون من الصفر للمبتدئين", code: "mvZHDp2G70E" },
+      { title: "التراكيب البرمجية والتحكم التكراري Loops", code: "XQZ26v_6R6U" },
+      { title: "مبادئ البرمجة كائنية التوجه OOP بالبايثون", code: "bMknfKXIFA8" },
+      { title: "مدخل شامل إلى لغة C++ ومفاهيم المؤشرات", code: "vLnPwxZdW4Y" }
+    ]
+  },
+  {
+    keywords: ["انجليزي", "إنجليزي", "english", "لغات", "لغة انجليزية", "لغة إنجليزية"],
+    label: "اللغة الإنجليزية",
+    sources: [
+      { title: "قواعد اللغة الإنجليزية التقنية للمحادثات", code: "rNguN_m85gM" },
+      { title: "بناء التراكيب والجمل الاحترافية في بيئة العمل", code: "HGAMR_N7e5E" },
+      { title: "المصطلحات الفنية المتقدمة وكيفية اجتياز المقابلات الشخصية", code: "s5g_wLNuE8U" }
+    ]
+  },
+  {
+    keywords: ["الكترونيات", "إلكترونيات", "esp8266", "اردوينو", "أردوينو", "ميكرو", "ميكروكنترولر", "لوحة"],
+    label: "الإلكترونيات / الميكروكنترولر",
+    sources: [
+      { title: "شرح الميكروكنترولر ESP8266 وطرق ربطه بـ L298N للمحركات", code: "jNg_rM52wKo" },
+      { title: "حل مشكلة الـ Overheating والراجع الكهربائي وفصل GND تيار مستقل", code: "bLNu_rN85gA" },
+      { title: "التحكم اللاسلكي بالمحركات الحثية وقراءة الحساسات المتطورة", code: "pMg_7e5E_aM" }
+    ]
+  },
+  {
+    keywords: ["فيزياء", "كيمياء", "physics", "chemistry", "نووي", "نووية"],
+    label: "الفيزياء والكيمياء",
+    sources: [
+      { title: "مبادئ التفكير المنطقي والهندسة العكسية للمسارات", code: "hNg_85gM_rN" },
+      { title: "إدارة الحجم الزمني والقدرة التشغيلية للأداء المتكامل", code: "vLnPwxZdW4Y" }
+    ]
+  }
+];
+
+function findSubjectMatch(name, cat) {
+  const query = (name + " " + cat).toLowerCase();
+  return SUBJECT_SOURCE_MAP.find(entry => entry.keywords.some(k => query.includes(k)));
+}
+function generateSourcesForSubject(name, cat) {
+  const match = findSubjectMatch(name, cat);
+  return match ? match.sources : null;
+}
+
+// ── بحث ديناميكي عن YouTube Playlist عبر السيرفر المستقل، لأي مادة مش موجودة محلياً ──
+const playlistSearchCache = {};
+async function searchPlaylistOnServer(subjectName) {
+  const key = subjectName.trim().toLowerCase();
+  if (playlistSearchCache[key]) return playlistSearchCache[key];
+
+  const url = `${YT_SEARCH_SERVER_URL}/api/search-playlist?q=${encodeURIComponent(subjectName)}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `فشل البحث (HTTP ${res.status})`);
+  }
+  const data = await res.json();
+  playlistSearchCache[key] = data;
+  return data;
+}
+
+function switchToRegister() {
+  document.getElementById('auth-login').style.display = 'none';
+  document.getElementById('auth-register').style.display = 'block';
+  document.getElementById('reg-s1').style.display = 'block';
+  document.getElementById('reg-s2').style.display = 'none';
+}
+function switchToLogin() {
+  document.getElementById('auth-register').style.display = 'none';
+  document.getElementById('auth-login').style.display = 'block';
+}
+
+function clearSession() {
+  stopStudyTimer();
+  if (unsubGlobalChat) unsubGlobalChat();
+  if (unsubPrivateChat) unsubPrivateChat();
+  auth.signOut().then(() => location.reload());
+}
+
+// ════════════════ المصادقة (عبر Firebase Auth + Firestore) ════════════════
+
+async function registerUser() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value.trim();
+  const err = document.getElementById('reg-err');
+  err.classList.remove('show');
+
+  if (!name || !email || !pass) { err.textContent = "خطأ أمني: يرجى استكمال كافة الحقول والبيانات"; err.classList.add('show'); return; }
+  if (pass.length < 6) { err.textContent = "خطأ أمني: كلمة المرور يجب ألا تقل عن 6 خانات تشفيرية"; err.classList.add('show'); return; }
+
+  registrationPending = true;
+  try {
+    let sysId = genSysId();
+    while ((await dbFs.collection('idLookup').doc(sysId).get()).exists) sysId = genSysId();
+
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid = cred.user.uid;
+
+    const batch = dbFs.batch();
+    batch.set(dbFs.collection('users').doc(sysId), {
+      name, email, points: 0,
+      lastLoginDate: todayStr(),
+      friends: [],
+      // ── حالة الحساب: نظام الإنذار والتصفير ──
+      accountStatus: 'active',   // active | probation
+      zeroDate: null,            // تاريخ أول وصول للنقاط صفر (لحساب الـ10 أيام)
+      probationPoints: null,     // رصيد الإنذار (يبدأ بـ500 بعد انتهاء الـ10 أيام)
+      probationStartDate: null,  // تاريخ بداية مرحلة الإنذار الفعلية (بعد الـ10 أيام)
+      lastMonthlyBonusDate: null,// آخر مرة استلم فيها مكافأة الـ100 الشهرية
+      data: { subjects: [], doneDays: {}, quizHistory: [], nextId: 1 }
+    });
+    batch.set(dbFs.collection('idLookup').doc(sysId), { email });
+    batch.set(dbFs.collection('uidToSysId').doc(uid), { sysId });
+    await batch.commit();
+
+    pendingRegistrationInfo = { sysId, name };
+    document.getElementById('display-gen-id').textContent = sysId;
+    document.getElementById('reg-s1').style.display = 'none';
+    document.getElementById('reg-s2').style.display = 'block';
+    document.getElementById('reg-switch-footer').style.display = 'none';
+  } catch (e) {
+    registrationPending = false;
+    err.textContent = authErrorToArabic(e); err.classList.add('show');
+  }
+}
+
+function completeRegistration() {
+  registrationPending = false;
+  location.reload();
+}
+
+async function login() {
+  const id = document.getElementById('login-id').value.trim().toUpperCase();
+  const pass = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-err');
+  err.classList.remove('show');
+
+  try {
+    const lookup = await dbFs.collection('idLookup').doc(id).get();
+    if (!lookup.exists) { err.textContent = "فشل المصادقة: المعرف الموحد أو كلمة المرور غير صحيحة"; err.classList.add('show'); return; }
+    await auth.signInWithEmailAndPassword(lookup.data().email, pass);
+    // checkAuth هتتشغل تلقائياً عبر onAuthStateChanged بعد نجاح الدخول
+  } catch (e) {
+    err.textContent = authErrorToArabic(e); err.classList.add('show');
+  }
+}
+
+async function forgotPassword() {
+  const id = document.getElementById('login-id').value.trim().toUpperCase();
+  const err = document.getElementById('login-err');
+  err.classList.remove('show');
+
+  if (!id || !id.startsWith('WR-')) {
+    err.textContent = 'أدخل SYSTEM ID الخاص بك أولاً في حقل المعرف';
+    err.classList.add('show');
+    return;
+  }
+
+  try {
+    const lookup = await dbFs.collection('idLookup').doc(id).get();
+    if (!lookup.exists) {
+      err.textContent = 'المعرف الموحد غير موجود في النظام';
+      err.classList.add('show');
+      return;
+    }
+    const email = lookup.data().email;
+    await auth.sendPasswordResetEmail(email);
+    err.style.color = 'var(--green)';
+    err.textContent = '✓ تم إرسال رابط إعادة التعيين على بريدك الإلكتروني';
+    err.classList.add('show');
+    setTimeout(() => { err.style.color = ''; err.classList.remove('show'); }, 5000);
+  } catch (e) {
+    err.style.color = '';
+    err.textContent = authErrorToArabic(e);
+    err.classList.add('show');
+  }
+}
+
+// ════════ نظام النقاط: الثوابت ════════
+const MAX_POINTS = 1000;
+const DAILY_ABSENCE_PENALTY = 10;       // خصم الغياب اليومي (نقاط عادية)
+const PROBATION_DAILY_ABSENCE_PENALTY = 60; // خصم الغياب اليومي أثناء الإنذار
+const PROBATION_GRACE_DAYS = 10;        // مدة الإنذار قبل ما يرجعله 500
+const PROBATION_RESTART_POINTS = 500;   // النقاط اللي بترجعله بعد الإنذار
+const PROBATION_MONTHLY_BONUS = 100;    // مكافأة شهرية أثناء الإنذار
+const RETRO_DAY_PENALTY = 50;           // خصم تعويض يوم فات بأثر رجعي
+const TODAY_CONFIRM_REWARD = 20;        // مكافأة تأكيد يوم النهاردة
+
+function daysBetween(d1, d2) {
+  return Math.floor((new Date(d2) - new Date(d1)) / 86400000);
+}
+
+// تشغّل تلقائياً عند كل دخول: تتحقق من الغياب (نقاط عادية أو إنذار)، تنقل الحساب
+// لحالة probation عند الصفر، تطبّق إعادة الـ500 بعد 10 أيام، والمكافأة الشهرية، والحذف النهائي.
+async function applyDailyCheck() {
+  const ref = dbFs.collection('users').doc(mySysId);
+  return dbFs.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const data = doc.data();
+    const today = todayStr();
+
+    if (!data.lastLoginDate) { tx.update(ref, { lastLoginDate: today }); return null; }
+
+    const status = data.accountStatus || 'active';
+
+    // ── حالة 1: الحساب في فترة الإنذار (الانتظار 10 أيام بعد ما النقاط العادية وصلت صفر) ──
+    if (status === 'zero_wait') {
+      const waited = daysBetween(data.zeroDate, today);
+      if (waited >= PROBATION_GRACE_DAYS) {
+        // انتهت العشر أيام: يرجع 500 ويتفعل نظام نقاط الإنذار الشهري
+        tx.update(ref, {
+          accountStatus: 'probation',
+          points: PROBATION_RESTART_POINTS,
+          probationStartDate: today,
+          lastMonthlyBonusDate: today,
+          lastLoginDate: today
+        });
+        return { type: 'warn', kind: 'probation_started', pts: PROBATION_RESTART_POINTS };
+      } else {
+        if (data.lastLoginDate !== today) tx.update(ref, { lastLoginDate: today });
+        return { type: 'warn', kind: 'zero_wait', daysLeft: PROBATION_GRACE_DAYS - waited };
+      }
+    }
+
+    // ── حالة 2: الحساب في مرحلة نقاط الإنذار (الـ500) ──
+    if (status === 'probation') {
+      let points = data.points;
+      let lastMonthly = data.lastMonthlyBonusDate || data.probationStartDate || today;
+
+      // غياب أثناء الإنذار: خصم 60 لكل يوم غياب (لو فاتت 24 ساعة من غير تسجيل)
+      if (data.lastLoginDate !== today) {
+        const missedDays = daysBetween(data.lastLoginDate, today);
+        const penalty = missedDays * PROBATION_DAILY_ABSENCE_PENALTY;
+        points = Math.max(0, points - penalty);
+      }
+
+      // المكافأة الشهرية التلقائية (+100 كل 30 يوم)
+      let monthsPassed = Math.floor(daysBetween(lastMonthly, today) / 30);
+      if (monthsPassed > 0) {
+        points = Math.min(MAX_POINTS, points + monthsPassed * PROBATION_MONTHLY_BONUS);
+        lastMonthly = today;
+      }
+
+      if (points <= 0) {
+        // نقاط الإنذار وصلت صفر: حذف نهائي للحساب
+        tx.update(ref, { accountStatus: 'deleted', points: 0, lastLoginDate: today });
+        return { type: 'lose', kind: 'account_deleted' };
+      }
+
+      tx.update(ref, { points, lastMonthlyBonusDate: lastMonthly, lastLoginDate: today });
+      return { type: 'warn', kind: 'probation_active', points };
+    }
+
+    // ── حالة 3: حساب عادي نشط ──
+    if (data.lastLoginDate === today) return null;
+
+    const diffDays = daysBetween(data.lastLoginDate, today);
+    if (diffDays >= 1) {
+      const penalty = diffDays * DAILY_ABSENCE_PENALTY;
+      const newPts = data.points - penalty;
+      if (newPts <= 0) {
+        // النقاط العادية وصلت صفر: تبدأ فترة انتظار الإنذار (10 أيام)
+        tx.update(ref, { points: 0, accountStatus: 'zero_wait', zeroDate: today, lastLoginDate: today });
+        return { type: 'lose', kind: 'hit_zero', pts: penalty };
+      }
+      tx.update(ref, { points: newPts, lastLoginDate: today });
+      return { type: 'lose', kind: 'absence', pts: penalty };
+    }
+    return null;
+  });
+}
+
+function checkAuth() {
+  auth.onAuthStateChanged(async (user) => {
+    if (registrationPending) return; // لسه واقفين في خطوة تأكيد التسجيل
+    if (!user) { document.getElementById('auth-overlay').classList.remove('hidden'); return; }
+
+    try {
+      mySysId = await getSysIdForUid(user.uid);
+      const doc = await dbFs.collection('users').doc(mySysId).get();
+      const me = doc.data();
+
+      // لو الحساب اتعلّم محذوف من جلسة سابقة، اتأكد إنه اتمسح فعلياً وسجّل خروج
+      if (me.accountStatus === 'deleted') {
+        await permanentlyDeleteAccount(mySysId, user.uid);
+        return;
+      }
+
+      myName = me.name;
+
+      document.getElementById('auth-overlay').classList.add('hidden');
+      document.getElementById('sb-user-id').textContent = mySysId;
+
+      subjects = (me.data && me.data.subjects) || [];
+      doneDays = (me.data && me.data.doneDays) || {};
+      quizHistory = (me.data && me.data.quizHistory) || [];
+      nextId = (me.data && me.data.nextId) || 1;
+      userPoints = parseFloat(me.points) || 0.0000;
+
+      updateStatusBar();
+      renderSubjectsList();
+
+      const dailyResult = await applyDailyCheck();
+      if (dailyResult) {
+        if (dailyResult.kind === 'account_deleted') {
+          await permanentlyDeleteAccount(mySysId, user.uid);
+          return;
+        }
+
+        const fresh = await dbFs.collection('users').doc(mySysId).get();
+        const freshData = fresh.data();
+        userPoints = parseFloat(freshData.points) || userPoints;
+        updateStatusBar();
+
+        if (dailyResult.kind === 'hit_zero') {
+          showToast('lose', 'تنبيه حرج: نقاطك وصلت للصفر',
+            `دخلت في فترة إنذار مدتها ${PROBATION_GRACE_DAYS} أيام. حافظ على حسابك بالدخول المستمر`,
+            '-' + dailyResult.pts);
+        } else if (dailyResult.kind === 'zero_wait') {
+          showToast('warn', '⚠ حسابك تحت الإنذار',
+            `باقي ${dailyResult.daysLeft} يوم على انتهاء فترة الإنذار، حافظ على دخولك اليومي`,
+            dailyResult.daysLeft);
+        } else if (dailyResult.kind === 'probation_started') {
+          showToast('warn', 'انتهت فترة الإنذار',
+            'تم تجديد رصيدك بـ 500 نقطة إنذار. الغياب الآن يُخصم 60 نقطة/يوم، وكل شهر تحصل على 100 نقطة',
+            '+' + dailyResult.pts);
+        } else if (dailyResult.kind === 'probation_active') {
+          showToast('warn', '⚠ حسابك في مرحلة الإنذار',
+            'حافظ على الدخول اليومي، أي يوم غياب يخصم 60 نقطة من رصيد الإنذار',
+            dailyResult.points);
+        } else if (dailyResult.kind === 'absence') {
+          showToast('lose', 'رصد غياب خمول عن الالتزام',
+            `تم خصم ${dailyResult.pts} من النقاط التشغيلية بسبب غيابك`,
+            '-' + dailyResult.pts);
+        }
+      }
+    } catch (e) {
+      document.getElementById('auth-overlay').classList.remove('hidden');
+      console.error(e);
+    }
+  });
+}
+
+// حذف نهائي وكامل للحساب من Firebase (Auth + كل وثائق Firestore المرتبطة)
+async function permanentlyDeleteAccount(sysId, uid) {
+  try {
+    const batch = dbFs.batch();
+    batch.delete(dbFs.collection('users').doc(sysId));
+    batch.delete(dbFs.collection('idLookup').doc(sysId));
+    batch.delete(dbFs.collection('uidToSysId').doc(uid));
+    await batch.commit();
+  } catch (e) { console.error('فشل حذف بيانات الحساب:', e); }
+
+  try {
+    const user = auth.currentUser;
+    if (user) await user.delete();
+  } catch (e) {
+    console.error('فشل حذف حساب المصادقة:', e);
+    await auth.signOut();
+  }
+
+  alert('تم إلغاء حسابك نهائياً بسبب وصول رصيد الإنذار للصفر.');
+  location.reload();
+}
+
+function showToast(type, title, sub, pts) {
+  const t = document.getElementById('points-toast');
+  document.getElementById('toast-icon').textContent = type === 'gain' ? '✅' : type === 'warn' ? '⚠️' : '❌';
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub;
+  const p = document.getElementById('toast-pts');
+  p.textContent = pts;
+  p.className = 'toast-pts ' + (type === 'gain' ? 'plus' : 'minus');
+  t.className = 'points-toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// مزامنة كل بيانات الطالب مع Firestore (تستبدل localStorage)
+async function saveUserData() {
+  if (!mySysId) return;
+  userPoints = Math.min(MAX_POINTS, Math.max(0, userPoints));
+  try {
+    await dbFs.collection('users').doc(mySysId).update({
+      points: userPoints,
+      data: { subjects, doneDays, quizHistory, nextId }
+    });
+  } catch (e) {
+    console.warn('فشلت المزامنة مع Firestore:', e.message);
+  }
+  updateStatusBar();
+}
+
+function calcStreak() {
+  let streak = 0; let d = new Date();
+  while (true) {
+    let k = d.toISOString().slice(0, 10);
+    if (doneDays[k]) { streak++; d.setDate(d.getDate() - 1); } else break;
+  }
+  return streak;
+}
+
+function getRank(hrs) {
+  if (hrs >= 500) return { r: 'SSS', l: 'القائد الأعلى للأنظمة السيبرانية والتكنولوجية', c: 'grade-SSS' };
+  if (hrs >= 300) return { r: 'SS', l: 'خبير الأنظمة السيبرانية والميكروكنترولر', c: 'grade-SS' };
+  if (hrs >= 150) return { r: 'S', l: 'مطور معتمد / كفاءة تقنية ممتازة', c: 'grade-S' };
+  if (hrs >= 80) return { r: 'A', l: 'مستشار كفاءة تشغيلية وتطوير معالجات', c: 'grade-A' };
+  if (hrs >= 40) return { r: 'B', l: 'ممارس تقني متقدم', c: 'grade-B' };
+  if (hrs >= 15) return { r: 'C', l: 'طالب أبحاث أمنية ولغوية تحت التقييم', c: 'grade-C' };
+  if (hrs >= 5) return { r: 'D', l: 'مبتدئ واعد', c: 'grade-D' };
+  return { r: 'F', l: 'خارج التصنيف والالتزام الحركي الكلي', c: 'grade-F' };
+}
+
+function updateStatusBar() {
+  let totalMins = subjects.reduce((acc, s) => acc + (s.minsPerDay * s.daysPerWeek * 4), 0);
+  let totalHrs = Math.round(totalMins / 60);
+  let rankObj = getRank(totalHrs);
+
+  document.getElementById('sb-rank').innerHTML = `RANK: <span class="${rankObj.c}">${rankObj.r}</span>`;
+  document.getElementById('sb-streak').innerHTML = `STREAK: <span>${calcStreak()}</span>`;
+  document.getElementById('sb-points').textContent = userPoints.toFixed(4);
+  document.getElementById('sb-modules').innerHTML = `MODULES: <span>${subjects.length}</span>`;
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+
+  let dMins = subjects.reduce((a, x) => a + x.minsPerDay, 0);
+  let wHrs = Math.round((subjects.reduce((a, x) => a + (x.minsPerDay * x.daysPerWeek), 0)) / 60);
+  document.getElementById('t-day').textContent = dMins;
+  document.getElementById('t-week').textContent = wHrs;
+  document.getElementById('t-month').textContent = Math.round(wHrs * 4);
+  document.getElementById('t-6m').textContent = Math.round(wHrs * 4 * 6);
+  document.getElementById('t-year').textContent = Math.round(wHrs * 4 * 12);
+}
+
+function renderSubjectsList() {
+  const container = document.getElementById('subjects-list');
+  container.innerHTML = '';
+
+  if (subjects.length === 0) {
+    container.innerHTML = '<div style="background:var(--surface); padding:30px; text-align:center; color:var(--text3); border:1px dashed var(--border);">لا توجد مسارات دراسية مضافة حالياً. قم بإنشاء أول مسار دراسي روتيني مخصص لك بالزر أدناه لبناء مصفوفتك الزمنية ومصادرك تلقائياً.</div>';
+    return;
+  }
+
+  subjects.forEach(s => {
+    let mHours = Math.round((s.minsPerDay * s.daysPerWeek * 4) / 60);
+    let sRank = getRank(mHours).r;
+
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <div style="font-size:20px; text-align:center;">${escapeHtml(s.emoji)}</div>
+      <div>
+        <input type="text" class="subject-name-input" value="${escapeHtml(s.name)}" onchange="updateSubjectName(${s.id}, this.value)">
+        <div class="subject-cat">${escapeHtml(s.cat)}</div>
+      </div>
+      <div class="num-col"><input type="number" class="num-input" value="${s.minsPerDay}" onchange="updateMins(${s.id}, this.value)"></div>
+      <div class="num-col"><input type="number" class="num-input" value="${s.daysPerWeek}" max="7" min="1" onchange="updateDays(${s.id}, this.value)"></div>
+      <div class="pts-display" style="color:var(--text);">${mHours}h</div>
+      <div class="pts-display"><span class="grade-A">${sRank}</span></div>
+      <div><button class="study-src-btn" onclick="openEmbeddedViewer(${s.id})">تصفح المصادر الدراسية</button></div>
+      <div><button class="del-btn" onclick="deleteSubject(${s.id})">✕</button></div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+async function updateSubjectName(id, val) {
+  let s = subjects.find(x => x.id === id);
+  if (!s) return;
+  val = val.trim();
+  if (!val) { renderSubjectsList(); return; }
+
+  const match = findSubjectMatch(val, s.cat);
+  if (match) {
+    s.name = val;
+    s.sources = match.sources;
+    s.sourceType = 'curated';
+    saveUserData();
+    renderSubjectsList();
+    return;
+  }
+
+  // مش من المواد المعروفة محلياً: نبحث تلقائياً عن Playlist مناسب
+  try {
+    const playlist = await searchPlaylistOnServer(val);
+    s.name = val;
+    s.sources = [{ title: playlist.title, playlistId: playlist.playlistId, channel: playlist.channelTitle }];
+    s.sourceType = 'playlist';
+  } catch (e) {
+    alert("تعذّر العثور على مصادر لاسم المادة \"" + val + "\" تلقائياً: " + e.message);
+  }
+  saveUserData();
+  renderSubjectsList();
+}
+function updateMins(id, val) { let s = subjects.find(x => x.id === id); if (s) s.minsPerDay = parseInt(val) || 0; saveUserData(); renderSubjectsList(); }
+function updateDays(id, val) { let s = subjects.find(x => x.id === id); if (s) s.daysPerWeek = Math.min(7, Math.max(1, parseInt(val) || 1)); saveUserData(); renderSubjectsList(); }
+
+function deleteSubject(id) {
+  if (activeTrackId === id) stopStudyTimer();
+  subjects = subjects.filter(x => x.id !== id);
+  saveUserData(); renderSubjectsList();
+}
+
+function openModal() {
+  document.getElementById('modal-bg').classList.add('open');
+  document.getElementById('modal-err').classList.remove('show');
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+function selectEmoji(emo, btn) {
+  selectedEmoji = emo;
+  document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function addSubject() {
+  const nameInput = document.getElementById('modal-name');
+  const catInput = document.getElementById('modal-cat');
+  const err = document.getElementById('modal-err');
+  const saveBtn = document.getElementById('modal-save-btn');
+  const name = nameInput.value.trim();
+  const cat = catInput.value.trim() || 'عام';
+  const mins = parseInt(document.getElementById('modal-mins').value) || 60;
+  const dWeek = Math.min(7, Math.max(1, parseInt(document.getElementById('modal-days').value) || 5));
+
+  err.classList.remove('show');
+
+  if (!name) {
+    err.textContent = "خطأ منهجي: يرجى إدخال اسم الوحدة الدراسية لبناء خريطة البيانات";
+    err.classList.add('show');
+    return;
+  }
+
+  // 1) المواد المعروفة محلياً (فيديوهات مختارة يدوياً) بتشتغل فوراً من غير بحث
+  let sourceData = generateSourcesForSubject(name, cat);
+  let sourceType = 'curated';
+
+  // 2) أي مادة تانية: نبحث عن أنسب Playlist تلقائياً عبر السيرفر المستقل
+  if (!sourceData) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = '🔎 جاري البحث عن مصادر مناسبة...';
+    try {
+      const playlist = await searchPlaylistOnServer(name);
+      sourceData = [{ title: playlist.title, playlistId: playlist.playlistId, channel: playlist.channelTitle }];
+      sourceType = 'playlist';
+    } catch (e) {
+      err.textContent = "تعذّر العثور على مصادر لهذه المادة تلقائياً: " + e.message;
+      err.classList.add('show');
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'حفظ وتوليد المصادر';
+      return;
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'حفظ وتوليد المصادر';
+  }
+
+  subjects.push({ id: nextId++, emoji: selectedEmoji, name: name, cat: cat, minsPerDay: mins, daysPerWeek: dWeek, sources: sourceData, sourceType });
+
+  saveUserData(); renderSubjectsList(); closeModal();
+  nameInput.value = ''; catInput.value = '';
+}
+
+function openEmbeddedViewer(subjectId) {
+  stopStudyTimer();
+  const s = subjects.find(x => x.id === subjectId);
+  if (!s) return;
+
+  activeTrackId = subjectId;
+  sessionPointsAccumulated = 0.0000;
+
+  document.getElementById('integrated-resource-viewer').style.display = 'block';
+  document.getElementById('reward-track-name').textContent = `${s.emoji} ${s.name}`;
+  document.getElementById('session-earned-pts').textContent = '0.0000';
+
+  const sidebar = document.getElementById('source-links-sidebar');
+  sidebar.innerHTML = '';
+
+  if (!s.sources || s.sources.length === 0) {
+    sidebar.innerHTML = '<div style="font-size:11px; color:var(--text3)">لا توجد دروس متوفرة لهذه المادة.</div>';
+    document.getElementById('video-wrapper-area').innerHTML = '';
+    return;
+  }
+
+  if (s.sourceType === 'playlist') {
+    // كورس متدرج كامل (Playlist حقيقية): سلسلة واحدة، الانتقال بين الدروس بيحصل جوا المشغّل نفسه
+    const pl = s.sources[0];
+    let link = document.createElement('div');
+    link.className = 'source-item-link active';
+    link.innerHTML = `📺 السلسلة الكاملة<br><span style="font-size:10px; color:var(--text3)">${escapeHtml(pl.channel || '')}</span>`;
+    link.onclick = () => launchVideoFrame(pl.playlistId, link, true);
+    sidebar.appendChild(link);
+    launchVideoFrame(pl.playlistId, link, true);
+  } else {
+    // مصادر مختارة يدوياً: فيديوهات منفردة مرتبة
+    s.sources.forEach((src, idx) => {
+      let link = document.createElement('div');
+      link.className = 'source-item-link';
+      link.textContent = `الدرس ${idx + 1}: ${src.title}`;
+      link.onclick = () => launchVideoFrame(src.code, link, false);
+      sidebar.appendChild(link);
+    });
+    document.getElementById('video-wrapper-area').innerHTML = '<div style="color:var(--text3); text-align:center; padding-top:20%; font-size:12px;">انقر على أي درس من القائمة الجانبية لبدء البث الآمن والعداد النقطي للفيمتو حركي.</div>';
+  }
+
+  document.getElementById('integrated-resource-viewer').scrollIntoView({ behavior: 'smooth' });
+}
+
+function launchVideoFrame(code, linkElement, isPlaylist) {
+  stopStudyTimer();
+  activeVideoId = code;
+
+  document.querySelectorAll('.source-item-link').forEach(l => l.classList.remove('active'));
+  if (linkElement) linkElement.classList.add('active');
+
+  const embedUrl = isPlaylist
+    ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(code)}&autoplay=1&rel=0&enablejsapi=1`
+    : `https://www.youtube.com/embed/${encodeURIComponent(code)}?autoplay=1&rel=0&enablejsapi=1`;
+
+  const wrapper = document.getElementById('video-wrapper-area');
+  wrapper.innerHTML = `
+    <iframe id="active-video-iframe" src="${embedUrl}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+    <div class="video-volume-control" style="display:flex; align-items:center; gap:8px; margin-top:8px; padding:8px 10px; background:var(--bg2); border:1px solid var(--border);">
+      <span style="font-size:13px;">🔉</span>
+      <input type="range" min="0" max="100" value="80" style="flex:1;" oninput="setVideoVolume(this.value)">
+      <span style="font-size:13px;">🔊</span>
+      <span style="font-size:11px; color:var(--text3); font-family:var(--mono); min-width:32px; text-align:left;" id="volume-pct-label">80%</span>
+    </div>
+  `;
+
+  startStudyTimer();
+}
+
+// التحكم بصوت مشغّل يوتيوب المضمّن عن طريق postMessage API (مفيش حاجة إضافية مطلوبة من يوتيوب)
+function setVideoVolume(value) {
+  const iframe = document.getElementById('active-video-iframe');
+  const label = document.getElementById('volume-pct-label');
+  if (label) label.textContent = value + '%';
+  if (!iframe || !iframe.contentWindow) return;
+  iframe.contentWindow.postMessage(JSON.stringify({
+    event: 'command',
+    func: 'setVolume',
+    args: [Number(value)]
+  }), '*');
+}
+
+function startStudyTimer() {
+  const incrementalPointsPerSecond = 0.001 / 60;
+
+  studyTimer = setInterval(() => {
+    userPoints = Math.min(MAX_POINTS, userPoints + incrementalPointsPerSecond);
+    sessionPointsAccumulated += incrementalPointsPerSecond;
+
+    document.getElementById('session-earned-pts').textContent = sessionPointsAccumulated.toFixed(4);
+    document.getElementById('sb-points').textContent = userPoints.toFixed(4);
+
+    if (Math.floor(Date.now() / 1000) % 5 === 0) saveUserData();
+  }, 1000);
+}
+
+function stopStudyTimer() {
+  if (studyTimer) { clearInterval(studyTimer); studyTimer = null; }
+  saveUserData();
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  if (name === 'tracker') renderTracker();
+  if (name === 'profile') renderProfile();
+  if (name === 'friends') renderFriends();
+  if (name === 'chat') { renderChat(); startChatPolling(); }
+  if (name === 'quiz') renderQuiz();
+}
+
+function renderTracker() {
+  const grid = document.getElementById('log-grid'); grid.innerHTML = '';
+  let base = new Date(); base.setDate(base.getDate() + (currentWeekOffset * 7));
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  for (let i = 6; i >= 0; i--) {
+    let d = new Date(base); d.setDate(base.getDate() - i);
+    let k = d.toISOString().slice(0, 10);
+    let isDone = doneDays[k] ? true : false;
+    let isToday = todayKey === k;
+    let isFuture = k > todayKey;
+
+    let cell = document.createElement('div');
+    cell.className = `day-cell ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}`;
+    cell.onclick = () => toggleDay(k);
+
+    let dayName = d.toLocaleDateString('ar-EG', { weekday: 'short' });
+    let dayNum = d.getDate();
+
+    cell.innerHTML = `
+      <div style="font-size:11px; color:var(--text3); font-weight:600;">${dayName}</div>
+      <div style="font-size:17px; font-weight:bold; font-family:var(--mono); margin:3px 0;">${dayNum}</div>
+      <div style="font-size:11px; font-weight:bold; color:${isDone ? 'var(--green)' : 'var(--border2)'};">${isFuture ? '— لم يحن بعد' : (isDone ? '✓ إنجاز' : '✕ خمول')}</div>
+    `;
+    grid.appendChild(cell);
+  }
+
+  let count = 0; let tMins = subjects.reduce((a, x) => a + x.minsPerDay, 0);
+  for (let i = 0; i < 7; i++) {
+    let d = new Date(base); d.setDate(base.getDate() - i);
+    if (doneDays[d.toISOString().slice(0, 10)]) count++;
+  }
+  document.getElementById('days-done').textContent = count;
+  document.getElementById('streak-count').textContent = calcStreak();
+  document.getElementById('week-hours').textContent = Math.round((count * tMins) / 60);
+  document.getElementById('completion-pct').textContent = Math.round((count / 7) * 100) + '%';
+}
+
+function toggleDay(key) {
+  const todayKey = new Date().toISOString().slice(0, 10);
+  if (key > todayKey) { showToast('warn', 'غير مسموح', 'لا يمكن تأكيد إنجاز يوم لم يحن بعد', '0'); return; }
+
+  const isToday = key === todayKey;
+
+  if (doneDays[key]) {
+    // إلغاء يوم تم تأكيده مسبقاً
+    delete doneDays[key];
+    const refund = isToday ? TODAY_CONFIRM_REWARD : RETRO_DAY_PENALTY;
+    userPoints = Math.max(0, userPoints - refund);
+    showToast('lose', 'تعديل السجل اليومي بأثر رجعي', 'تم إلغاء الإتمام المنهجي وخصم القيمة المقابلة لليوم', '-' + refund);
+  } else if (isToday) {
+    // تأكيد يوم النهاردة: +20 (بسقف 1000)
+    doneDays[key] = true;
+    userPoints = Math.min(MAX_POINTS, userPoints + TODAY_CONFIRM_REWARD);
+    showToast('gain', 'تأكيد الالتزام المنهجي لليوم الحالي', 'تم إدراج إنجاز اليوم وإضافة مكافأة الحضور اليومية', '+' + TODAY_CONFIRM_REWARD);
+  } else {
+    // تعويض يوم فات وكان غايبه: -50 (بأثر رجعي)
+    doneDays[key] = true;
+    userPoints = Math.max(0, userPoints - RETRO_DAY_PENALTY);
+    showToast('lose', 'تعويض يوم غياب سابق', 'تم تسجيل اليوم كحاضر بأثر رجعي، مع خصم قيمة التعويض', '-' + RETRO_DAY_PENALTY);
+  }
+  saveUserData(); renderTracker();
+}
+function changeWeek(offset) { currentWeekOffset += offset; renderTracker(); }
+
+let currentQuizSessionQuestions = [];
+let quizIndex = 0; let quizScore = 0; let quizAnswered = false;
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function buildDynamicQuiz() {
+  let masterPool = [
+    ...COMPREHENSIVE_QUESTION_BANK.programming,
+    ...COMPREHENSIVE_QUESTION_BANK.english,
+    ...COMPREHENSIVE_QUESTION_BANK.electronics,
+    ...COMPREHENSIVE_QUESTION_BANK.physics_chemistry
+  ];
+  let shuffled = shuffleArray([...masterPool]);
+  currentQuizSessionQuestions = shuffled.slice(0, 7);
+  quizIndex = 0; quizScore = 0;
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = `
+    <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
+      <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">📝 تقييم الكفاءة والقدرات الاستخباراتية والبرمجية التنافسي المتغير</div>
+      <div style="font-size:12px; color:var(--text2); line-height:1.6">يتم توليد واختيار نماذج عشوائية ومختلفة تماماً في كل مرة تعيد فيها التقييم لضمان تماسك البنية المعرفية. كل إجابة صحيحة تمنحك <strong style="color:var(--green)">+15 نقطة تشغيلية</strong>.</div>
+    </div>
+    <div id="quiz-workspace"></div>
+  `;
+  buildDynamicQuiz();
+  showQuestion();
+}
+
+function showQuestion() {
+  const area = document.getElementById('quiz-workspace');
+  quizAnswered = false;
+
+  if (quizIndex >= currentQuizSessionQuestions.length) {
+    let finalPct = Math.round((quizScore / currentQuizSessionQuestions.length) * 100);
+    let ptsEarned = quizScore * 15;
+    userPoints = Math.min(MAX_POINTS, userPoints + ptsEarned);
+    saveUserData();
+
+    area.innerHTML = `
+      <div style="text-align:center; padding:35px; background:var(--surface); border:1px solid var(--border);">
+        <div style="font-size:46px; color:var(--green); font-family:var(--mono); font-weight:900;">${finalPct}%</div>
+        <div style="font-size:14px; margin:12px 0; color:var(--text2); font-weight:bold;">اكتمل بروتوكول التقييم! لقد تمت الإجابة بنجاح على ${quizScore} من أصل ${currentQuizSessionQuestions.length} أسئلة مختلفة.</div>
+        <div style="font-size:13px; color:var(--gold); font-family:var(--mono);">النقاط المكتسبة المضافة للمحفظة السيادية السيستمية: +${ptsEarned.toFixed(2)} PTS</div>
+        <button class="auth-btn" style="width:auto; margin-top:16px; padding:0 24px;" onclick="renderQuiz()">إعادة توليد تقييم جديد بأسئلة مختلفة ↻</button>
+      </div>
+    `;
+    return;
+  }
+
+  let q = currentQuizSessionQuestions[quizIndex];
+  let optsHtml = q.o.map((opt, idx) => `
+    <button class="quiz-opt-btn" id="quiz-opt-${idx}" onclick="checkAnswer(${idx})">
+      <span class="quiz-opt-num">${idx + 1}</span>
+      <span>${escapeHtml(opt)}</span>
+    </button>
+  `).join('');
+
+  let progressPct = Math.round((quizIndex / currentQuizSessionQuestions.length) * 100);
+
+  area.innerHTML = `
+    <div style="background:var(--surface); border:1px solid var(--border); padding:22px; border-radius:4px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-family:var(--mono); font-size:11px; color:var(--text3);">QUESTION ${quizIndex + 1}/${currentQuizSessionQuestions.length}</div>
+        <div class="quiz-score-pill">✓ ${quizScore} صحيحة</div>
+      </div>
+      <div class="quiz-progress-track"><div class="quiz-progress-fill" style="width:${progressPct}%"></div></div>
+      <div style="font-size:15px; font-weight:bold; margin-bottom:16px; line-height:1.6; color:#fff;">${escapeHtml(q.q)}</div>
+      <div style="display:flex; flex-direction:column;">${optsHtml}</div>
+    </div>
+  `;
+}
+
+function checkAnswer(chosen) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  let q = currentQuizSessionQuestions[quizIndex];
+  document.querySelectorAll('.quiz-opt-btn').forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === q.a) btn.classList.add('correct');
+    else if (idx === chosen) btn.classList.add('wrong');
+  });
+
+  if (chosen === q.a) {
+    quizScore++;
+    showToast('gain', 'مطابقة بروتوكول الإجابة السليمة', 'تم رصد توافق معرفي رائع!', '+15');
+  } else {
+    showToast('lose', 'عدم توافق في الإجابة الرقمية', 'تم رصد اختيار غير صحيح للمسار الاسترشادي', '0');
+  }
+
+  setTimeout(() => { quizIndex++; showQuestion(); }, 900);
+}
+
+// ════════════════ الأصدقاء (عبر Firestore) ════════════════
+
+async function renderFriends() {
+  const reqArea = document.getElementById('incoming-requests-list');
+  const listCont = document.getElementById('friends-list-container');
+
+  try {
+    const meDoc = await dbFs.collection('users').doc(mySysId).get();
+    const me = meDoc.data();
+    friendsCache = me.friends || [];
+
+    const reqSnap = await dbFs.collection('users').doc(mySysId).collection('friendRequests').get();
+    incomingRequestsCache = reqSnap.docs.map(d => ({ fromId: d.id, name: d.data().name, ts: d.data().ts }));
+  } catch (e) {
+    reqArea.innerHTML = `<div style="font-size:11px; color:var(--red);">تعذّر تحميل بيانات الشبكة: ${escapeHtml(e.message)}</div>`;
+    return;
+  }
+
+  reqArea.innerHTML = '';
+  if (incomingRequestsCache.length === 0) {
+    reqArea.innerHTML = '<div style="font-size:11px; color:var(--text3);">لا توجد طلبات ترابط واردة للغرفة حالياً.</div>';
+  } else {
+    incomingRequestsCache.forEach(r => {
+      let div = document.createElement('div'); div.className = 'fr-card'; div.style.marginBottom = '2px';
+      div.innerHTML = `
+        <div class="fr-info"><strong>${escapeHtml(r.name)}</strong> <span style="font-family:var(--mono); color:var(--green)">[${escapeHtml(r.fromId)}]</span></div>
+        <button class="fr-chat-btn" onclick="acceptFriend('${escapeHtml(r.fromId)}')">قبول الربط</button>
+        <button class="fr-chat-btn" style="border-color:var(--red); color:var(--red);" onclick="rejectFriend('${escapeHtml(r.fromId)}')">رفض</button>
+      `;
+      reqArea.appendChild(div);
+    });
+  }
+
+  listCont.innerHTML = '';
+  if (friendsCache.length === 0) {
+    listCont.innerHTML = '<div style="font-size:11px; color:var(--text3);">لم يتم ربط زملاء دراسة بالملف الموحد حتى الآن. قم بمشاركة معرّفك لتفعيل الأداء المشترك والتصنيف التنافسي.</div>';
+  } else {
+    for (const f of friendsCache) {
+      let fDoc = await dbFs.collection('users').doc(f.id).get();
+      let fData = fDoc.exists ? fDoc.data() : { points: 0, lastLoginDate: '---' };
+      let div = document.createElement('div'); div.className = 'fr-card'; div.style.marginBottom = '2px';
+      div.innerHTML = `
+        <div class="fr-info">
+          <strong>${escapeHtml(f.name)}</strong> <span style="font-family:var(--mono); color:var(--text3);">[${escapeHtml(f.id)}]</span>
+          <div style="font-size:11px; color:var(--gold); margin-top:2px;">النقاط المتراكمة: ${parseFloat(fData.points).toFixed(4)} PTS | المزامنة الأخيرة: ${escapeHtml(fData.lastLoginDate || '---')}</div>
+        </div>
+        <button class="fr-chat-btn" onclick="openFriendChat('${escapeHtml(f.id)}')">💬 المراسلة الفورية</button>
+      `;
+      listCont.appendChild(div);
+    }
+  }
+}
+
+async function sendFriendReq() {
+  const input = document.getElementById('friend-id-input'); const targetId = input.value.trim().toUpperCase();
+  const err = document.getElementById('fr-err'); const ok = document.getElementById('fr-ok');
+  err.classList.remove('show'); ok.style.display = 'none';
+  if (!targetId) return;
+  if (targetId === mySysId) { err.textContent = "خطأ أمني: لا يمكن إرسال طلب ارتباط لنفس معرّفك السيستمي الحالي"; err.classList.add('show'); return; }
+
+  try {
+    const targetDoc = await dbFs.collection('users').doc(targetId).get();
+    if (!targetDoc.exists) { err.textContent = "خطأ أمني: المعرّف المدخل غير مسجل بالمنظومة المركزية للغرفة"; err.classList.add('show'); return; }
+
+    if (friendsCache.some(f => f.id === targetId)) { err.textContent = "أنتما بالفعل ضمن شبكة الزملاء المرتبطة"; err.classList.add('show'); return; }
+
+    const existingReq = await dbFs.collection('users').doc(targetId).collection('friendRequests').doc(mySysId).get();
+    if (existingReq.exists) { err.textContent = "خطأ: قمت بإرسال طلب سابقاً لهذا المعرف وهو قيد المراجعة"; err.classList.add('show'); return; }
+
+    await dbFs.collection('users').doc(targetId).collection('friendRequests').doc(mySysId).set({ name: myName, ts: Date.now() });
+    ok.style.display = 'block'; input.value = '';
+  } catch (e) {
+    err.textContent = e.message; err.classList.add('show');
+  }
+}
+
+async function acceptFriend(fromId) {
+  try {
+    const otherDoc = await dbFs.collection('users').doc(fromId).get();
+    const otherName = otherDoc.exists ? otherDoc.data().name : fromId;
+
+    const batch = dbFs.batch();
+    batch.update(dbFs.collection('users').doc(mySysId), {
+      friends: firebase.firestore.FieldValue.arrayUnion({ id: fromId, name: otherName })
+    });
+    batch.update(dbFs.collection('users').doc(fromId), {
+      friends: firebase.firestore.FieldValue.arrayUnion({ id: mySysId, name: myName })
+    });
+    batch.delete(dbFs.collection('users').doc(mySysId).collection('friendRequests').doc(fromId));
+    await batch.commit();
+  } catch (e) { alert(e.message); }
+  renderFriends();
+}
+async function rejectFriend(fromId) {
+  try { await dbFs.collection('users').doc(mySysId).collection('friendRequests').doc(fromId).delete(); }
+  catch (e) { alert(e.message); }
+  renderFriends();
+}
+function openFriendChat(id) { activeChatTab = 'pm_' + id; showPage('chat', document.getElementById('nav-tab-chat')); }
+
+// ════════════════ الدردشة (عبر Firestore - تحديث لحظي حقيقي) ════════════════
+
+function renderMessagesArea() {
+  const msgArea = document.getElementById('chat-messages-area');
+  if (!msgArea) return;
+  msgArea.innerHTML = '';
+  let list = activeChatTab === 'global' ? chatCache.global : (chatCache.friends[activeChatTab.replace('pm_', '')] || []);
+  list.forEach(m => {
+    let div = document.createElement('div'); div.className = `chat-msg ${m.senderId === mySysId ? 'me' : 'other'}`;
+    if (activeChatTab === 'global') {
+      div.innerHTML = `<div style="font-size:10px; color:var(--green); font-family:var(--mono); margin-bottom:2px;">${escapeHtml(m.senderName)} [${escapeHtml(m.senderId)}]</div><div>${escapeHtml(m.text)}</div>`;
+    } else {
+      div.innerHTML = `<div>${escapeHtml(m.text)}</div>`;
+    }
+    msgArea.appendChild(div);
+  });
+  msgArea.scrollTop = msgArea.scrollHeight;
+}
+
+function listenToActiveChannel() {
+  if (unsubPrivateChat) { unsubPrivateChat(); unsubPrivateChat = null; }
+  if (unsubGlobalChat) { unsubGlobalChat(); unsubGlobalChat = null; }
+
+  if (activeChatTab === 'global') {
+    unsubGlobalChat = dbFs.collection('globalChat').orderBy('ts', 'desc').limit(100)
+      .onSnapshot(snap => {
+        chatCache.global = snap.docs.map(d => d.data()).reverse();
+        if (document.getElementById('page-chat').classList.contains('active') && activeChatTab === 'global') renderMessagesArea();
+      }, err => console.warn(err.message));
+  } else {
+    const otherId = activeChatTab.replace('pm_', '');
+    const key = pairKey(mySysId, otherId);
+    unsubPrivateChat = dbFs.collection('privateChats').doc(key).collection('messages').orderBy('ts', 'desc').limit(100)
+      .onSnapshot(snap => {
+        chatCache.friends[otherId] = snap.docs.map(d => d.data()).reverse();
+        if (document.getElementById('page-chat').classList.contains('active') && activeChatTab === ('pm_' + otherId)) renderMessagesArea();
+      }, err => console.warn(err.message));
+  }
+}
+
+async function renderChat() {
+  const tabsList = document.getElementById('chat-tabs-list'); tabsList.innerHTML = '';
+  let globalBtn = document.createElement('button');
+  globalBtn.className = `chat-tab-btn ${activeChatTab === 'global' ? 'active' : ''}`;
+  globalBtn.textContent = "🌐 القناة السيبرانية العامة للغرفة";
+  globalBtn.onclick = () => { activeChatTab = 'global'; renderChat(); };
+  tabsList.appendChild(globalBtn);
+
+  if (friendsCache.length === 0) {
+    try { const meDoc = await dbFs.collection('users').doc(mySysId).get(); friendsCache = meDoc.data().friends || []; } catch (e) { /* تجاهل */ }
+  }
+  friendsCache.forEach(f => {
+    let fTabId = 'pm_' + f.id; let btn = document.createElement('button');
+    btn.className = `chat-tab-btn ${activeChatTab === fTabId ? 'active' : ''}`;
+    btn.textContent = `👤 زملائي: ${f.name}`;
+    btn.onclick = () => { activeChatTab = fTabId; renderChat(); };
+    tabsList.appendChild(btn);
+  });
+
+  listenToActiveChannel();
+  renderMessagesArea();
+}
+
+async function sendChatMessage() {
+  const inp = document.getElementById('chat-msg-input'); const text = inp.value.trim(); if (!text) return;
+  inp.value = '';
+  try {
+    if (activeChatTab === 'global') {
+      await dbFs.collection('globalChat').add({ senderId: mySysId, senderName: myName, text, ts: Date.now() });
+    } else {
+      const otherId = activeChatTab.replace('pm_', '');
+      const key = pairKey(mySysId, otherId);
+      await dbFs.collection('privateChats').doc(key).collection('messages').add({ senderId: mySysId, text, ts: Date.now() });
+    }
+  } catch (e) {
+    alert('تعذّر إرسال الرسالة: ' + e.message);
+  }
+}
+
+function startChatPolling() { /* غير مطلوبة هنا — Firestore بيحدّث لحظياً عبر onSnapshot */ }
+
+function renderProfile() {
+  const content = document.getElementById('profile-content');
+  let totalMins = subjects.reduce((acc, s) => acc + (s.minsPerDay * s.daysPerWeek * 4), 0);
+  let totalHrs = Math.round(totalMins / 60);
+  let rankObj = getRank(totalHrs);
+
+  let subjectBarsHtml = subjects.map(s => {
+    let sHrs = Math.round((s.minsPerDay * s.daysPerWeek * 4) / 60);
+    let pct = Math.min(100, Math.round((sHrs / 100) * 100));
+    return `
+      <div class="progress-bar-wrap">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>${escapeHtml(s.emoji)} ${escapeHtml(s.name)} (${escapeHtml(s.cat)})</span>
+          <span style="font-family:var(--mono); color:var(--green)">${sHrs} ساعة مقدرة / شهر</span>
+        </div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%; background:${s.id % 2 === 0 ? 'var(--gold)' : 'var(--green)'}"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="profile-grid">
+      <div class="profile-card" style="text-align:center;">
+        <div class="rank-circle ${rankObj.c}">${rankObj.r}</div>
+        <div style="font-size:15px; font-weight:bold; color:var(--green); margin-bottom:4px;">${rankObj.l}</div>
+        <div style="font-size:11px; color:var(--text3); font-family:var(--mono);">CURRENT COMBAT RANK SYSTEM MAP</div>
+      </div>
+      <div class="profile-card">
+        <div style="font-size:13px; font-weight:bold; margin-bottom:12px; color:var(--green);">🎯 مصفوفة توزيع وتراكم الساعات التشغيلية المخصصة</div>
+        ${subjectBarsHtml || '<div style="font-size:11px; color:var(--text3)">لا توجد مسارات مخصصة من قبل الطالب لعرض مخطط الكفاءة البياني لها.</div>'}
+      </div>
+    </div>
+
+    <div class="profile-card" style="margin-top:2px; border-right:3px solid var(--green); background:var(--surface);">
+      <div style="font-size:13px; font-weight:bold; margin-bottom:6px; color:var(--green);">💡 توجيهات المنظومة والبروتوكول المعياري للغرفة البيضاء:</div>
+      <div style="font-size:12px; color:var(--text2); line-height:1.7;">
+        إن الحفاظ على خط الالتزام المستمر واستغلال بوابة البث الداخلي الآمن للمصادر الذكية يمنحك أفضلية تجميع الرصيد النقطي التشغيلي المتناهي بدقة (0.001 نقطة/دقيقة). احرص دائماً على موازنة مساراتك بين الجوانب البرمجية واللغوية والإلكترونية لتفادي تلف وOverheating اللوحات والميكروكنترولر، وحافظ على ريادتك الأكاديمية!
+      </div>
+    </div>
+  `;
+}
+
+window.onload = () => { checkAuth(); };
+</script>
+</body>
+</html>
