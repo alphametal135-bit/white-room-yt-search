@@ -96,9 +96,9 @@ body::before {
 .stat-label { font-family: var(--sans); font-size: 11px; color: var(--text3); }
 
 /* ══ SUBJECTS ══ */
-.list-header { display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 110px 40px; gap: 12px; padding: 8px 16px; background: #0A0A0C; color: var(--text3); font-family: var(--sans); font-size: 11px; border: 1px solid var(--border); border-bottom: none; }
+.list-header { display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 40px; gap: 12px; padding: 8px 16px; background: #0A0A0C; color: var(--text3); font-family: var(--sans); font-size: 11px; border: 1px solid var(--border); border-bottom: none; }
 .subjects-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.subject-card { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 110px 40px; align-items: center; gap: 12px; transition: background .12s; position: relative; }
+.subject-card { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 36px 1fr 100px 100px 90px 90px 110px 40px; align-items: center; gap: 12px; transition: background .12s; position: relative; }
 .subject-card::before { content: ''; position: absolute; right: 0; top: 0; width: 3px; height: 100%; background: var(--green); opacity: 0; transition: opacity .2s; }
 .subject-card:hover::before { opacity: 1; }
 .subject-card:hover { background: #1A1A22; }
@@ -114,20 +114,6 @@ body::before {
 .add-btn:hover { border-color: var(--green); color: var(--green); border-style: solid; }
 .study-src-btn { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-family: var(--sans); font-size: 11px; padding: 4px 8px; cursor: pointer; font-weight: bold; width: 100%; text-align: center; }
 .study-src-btn:hover { background: var(--green); color: #000; }
-.ai-quiz-btn { background: var(--gold-dim); border: 1px solid var(--gold); color: var(--gold); font-family: var(--sans); font-size: 11px; padding: 4px 8px; cursor: pointer; font-weight: bold; width: 100%; text-align: center; }
-.ai-quiz-btn:hover { background: var(--gold); color: #000; }
-.ai-quiz-btn:disabled { opacity: 0.5; cursor: wait; }
-/* ══ AI QUIZ MODAL ══ */
-.ai-quiz-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-.ai-quiz-modal-bg.open { display: flex; }
-.ai-quiz-modal { background: var(--surface); border: 1px solid var(--border2); border-top: 3px solid var(--gold); padding: 28px; width: 620px; max-width: 100%; max-height: 88vh; overflow-y: auto; position: relative; }
-.ai-quiz-modal-title { font-size: 15px; font-weight: bold; color: var(--gold); margin-bottom: 6px; }
-.ai-quiz-modal-sub { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-bottom: 18px; }
-.ai-quiz-loading { text-align: center; padding: 40px; }
-.ai-quiz-loading-icon { font-size: 36px; animation: spin 1.2s linear infinite; display: inline-block; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.ai-quiz-close { position: absolute; top: 12px; left: 12px; background: transparent; border: 1px solid var(--border); color: var(--text3); font-family: var(--mono); font-size: 12px; padding: 5px 9px; cursor: pointer; }
-.ai-quiz-close:hover { border-color: var(--red); color: var(--red); }
 
 /* ══ STREAMING INTERFACE ══ */
 .source-viewer-container { display: grid; grid-template-columns: 320px 1fr; gap: 20px; background: var(--surface); border: 1px solid var(--border); padding: 20px; margin-top: 15px; }
@@ -204,6 +190,57 @@ body::before {
 .lb-btn.sent { background: var(--green); color: #000; }
 .lb-btn.view { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
 .lb-btn.view:hover { border-color: var(--gold); color: var(--gold); background: var(--bg2); }
+
+/* ══ MIND GAMES (الشطرنج 3D + الدامة) ══ */
+.mg-wager-note { font-size: 11px; color: var(--text3); line-height: 1.7; background: var(--gold-dim); border: 1px solid var(--gold); padding: 10px 12px; }
+.mg-challenge-btn { font-weight: bold; }
+.mg-challenge-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.mg-card-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+.mg-card { background: var(--surface); padding: 12px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.mg-card-info { flex: 1; min-width: 140px; }
+.mg-card-title { font-weight: bold; font-size: 13px; }
+.mg-card-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+.mg-card-actions { display: flex; gap: 6px; }
+.mg-btn { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-size: 11px; padding: 7px 12px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+.mg-btn:hover { background: var(--green); color: #000; }
+.mg-btn:disabled { opacity: .45; cursor: not-allowed; }
+.mg-btn.decline { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.mg-btn.decline:hover { background: var(--red); color: #fff; }
+.mg-empty-note { font-size: 11px; color: var(--text3); padding: 12px 4px; }
+
+.mg-board-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+#mg-status-banner { padding: 10px 14px; margin-bottom: 14px; font-size: 12px; text-align: center; font-weight: bold; }
+#mg-status-banner.win { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+#mg-status-banner.lose { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+#mg-status-banner.info { background: var(--gold-dim); border: 1px solid var(--gold); color: var(--gold); }
+
+/* الشطرنج — شكل شبه ثلاثي الأبعاد بـ CSS Perspective */
+.mg-chess-stage { perspective: 900px; display: flex; justify-content: center; padding: 30px 10px 60px; }
+.mg-chess-board {
+  width: min(420px, 92vw); aspect-ratio: 1/1; display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr);
+  transform: rotateX(48deg); transform-style: preserve-3d;
+  box-shadow: 0 40px 60px -20px rgba(0,0,0,.7), 0 0 0 6px #1a1410, 0 0 0 10px #3a2a18;
+  border: 2px solid #2a2018;
+}
+.mg-sq { display: flex; align-items: center; justify-content: center; position: relative; font-size: clamp(18px,4.5vw,30px); cursor: pointer; transition: background .12s; user-select: none; }
+.mg-sq.light { background: #d8c6a0; }
+.mg-sq.dark { background: #7a5c3a; }
+.mg-sq.selected { background: var(--green) !important; }
+.mg-sq.legal::after { content: ''; position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(78,168,138,.85); transform: translateZ(2px); }
+.mg-sq.legal-capture { box-shadow: inset 0 0 0 3px var(--red); }
+.mg-piece { transform: translateZ(14px) rotateX(-48deg); display: inline-block; filter: drop-shadow(0 4px 3px rgba(0,0,0,.55)); }
+.mg-piece.white-piece { color: #f5f0e6; -webkit-text-stroke: 1px #2a2018; }
+.mg-piece.black-piece { color: #181410; -webkit-text-stroke: 1px #8a7860; }
+
+/* الدامة */
+.mg-checkers-board {
+  width: min(420px, 92vw); aspect-ratio: 1/1; margin: 24px auto; display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr);
+  border: 3px solid #2a2018; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.mg-dama-piece { width: 78%; height: 78%; border-radius: 50%; box-shadow: inset 0 3px 4px rgba(255,255,255,.25), inset 0 -4px 6px rgba(0,0,0,.4), 0 3px 5px rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; font-size: clamp(12px,3vw,18px); }
+.mg-dama-piece.p1 { background: radial-gradient(circle at 35% 30%, #e8e0d0, #b8a878); }
+.mg-dama-piece.p2 { background: radial-gradient(circle at 35% 30%, #5a3a2a, #2a1810); color: #d8c6a0; }
 
 /* ══ AUTH OVERLAY ══ */
 #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 14px; }
@@ -335,6 +372,7 @@ body::before {
     <button class="tab-btn" onclick="showPage('quiz', this)">التقييم الديناميكي</button>
     <button class="tab-btn" onclick="showPage('friends', this)">الشبكة والزملاء</button>
     <button class="tab-btn" onclick="showPage('leaderboard', this)">قائمة المتفوقين</button>
+    <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 التدريب العقلي</button>
     <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">الدردشة المشتركة</button>
     <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
   </div>
@@ -365,7 +403,6 @@ body::before {
     <div style="text-align:center">ساعات شهرياً</div>
     <div style="text-align:center">الرتبة</div>
     <div style="text-align:center">المصادر الذكية</div>
-    <div style="text-align:center">اختبار AI</div>
     <div></div>
   </div>
   <div class="subjects-list" id="subjects-list"></div>
@@ -463,6 +500,50 @@ body::before {
 <div class="page" id="page-leaderboard">
   <div class="eyebrow">🏆 قائمة المتفوقين — ترتيب كل طلاب المنظومة وفق رصيد نقاط الخبرة التراكمية</div>
   <div id="leaderboard-list-container"></div>
+</div>
+
+<div class="page" id="page-mindgames">
+
+  <div id="mg-lobby-view">
+    <div class="eyebrow">⚔️ إرسال تحدي مباشر لطالب آخر (رهان 50 نقطة)</div>
+    <div class="mg-wager-note">الفائز ياخد <strong>50 نقطة</strong> من رصيد الخاسر تُضاف لنقاطه الأساسية، والخاسر يُخصم من رصيده 50 نقطة. التحدي يبدأ فعلياً بعد ما الطرف التاني يقبله.</div>
+    <div style="display:flex; gap:10px; margin:14px 0; flex-wrap:wrap;">
+      <input type="text" id="mg-target-input" class="auth-input" placeholder="أدخل SYSTEM ID لمنافسك" style="max-width:280px;">
+      <button class="auth-btn mg-challenge-btn" style="width:auto; padding:0 18px; background:var(--green);" onclick="sendGameChallenge('chess')">♞ تحدي شطرنج 3D</button>
+      <button class="auth-btn mg-challenge-btn" style="width:auto; padding:0 18px; background:var(--gold); color:#000;" onclick="sendGameChallenge('checkers')">⚫ تحدي دامة</button>
+    </div>
+    <div class="auth-error" id="mg-err"></div>
+
+    <div class="eyebrow">📨 التحديات الواردة إليك</div>
+    <div id="mg-incoming-list" style="margin-bottom:6px;"></div>
+
+    <div class="eyebrow">🎮 مبارياتي النشطة الآن</div>
+    <div id="mg-active-list"></div>
+  </div>
+
+  <div id="mg-board-view" style="display:none;">
+    <div class="mg-board-header">
+      <div>
+        <div style="font-size:13px; font-weight:bold;" id="mg-opponent-label">ضد: ---</div>
+        <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:2px;" id="mg-turn-label">دورك الآن</div>
+      </div>
+      <button class="modal-cancel" onclick="leaveGameView()">↩ رجوع للقائمة</button>
+      <button class="mg-btn decline" onclick="resignGame()" id="mg-resign-btn">🏳️ استسلام</button>
+    </div>
+
+    <div id="mg-status-banner" style="display:none;"></div>
+
+    <div id="mg-chess-wrap" style="display:none;">
+      <div class="mg-chess-stage">
+        <div class="mg-chess-board" id="mg-chess-board"></div>
+      </div>
+    </div>
+
+    <div id="mg-checkers-wrap" style="display:none;">
+      <div class="mg-checkers-board" id="mg-checkers-board"></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="page" id="page-chat">
@@ -646,16 +727,6 @@ body::before {
   </details>
 </div>
 
-<!-- ══ AI SUBJECT QUIZ MODAL ══ -->
-<div class="ai-quiz-modal-bg" id="ai-quiz-modal-bg">
-  <div class="ai-quiz-modal">
-    <button class="ai-quiz-close" onclick="closeAiQuiz()">✕</button>
-    <div class="ai-quiz-modal-title" id="ai-quiz-modal-title">🤖 اختبار ذكاء اصطناعي</div>
-    <div class="ai-quiz-modal-sub" id="ai-quiz-modal-sub">يتم توليد الأسئلة بالذكاء الاصطناعي حسب مادتك...</div>
-    <div id="ai-quiz-workspace"></div>
-  </div>
-</div>
-
 <!-- موسيقى الخلفية — بتشتغل بس جوه الغرفة البيضاء بعد تسجيل الدخول، مش في شاشة الدخول/التسجيل -->
 <audio id="bg-theme-music" src="buried-theme.mp3" loop preload="none"></audio>
 <button id="bg-music-toggle" onclick="toggleBgMusic()" title="تشغيل/إيقاف الموسيقى" style="position:fixed; bottom:18px; left:18px; z-index:4000; width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--green); font-size:16px; cursor:pointer; display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.5);">🔊</button>
@@ -731,6 +802,20 @@ let incomingRequestsCache = [];
 let chatCache = { global: [], friends: {} };
 let unsubGlobalChat = null;
 let unsubPrivateChat = null;
+
+// ── حالة قسم التدريب العقلي (الشطرنج والدامة) ──
+const GAME_WAGER = 50;
+let mgChallengesUnsub = null;
+let mgActiveGamesUnsub = null;
+let mgGameUnsub = null;
+let mgCurrentGameId = null;
+let mgCurrentGameData = null;
+let mgListenersStarted = false;
+let mgChessSelected = null;
+let mgChessLegalMoves = [];
+let mgCheckersSelected = null;
+let mgCheckersLegalMoves = [];
+let mgPointsApplyInFlight = {};
 
 // ── أمان: تنظيف أي نص قبل إدراجه كـ HTML لمنع XSS ──
 function escapeHtml(str) {
@@ -1325,7 +1410,6 @@ function renderSubjectsList() {
       <div class="pts-display" style="color:var(--text);">${mHours}h</div>
       <div class="pts-display"><span class="grade-A">${sRank}</span></div>
       <div><button class="study-src-btn" onclick="openEmbeddedViewer(${s.id})">تصفح المصادر الدراسية</button></div>
-      <div><button class="ai-quiz-btn" id="ai-quiz-btn-${s.id}" onclick="startAiQuiz(${s.id})">🤖 اختبار AI</button></div>
       <div><button class="del-btn" onclick="deleteSubject(${s.id})">✕</button></div>
     `;
     container.appendChild(card);
@@ -1692,6 +1776,7 @@ function showPage(name, btn) {
   if (name === 'profile') renderProfile();
   if (name === 'friends') renderFriends();
   if (name === 'leaderboard') renderLeaderboard();
+  if (name === 'mindgames') openMindGamesLobby();
   if (name === 'chat') { renderChat(); startChatPolling(); }
   if (name === 'quiz') renderQuiz();
 }
@@ -1811,10 +1896,8 @@ function showQuestion() {
       <div style="text-align:center; padding:35px; background:var(--surface); border:1px solid var(--border);">
         <div style="font-size:46px; color:var(--green); font-family:var(--mono); font-weight:900;">${finalPct}%</div>
         <div style="font-size:14px; margin:12px 0; color:var(--text2); font-weight:bold;">اكتمل بروتوكول التقييم! لقد تمت الإجابة بنجاح على ${quizScore} من أصل ${currentQuizSessionQuestions.length} أسئلة مختلفة.</div>
-        <div style="font-size:13px; color:var(--gold); font-family:var(--mono); margin-bottom:16px;">النقاط المكتسبة المضافة للمحفظة السيادية السيستمية: +${ptsEarned.toFixed(2)} PTS</div>
-        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <button class="auth-btn" style="width:auto; padding:0 24px;" onclick="renderQuiz()">إعادة توليد تقييم جديد بأسئلة مختلفة ↻</button>
-        </div>
+        <div style="font-size:13px; color:var(--gold); font-family:var(--mono);">النقاط المكتسبة المضافة للمحفظة السيادية السيستمية: +${ptsEarned.toFixed(2)} PTS</div>
+        <button class="auth-btn" style="width:auto; margin-top:16px; padding:0 24px;" onclick="renderQuiz()">إعادة توليد تقييم جديد بأسئلة مختلفة ↻</button>
       </div>
     `;
     return;
@@ -2121,6 +2204,679 @@ async function viewStudentProfile(targetId) {
   }
 }
 
+// ════════════════ التدريب العقلي: اللوبي والتحديات (عبر Firestore) ════════════════
+
+function openMindGamesLobby() {
+  document.getElementById('mg-board-view').style.display = 'none';
+  document.getElementById('mg-lobby-view').style.display = '';
+  if (mgGameUnsub) { mgGameUnsub(); mgGameUnsub = null; }
+  mgCurrentGameId = null; mgCurrentGameData = null;
+  if (!mgListenersStarted) {
+    mgListenersStarted = true;
+    startMgChallengesListener();
+    startMgActiveGamesListener();
+  }
+}
+
+function leaveGameView() {
+  if (mgGameUnsub) { mgGameUnsub(); mgGameUnsub = null; }
+  mgCurrentGameId = null; mgCurrentGameData = null;
+  mgChessSelected = null; mgChessLegalMoves = [];
+  mgCheckersSelected = null; mgCheckersLegalMoves = [];
+  document.getElementById('mg-board-view').style.display = 'none';
+  document.getElementById('mg-lobby-view').style.display = '';
+}
+
+async function sendGameChallenge(gameType) {
+  const input = document.getElementById('mg-target-input');
+  const err = document.getElementById('mg-err');
+  err.classList.remove('show'); err.style.color = 'var(--red)';
+  const targetId = (input.value || '').trim().toUpperCase();
+  if (!targetId) { err.textContent = 'من فضلك أدخل SYSTEM ID للمنافس.'; err.classList.add('show'); return; }
+  if (targetId === mySysId) { err.textContent = 'مينفعش تتحدى نفسك.'; err.classList.add('show'); return; }
+  try {
+    const targetDoc = await dbFs.collection('users').doc(targetId).get();
+    if (!targetDoc.exists) { err.textContent = 'خطأ أمني: المعرّف غير مسجل بالمنظومة المركزية.'; err.classList.add('show'); return; }
+    const targetData = targetDoc.data();
+    if (targetData.accountStatus === 'zero_wait') { err.textContent = 'هذا الطالب تحت العقوبة حالياً، لا يمكن تحديه إلا بعد انتهاء مدة الإنذار.'; err.classList.add('show'); return; }
+    await dbFs.collection('users').doc(targetId).collection('gameChallenges').doc(mySysId).set({
+      fromName: myName, gameType: gameType, ts: Date.now()
+    });
+    input.value = '';
+    err.style.color = 'var(--green)';
+    err.textContent = '✓ تم إرسال التحدي، في انتظار رد المنافس.';
+    err.classList.add('show');
+  } catch (e) {
+    err.style.color = 'var(--red)';
+    err.textContent = 'تعذّر إرسال التحدي: ' + e.message;
+    err.classList.add('show');
+  }
+}
+
+function startMgChallengesListener() {
+  if (mgChallengesUnsub) return;
+  mgChallengesUnsub = dbFs.collection('users').doc(mySysId).collection('gameChallenges')
+    .onSnapshot(snap => {
+      const list = document.getElementById('mg-incoming-list');
+      if (!list) return;
+      if (snap.empty) { list.innerHTML = '<div class="mg-empty-note">لا توجد تحديات واردة حالياً.</div>'; return; }
+      const wrap = document.createElement('div'); wrap.className = 'mg-card-list';
+      snap.forEach(doc => {
+        const d = doc.data(); const fromId = doc.id;
+        const card = document.createElement('div'); card.className = 'mg-card';
+        card.innerHTML = `
+          <div class="mg-card-info">
+            <div class="mg-card-title">${escapeHtml(d.fromName || fromId)} — ${d.gameType === 'chess' ? '♞ شطرنج 3D' : '⚫ دامة'}</div>
+            <div class="mg-card-sub">${escapeHtml(fromId)}</div>
+          </div>
+          <div class="mg-card-actions">
+            <button class="mg-btn" onclick="acceptGameChallenge('${fromId}')">✓ قبول</button>
+            <button class="mg-btn decline" onclick="declineGameChallenge('${fromId}')">✕ رفض</button>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+      list.innerHTML = ''; list.appendChild(wrap);
+    }, err => console.warn('mg challenges listener error:', err.message));
+}
+
+async function declineGameChallenge(fromId) {
+  try { await dbFs.collection('users').doc(mySysId).collection('gameChallenges').doc(fromId).delete(); }
+  catch (e) { alert('تعذّر رفض التحدي: ' + e.message); }
+}
+
+async function acceptGameChallenge(fromId) {
+  try {
+    const chDoc = await dbFs.collection('users').doc(mySysId).collection('gameChallenges').doc(fromId).get();
+    if (!chDoc.exists) { alert('هذا التحدي لم يعد متاحاً.'); return; }
+    const d = chDoc.data();
+    const gameType = d.gameType;
+    const fromName = d.fromName || fromId;
+
+    const gameRef = dbFs.collection('games').doc();
+    const initialBoard = gameType === 'chess' ? createInitialChessBoard() : createInitialCheckersBoard();
+
+    const playersObj = {}; playersObj[fromId] = fromName; playersObj[mySysId] = myName;
+    let colors = {};
+    if (gameType === 'chess') { colors[fromId] = 'w'; colors[mySysId] = 'b'; }
+    else { colors[fromId] = 'p1'; colors[mySysId] = 'p2'; }
+
+    await gameRef.set({
+      type: gameType,
+      playerIds: [fromId, mySysId],
+      players: playersObj,
+      colors: colors,
+      board: initialBoard,
+      turn: fromId,
+      status: 'active',
+      winner: null,
+      drawn: false,
+      pointsApplied: false,
+      enPassant: null,
+      castling: { wK: true, wQ: true, bK: true, bQ: true },
+      mustContinueCapture: null,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+
+    await dbFs.collection('users').doc(mySysId).collection('gameChallenges').doc(fromId).delete();
+    openGame(gameRef.id);
+  } catch (e) {
+    alert('تعذّر بدء المباراة: ' + e.message);
+  }
+}
+
+function startMgActiveGamesListener() {
+  if (mgActiveGamesUnsub) return;
+  mgActiveGamesUnsub = dbFs.collection('games').where('playerIds', 'array-contains', mySysId)
+    .onSnapshot(snap => {
+      const list = document.getElementById('mg-active-list');
+      if (!list) return;
+      const games = [];
+      snap.forEach(doc => { const d = doc.data(); if (d.status === 'active') games.push({ id: doc.id, ...d }); });
+      if (games.length === 0) { list.innerHTML = '<div class="mg-empty-note">لا توجد مباريات نشطة حالياً.</div>'; return; }
+      games.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      const wrap = document.createElement('div'); wrap.className = 'mg-card-list';
+      games.forEach(g => {
+        const oppId = g.playerIds.find(id => id !== mySysId);
+        const oppName = g.players[oppId] || oppId;
+        const myTurn = g.turn === mySysId;
+        const card = document.createElement('div'); card.className = 'mg-card';
+        card.innerHTML = `
+          <div class="mg-card-info">
+            <div class="mg-card-title">${g.type === 'chess' ? '♞ شطرنج 3D' : '⚫ دامة'} ضد ${escapeHtml(oppName)}</div>
+            <div class="mg-card-sub">${myTurn ? '🟢 دورك الآن' : '⏳ في انتظار خصمك'}</div>
+          </div>
+          <div class="mg-card-actions">
+            <button class="mg-btn" onclick="openGame('${g.id}')">▶ فتح المباراة</button>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+      list.innerHTML = ''; list.appendChild(wrap);
+    }, err => console.warn('mg active games listener error:', err.message));
+}
+
+function openGame(gameId) {
+  if (mgGameUnsub) { mgGameUnsub(); mgGameUnsub = null; }
+  mgCurrentGameId = gameId;
+  mgChessSelected = null; mgChessLegalMoves = [];
+  mgCheckersSelected = null; mgCheckersLegalMoves = [];
+  document.getElementById('mg-lobby-view').style.display = 'none';
+  document.getElementById('mg-board-view').style.display = '';
+  document.getElementById('mg-status-banner').style.display = 'none';
+
+  mgGameUnsub = dbFs.collection('games').doc(gameId).onSnapshot(doc => {
+    if (!doc.exists) { alert('هذه المباراة لم تعد موجودة.'); leaveGameView(); return; }
+    mgCurrentGameData = { id: doc.id, ...doc.data() };
+    renderMgGame();
+  }, err => console.warn('game listener error:', err.message));
+}
+
+async function resignGame() {
+  if (!mgCurrentGameId || !mgCurrentGameData || mgCurrentGameData.status !== 'active') return;
+  if (!confirm('متأكد إنك عايز تستسلم؟ هتخسر ' + GAME_WAGER + ' نقطة فوراً.')) return;
+  const oppId = mgCurrentGameData.playerIds.find(id => id !== mySysId);
+  try {
+    await dbFs.collection('games').doc(mgCurrentGameId).update({
+      status: 'finished', winner: oppId, drawn: false, updatedAt: Date.now()
+    });
+  } catch (e) {
+    alert('تعذّر تسجيل الاستسلام: ' + e.message);
+  }
+}
+
+function renderMgGame() {
+  const g = mgCurrentGameData;
+  if (!g) return;
+  const oppId = g.playerIds.find(id => id !== mySysId);
+  document.getElementById('mg-opponent-label').textContent = 'ضد: ' + (g.players[oppId] || oppId);
+
+  const banner = document.getElementById('mg-status-banner');
+  const turnLabel = document.getElementById('mg-turn-label');
+
+  if (g.status === 'finished') {
+    turnLabel.textContent = 'انتهت المباراة';
+    banner.style.display = 'block';
+    document.getElementById('mg-resign-btn').style.display = 'none';
+    if (g.drawn) {
+      banner.className = 'info';
+      banner.textContent = '🤝 المباراة انتهت بالتعادل (جمود) — لا تغيير في النقاط.';
+    } else if (g.winner === mySysId) {
+      banner.className = 'win';
+      banner.textContent = `🏆 مبروك! فزت بالمباراة وحصلت على ${GAME_WAGER} نقطة إضافية.`;
+    } else {
+      banner.className = 'lose';
+      banner.textContent = `💔 خسرت المباراة، تم خصم ${GAME_WAGER} نقطة من رصيدك.`;
+    }
+    applyMgGameResultIfNeeded(g);
+  } else {
+    banner.style.display = 'none';
+    document.getElementById('mg-resign-btn').style.display = '';
+    turnLabel.textContent = (g.turn === mySysId) ? '🟢 دورك الآن، اختر قطعة للعب' : '⏳ في انتظار حركة خصمك...';
+  }
+
+  if (g.type === 'chess') {
+    document.getElementById('mg-chess-wrap').style.display = '';
+    document.getElementById('mg-checkers-wrap').style.display = 'none';
+    renderChessBoard(g);
+  } else {
+    document.getElementById('mg-chess-wrap').style.display = 'none';
+    document.getElementById('mg-checkers-wrap').style.display = '';
+    renderCheckersBoard(g);
+  }
+}
+
+async function applyMgGameResultIfNeeded(g) {
+  if (g.pointsApplied || g.drawn) return;
+  if (mgPointsApplyInFlight[g.id]) return;
+  mgPointsApplyInFlight[g.id] = true;
+  try {
+    const gameRef = dbFs.collection('games').doc(g.id);
+    const winnerId = g.winner;
+    const loserId = g.playerIds.find(id => id !== winnerId);
+
+    await dbFs.runTransaction(async (tx) => {
+      const freshGameDoc = await tx.get(gameRef);
+      if (!freshGameDoc.exists) return;
+      const freshGame = freshGameDoc.data();
+      if (freshGame.pointsApplied) return;
+
+      const winnerRef = dbFs.collection('users').doc(winnerId);
+      const loserRef = dbFs.collection('users').doc(loserId);
+      const winnerDoc = await tx.get(winnerRef);
+      const loserDoc = await tx.get(loserRef);
+
+      if (winnerDoc.exists) {
+        const newPts = Math.min(MAX_POINTS, Math.max(0, (parseFloat(winnerDoc.data().points) || 0) + GAME_WAGER));
+        tx.update(winnerRef, { points: newPts });
+      }
+      if (loserDoc.exists) {
+        const newPts = Math.min(MAX_POINTS, Math.max(0, (parseFloat(loserDoc.data().points) || 0) - GAME_WAGER));
+        tx.update(loserRef, { points: newPts });
+      }
+      tx.update(gameRef, { pointsApplied: true });
+    });
+
+    if (winnerId === mySysId) {
+      userPoints = Math.min(MAX_POINTS, userPoints + GAME_WAGER);
+      updateStatusBar();
+      showToast('gain', '🏆 فزت بالمباراة', 'تم إضافة رهان المباراة لرصيد نقاطك الأساسية', '+' + GAME_WAGER);
+    } else if (loserId === mySysId) {
+      userPoints = Math.max(0, userPoints - GAME_WAGER);
+      updateStatusBar();
+      showToast('lose', '💔 خسرت المباراة', 'تم خصم رهان المباراة من رصيد نقاطك الأساسية', '-' + GAME_WAGER);
+    }
+  } catch (e) {
+    console.warn('تعذّر تطبيق نتيجة المباراة:', e.message);
+  } finally {
+    mgPointsApplyInFlight[g.id] = false;
+  }
+}
+
+async function submitMgMove(newBoardState, extraFields) {
+  if (!mgCurrentGameId) return;
+  try {
+    await dbFs.collection('games').doc(mgCurrentGameId).update(Object.assign({
+      board: newBoardState,
+      updatedAt: Date.now()
+    }, extraFields));
+  } catch (e) {
+    alert('تعذّر تسجيل الحركة: ' + e.message);
+  }
+}
+
+// ─────────────────────────── محرك الشطرنج 3D ───────────────────────────
+
+function createInitialChessBoard() {
+  const b = Array.from({ length: 8 }, () => Array(8).fill(null));
+  const backRow = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
+  for (let c = 0; c < 8; c++) {
+    b[0][c] = 'b' + backRow[c];
+    b[1][c] = 'bP';
+    b[6][c] = 'wP';
+    b[7][c] = 'w' + backRow[c];
+  }
+  return b;
+}
+
+const MG_CHESS_GLYPHS = { wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙', bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟' };
+
+function mgPieceColor(piece) { return piece ? piece[0] : null; }
+function mgPieceType(piece) { return piece ? piece[1] : null; }
+function mgInBounds(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8; }
+function mgCloneBoard(board) { return board.map(row => row.slice()); }
+
+function mgRawMoves(board, r, c, gameState) {
+  const piece = board[r][c];
+  if (!piece) return [];
+  const color = mgPieceColor(piece);
+  const type = mgPieceType(piece);
+  const enemyColor = color === 'w' ? 'b' : 'w';
+  const moves = [];
+
+  function addIfValid(nr, nc) {
+    if (!mgInBounds(nr, nc)) return false;
+    const target = board[nr][nc];
+    if (target === null) { moves.push({ r: nr, c: nc }); return true; }
+    if (mgPieceColor(target) === enemyColor) { moves.push({ r: nr, c: nc, capture: true }); return false; }
+    return false;
+  }
+
+  if (type === 'P') {
+    const dir = color === 'w' ? -1 : 1;
+    const startRow = color === 'w' ? 6 : 1;
+    const promoRow = color === 'w' ? 0 : 7;
+    if (mgInBounds(r + dir, c) && board[r + dir][c] === null) {
+      moves.push({ r: r + dir, c, promotion: (r + dir === promoRow) });
+      if (r === startRow && board[r + 2 * dir][c] === null) moves.push({ r: r + 2 * dir, c, doubleStep: true });
+    }
+    for (const dc of [-1, 1]) {
+      const nr = r + dir, nc = c + dc;
+      if (mgInBounds(nr, nc)) {
+        const target = board[nr][nc];
+        if (target && mgPieceColor(target) === enemyColor) moves.push({ r: nr, c: nc, capture: true, promotion: (nr === promoRow) });
+        else if (gameState && gameState.enPassant && gameState.enPassant.r === nr && gameState.enPassant.c === nc) moves.push({ r: nr, c: nc, capture: true, enPassant: true });
+      }
+    }
+  } else if (type === 'N') {
+    for (const [dr, dc] of [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]) addIfValid(r + dr, c + dc);
+  } else if (type === 'K') {
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (dr === 0 && dc === 0) continue; addIfValid(r + dr, c + dc); }
+    if (gameState && gameState.castling) {
+      const rights = gameState.castling; const homeRow = color === 'w' ? 7 : 0;
+      if (r === homeRow && c === 4) {
+        if (rights[color + 'K'] && board[homeRow][5] === null && board[homeRow][6] === null) moves.push({ r: homeRow, c: 6, castle: 'K' });
+        if (rights[color + 'Q'] && board[homeRow][3] === null && board[homeRow][2] === null && board[homeRow][1] === null) moves.push({ r: homeRow, c: 2, castle: 'Q' });
+      }
+    }
+  } else {
+    let dirs = [];
+    if (type === 'B' || type === 'Q') dirs = dirs.concat([[-1, -1], [-1, 1], [1, -1], [1, 1]]);
+    if (type === 'R' || type === 'Q') dirs = dirs.concat([[-1, 0], [1, 0], [0, -1], [0, 1]]);
+    for (const [dr, dc] of dirs) {
+      let nr = r + dr, nc = c + dc;
+      while (mgInBounds(nr, nc)) { const cont = addIfValid(nr, nc); if (!cont) break; nr += dr; nc += dc; }
+    }
+  }
+  return moves;
+}
+
+function mgFindKing(board, color) {
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) if (board[r][c] === color + 'K') return { r, c };
+  return null;
+}
+
+function mgIsSquareAttacked(board, r, c, byColor) {
+  for (let rr = 0; rr < 8; rr++) for (let cc = 0; cc < 8; cc++) {
+    const p = board[rr][cc];
+    if (p && mgPieceColor(p) === byColor) {
+      const mtype = mgPieceType(p);
+      if (mtype === 'P') {
+        const dir = byColor === 'w' ? -1 : 1;
+        if (r === rr + dir && (c === cc - 1 || c === cc + 1)) return true;
+      } else if (mtype === 'K') {
+        if (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1 && !(rr === r && cc === c)) return true;
+      } else {
+        const raw = mgRawMoves(board, rr, cc, null);
+        if (raw.some(m => m.r === r && m.c === c)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function mgApplyMoveToBoardSim(board, r, c, move) {
+  const piece = board[r][c];
+  const color = mgPieceColor(piece);
+  board[r][c] = null;
+  let finalPiece = piece;
+  if (move.promotion) finalPiece = color + 'Q';
+  board[move.r][move.c] = finalPiece;
+  if (move.enPassant) { const capturedRow = color === 'w' ? move.r + 1 : move.r - 1; board[capturedRow][move.c] = null; }
+  if (move.castle) {
+    const homeRow = r;
+    if (move.castle === 'K') { board[homeRow][5] = board[homeRow][7]; board[homeRow][7] = null; }
+    else { board[homeRow][3] = board[homeRow][0]; board[homeRow][0] = null; }
+  }
+}
+
+function mgGetLegalMoves(board, r, c, gameState) {
+  const piece = board[r][c];
+  if (!piece) return [];
+  const color = mgPieceColor(piece);
+  const raw = mgRawMoves(board, r, c, gameState);
+  const legal = [];
+  for (const m of raw) {
+    if (m.castle) {
+      const homeRow = r;
+      if (mgIsSquareAttacked(board, homeRow, 4, color === 'w' ? 'b' : 'w')) continue;
+      const passCol = m.castle === 'K' ? 5 : 3;
+      if (mgIsSquareAttacked(board, homeRow, passCol, color === 'w' ? 'b' : 'w')) continue;
+    }
+    const simBoard = mgCloneBoard(board);
+    mgApplyMoveToBoardSim(simBoard, r, c, m);
+    const kingPos = mgFindKing(simBoard, color);
+    if (kingPos && mgIsSquareAttacked(simBoard, kingPos.r, kingPos.c, color === 'w' ? 'b' : 'w')) continue;
+    legal.push(m);
+  }
+  return legal;
+}
+
+function mgHasAnyLegalMove(board, color, gameState) {
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const p = board[r][c];
+    if (p && mgPieceColor(p) === color && mgGetLegalMoves(board, r, c, gameState).length > 0) return true;
+  }
+  return false;
+}
+
+function renderChessBoard(g) {
+  const boardEl = document.getElementById('mg-chess-board');
+  const board = g.board;
+  const myColor = g.colors[mySysId];
+  const isMyTurn = g.turn === mySysId && g.status === 'active';
+  boardEl.innerHTML = '';
+
+  const rowsOrder = myColor === 'b' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  const colsOrder = myColor === 'b' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+
+  for (const r of rowsOrder) {
+    for (const c of colsOrder) {
+      const sq = document.createElement('div');
+      sq.className = 'mg-sq ' + (((r + c) % 2 === 0) ? 'light' : 'dark');
+      const piece = board[r][c];
+      if (piece) {
+        const span = document.createElement('span');
+        span.className = 'mg-piece ' + (mgPieceColor(piece) === 'w' ? 'white-piece' : 'black-piece');
+        span.textContent = MG_CHESS_GLYPHS[piece];
+        sq.appendChild(span);
+      }
+      if (mgChessSelected && mgChessSelected.r === r && mgChessSelected.c === c) sq.classList.add('selected');
+      const lm = mgChessLegalMoves.find(m => m.r === r && m.c === c);
+      if (lm) { sq.classList.add('legal'); if (lm.capture) sq.classList.add('legal-capture'); }
+      sq.onclick = () => onMgChessSquareClick(r, c, g, isMyTurn);
+      boardEl.appendChild(sq);
+    }
+  }
+}
+
+function onMgChessSquareClick(r, c, g, isMyTurn) {
+  if (!isMyTurn) return;
+  const board = g.board;
+  const myColor = g.colors[mySysId];
+  const piece = board[r][c];
+
+  if (mgChessSelected) {
+    const move = mgChessLegalMoves.find(m => m.r === r && m.c === c);
+    if (move) { submitMgChessMove(g, mgChessSelected, move); mgChessSelected = null; mgChessLegalMoves = []; return; }
+  }
+
+  if (piece && mgPieceColor(piece) === myColor) {
+    mgChessSelected = { r, c };
+    mgChessLegalMoves = mgGetLegalMoves(board, r, c, g);
+  } else {
+    mgChessSelected = null; mgChessLegalMoves = [];
+  }
+  renderChessBoard(g);
+}
+
+async function submitMgChessMove(g, from, move) {
+  const board = mgCloneBoard(g.board);
+  const piece = board[from.r][from.c];
+  const color = mgPieceColor(piece);
+  const movedType = mgPieceType(piece);
+
+  let newCastling = Object.assign({}, g.castling);
+  let newEnPassant = null;
+
+  if (movedType === 'K') { newCastling[color + 'K'] = false; newCastling[color + 'Q'] = false; }
+  if (movedType === 'R') {
+    if (from.r === (color === 'w' ? 7 : 0) && from.c === 0) newCastling[color + 'Q'] = false;
+    if (from.r === (color === 'w' ? 7 : 0) && from.c === 7) newCastling[color + 'K'] = false;
+  }
+  const capturedPiece = board[move.r][move.c];
+  if (capturedPiece && mgPieceType(capturedPiece) === 'R') {
+    const oppC = mgPieceColor(capturedPiece);
+    if (move.r === (oppC === 'w' ? 7 : 0) && move.c === 0) newCastling[oppC + 'Q'] = false;
+    if (move.r === (oppC === 'w' ? 7 : 0) && move.c === 7) newCastling[oppC + 'K'] = false;
+  }
+
+  mgApplyMoveToBoardSim(board, from.r, from.c, move);
+  if (move.doubleStep) { const dir = color === 'w' ? -1 : 1; newEnPassant = { r: from.r + dir, c: from.c }; }
+
+  const oppColor = color === 'w' ? 'b' : 'w';
+  const oppId = g.playerIds.find(id => id !== mySysId);
+  const gs = { castling: newCastling, enPassant: newEnPassant };
+
+  const kp = mgFindKing(board, oppColor);
+  const oppInCheck = kp ? mgIsSquareAttacked(board, kp.r, kp.c, color) : false;
+  const oppHasMoves = mgHasAnyLegalMove(board, oppColor, gs);
+
+  let status = 'active', winner = null, drawn = false;
+  if (!oppHasMoves) {
+    status = 'finished';
+    if (oppInCheck) winner = mySysId; else drawn = true;
+  }
+
+  await submitMgMove(board, {
+    turn: status === 'active' ? oppId : g.turn,
+    status, winner, drawn,
+    castling: newCastling,
+    enPassant: newEnPassant,
+    lastMove: { from, to: { r: move.r, c: move.c } }
+  });
+}
+
+// ─────────────────────────── محرك الدامة ───────────────────────────
+
+function createInitialCheckersBoard() {
+  const b = Array.from({ length: 8 }, () => Array(8).fill(null));
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) b[r][c] = 'p1';
+  for (let r = 5; r < 8; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) b[r][c] = 'p2';
+  return b;
+}
+
+function mgCheckersOwner(piece) { return piece ? piece.slice(0, 2) : null; }
+function mgCheckersIsKing(piece) { return piece ? piece.endsWith('K') : false; }
+
+function mgCheckersPieceMoves(board, r, c) {
+  const piece = board[r][c];
+  if (!piece) return { simple: [], captures: [] };
+  const owner = mgCheckersOwner(piece);
+  const enemy = owner === 'p1' ? 'p2' : 'p1';
+  const dirs = mgCheckersIsKing(piece) ? [[-1, -1], [-1, 1], [1, -1], [1, 1]] : (owner === 'p1' ? [[1, -1], [1, 1]] : [[-1, -1], [-1, 1]]);
+  const simple = [], captures = [];
+  for (const [dr, dc] of dirs) {
+    const nr = r + dr, nc = c + dc;
+    if (!mgInBounds(nr, nc)) continue;
+    if (board[nr][nc] === null) simple.push({ r: nr, c: nc });
+    else if (mgCheckersOwner(board[nr][nc]) === enemy) {
+      const jr = nr + dr, jc = nc + dc;
+      if (mgInBounds(jr, jc) && board[jr][jc] === null) captures.push({ r: jr, c: jc, capturedR: nr, capturedC: nc });
+    }
+  }
+  return { simple, captures };
+}
+
+function mgCheckersGetLegalMovesForSquare(board, r, c, mustContinueCapture) {
+  const piece = board[r][c];
+  if (!piece) return [];
+  const owner = mgCheckersOwner(piece);
+
+  if (mustContinueCapture) {
+    if (mustContinueCapture.r !== r || mustContinueCapture.c !== c) return [];
+    return mgCheckersPieceMoves(board, r, c).captures;
+  }
+
+  let anyCaptureExists = false;
+  outer: for (let rr = 0; rr < 8; rr++) for (let cc = 0; cc < 8; cc++) {
+    const p = board[rr][cc];
+    if (p && mgCheckersOwner(p) === owner && mgCheckersPieceMoves(board, rr, cc).captures.length > 0) { anyCaptureExists = true; break outer; }
+  }
+  const mv = mgCheckersPieceMoves(board, r, c);
+  return anyCaptureExists ? mv.captures : mv.simple;
+}
+
+function mgCheckersHasAnyMove(board, owner) {
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const p = board[r][c];
+    if (p && mgCheckersOwner(p) === owner && mgCheckersGetLegalMovesForSquare(board, r, c, null).length > 0) return true;
+  }
+  return false;
+}
+
+function renderCheckersBoard(g) {
+  const boardEl = document.getElementById('mg-checkers-board');
+  const board = g.board;
+  const myOwner = g.colors[mySysId];
+  const isMyTurn = g.turn === mySysId && g.status === 'active';
+  boardEl.innerHTML = '';
+
+  const rowsOrder = myOwner === 'p2' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  const colsOrder = myOwner === 'p2' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+
+  for (const r of rowsOrder) {
+    for (const c of colsOrder) {
+      const sq = document.createElement('div');
+      sq.className = 'mg-sq ' + (((r + c) % 2 === 0) ? 'light' : 'dark');
+      const piece = board[r][c];
+      if (piece) {
+        const pc = document.createElement('div');
+        pc.className = 'mg-dama-piece ' + mgCheckersOwner(piece);
+        pc.textContent = mgCheckersIsKing(piece) ? '♛' : '';
+        sq.appendChild(pc);
+      }
+      if (mgCheckersSelected && mgCheckersSelected.r === r && mgCheckersSelected.c === c) sq.classList.add('selected');
+      const lm = mgCheckersLegalMoves.find(m => m.r === r && m.c === c);
+      if (lm) sq.classList.add('legal');
+      sq.onclick = () => onMgCheckersSquareClick(r, c, g, isMyTurn);
+      boardEl.appendChild(sq);
+    }
+  }
+}
+
+function onMgCheckersSquareClick(r, c, g, isMyTurn) {
+  if (!isMyTurn) return;
+  const board = g.board;
+  const myOwner = g.colors[mySysId];
+  const piece = board[r][c];
+
+  if (mgCheckersSelected) {
+    const move = mgCheckersLegalMoves.find(m => m.r === r && m.c === c);
+    if (move) { submitMgCheckersMove(g, mgCheckersSelected, move); mgCheckersSelected = null; mgCheckersLegalMoves = []; return; }
+  }
+
+  if (piece && mgCheckersOwner(piece) === myOwner) {
+    mgCheckersSelected = { r, c };
+    mgCheckersLegalMoves = mgCheckersGetLegalMovesForSquare(board, r, c, g.mustContinueCapture);
+  } else {
+    mgCheckersSelected = null; mgCheckersLegalMoves = [];
+  }
+  renderCheckersBoard(g);
+}
+
+async function submitMgCheckersMove(g, from, move) {
+  const board = mgCloneBoard(g.board);
+  const piece = board[from.r][from.c];
+  const owner = mgCheckersOwner(piece);
+  let isKing = mgCheckersIsKing(piece);
+
+  board[from.r][from.c] = null;
+  if (move.capturedR !== undefined) board[move.capturedR][move.capturedC] = null;
+
+  const promoRow = owner === 'p1' ? 7 : 0;
+  if (!isKing && move.r === promoRow) isKing = true;
+  board[move.r][move.c] = isKing ? owner + 'K' : owner;
+
+  const wasCapture = move.capturedR !== undefined;
+  let mustContinue = null;
+  if (wasCapture) {
+    const further = mgCheckersPieceMoves(board, move.r, move.c).captures;
+    if (further.length > 0) mustContinue = { r: move.r, c: move.c };
+  }
+
+  const oppOwner = owner === 'p1' ? 'p2' : 'p1';
+  const oppId = g.playerIds.find(id => id !== mySysId);
+
+  let status = 'active', winner = null, nextTurn;
+  if (mustContinue) {
+    nextTurn = mySysId;
+  } else {
+    nextTurn = oppId;
+    const oppHasPieces = board.some(row => row.some(p => p && mgCheckersOwner(p) === oppOwner));
+    const oppHasMove = oppHasPieces && mgCheckersHasAnyMove(board, oppOwner);
+    if (!oppHasPieces || !oppHasMove) { status = 'finished'; winner = mySysId; }
+  }
+
+  await submitMgMove(board, {
+    turn: status === 'active' ? nextTurn : g.turn,
+    status, winner, drawn: false,
+    mustContinueCapture: mustContinue,
+    lastMove: { from, to: { r: move.r, c: move.c } }
+  });
+}
+
 // ════════════════ الدردشة (عبر Firestore - تحديث لحظي حقيقي) ════════════════
 
 function renderMessagesArea() {
@@ -2250,247 +3006,6 @@ function renderProfile() {
       </div>
     </div>
   `;
-}
-
-// ════════════════ اختبار الذكاء الاصطناعي لكل مادة ════════════════
-
-let aiQuizState = {
-  questions: [],
-  index: 0,
-  score: 0,
-  answered: false,
-  subjectName: ''
-};
-
-function closeAiQuiz() {
-  document.getElementById('ai-quiz-modal-bg').classList.remove('open');
-}
-
-// ════ استدعاء الـ AI عبر Netlify Function (بيحل CORS نهائياً) ════
-async function callAI(prompt) {
-  const res = await fetch('/.netlify/functions/ai-proxy', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'HTTP ' + res.status);
-  }
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.text || '';
-}
-
-// ════ تحديد نوع الرابط ════
-function detectLinkType(url) {
-  if (!url) return 'unknown';
-  const u = url.toLowerCase();
-  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
-  // كورسات أونلاين معروفة
-  const coursePatterns = ['udemy.com', 'coursera.org', 'edx.org', 'pluralsight.com',
-    'codecademy.com', 'linkedin.com/learning', 'skillshare.com', 'udacity.com',
-    'codezilla', 'elzero.org', 'codewars.com', 'leetcode.com', 'hackerrank.com'];
-  if (coursePatterns.some(p => u.includes(p))) return 'course';
-  return 'website';
-}
-
-async function startAiQuiz(subjectId) {
-  const s = subjects.find(x => x.id === subjectId);
-  if (!s) return;
-
-  const btn = document.getElementById('ai-quiz-btn-' + subjectId);
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التوليد...'; }
-
-  // الانتقال لصفحة التقييم فوراً
-  const quizTabBtn = document.querySelector('.tab-btn[onclick*="quiz"]');
-  showPage('quiz', quizTabBtn);
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (quizTabBtn) quizTabBtn.classList.add('active');
-
-  const container = document.getElementById('quiz-container');
-
-  // ══ التحقق من نوع المادة ══
-  if (s.sourceType === 'link') {
-    const url = (s.sources && s.sources[0]) ? s.sources[0].url : '';
-    const linkType = detectLinkType(url);
-
-    if (linkType === 'course') {
-      // كورس أونلاين: رسالة واضحة
-      container.innerHTML = `
-        <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
-          <div style="font-size:15px; font-weight:bold; color:var(--gold); margin-bottom:8px;">🎓 ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
-          <div style="font-size:13px; color:var(--text2); line-height:1.9;">
-            معلش، ده رابط كورس أونلاين منظم 📚<br>
-            الكورسات الأونلاين عادةً بتحتوي على <strong style="color:var(--green)">اختبارات ومشاريع داخلية</strong> خاصة بيها — ماينفعش أولّد أسئلة تحل محلها.<br><br>
-            <span style="color:var(--text3); font-size:12px;">✅ الأفضل إنك تكمّل الاختبارات الموجودة جوه الكورس نفسه للحصول على شهادة وتقييم دقيق.</span>
-          </div>
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="renderQuiz()">📝 التقييم الديناميكي العام بدلاً</button>
-        </div>
-      `;
-      if (btn) { btn.disabled = false; btn.textContent = '🤖 اختبار AI'; }
-      return;
-    }
-  }
-
-  // ══ عرض شاشة التحميل ══
-  container.innerHTML = `
-    <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
-      <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">🤖 اختبار AI — ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
-      <div style="font-size:12px; color:var(--text2); line-height:1.6">يتم توليد أسئلة مخصصة بالذكاء الاصطناعي... كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
-    </div>
-    <div style="text-align:center; padding:50px;">
-      <div style="font-size:38px; animation: spin 1.2s linear infinite; display:inline-block;">⚙️</div>
-      <div style="margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--text3); letter-spacing:1px;">يتم تحليل المادة وتوليد الأسئلة...</div>
-    </div>
-  `;
-
-  // ══ بناء الـ prompt حسب نوع المادة ══
-  let prompt = '';
-  const url = (s.sources && s.sources[0]) ? (s.sources[0].url || '') : '';
-  const linkType2 = s.sourceType === 'link' ? detectLinkType(url) : 'subject';
-  const sourceTitles = (s.sources || []).map(src => src.title || src.playlistId || '').filter(Boolean).join('، ');
-
-  if (linkType2 === 'youtube') {
-    prompt = `أنت نظام اختبار تعليمي. المادة اسمها "${s.name}" وهي فيديو أو قناة يوتيوب.
-رابط المصدر: ${url}
-${sourceTitles ? `عنوان المحتوى: ${sourceTitles}` : ''}
-قم بتوليد 10 أسئلة اختيار من متعدد مناسبة لموضوع هذا الفيديو أو القناة. كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
-  } else if (linkType2 === 'website') {
-    prompt = `أنت نظام اختبار تعليمي. المادة اسمها "${s.name}" والمصدر موقع ويب: ${url}
-بناءً على موضوع هذا الموقع ومحتواه، قم بتوليد 10 أسئلة اختيار من متعدد. كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
-  } else {
-    prompt = `أنت نظام اختبار تعليمي متخصص. قم بتوليد 10 أسئلة اختيار من متعدد متنوعة عن مادة "${s.name}" (تصنيف: ${s.cat}).
-${sourceTitles ? `المصادر: ${sourceTitles}` : ''}
-كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب. الأسئلة باللغة المناسبة للمادة.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
-  }
-
-  try {
-    const rawText = await callAI(prompt);
-    const clean = rawText.replace(/```json|```/g, '').trim();
-    const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('لم يتم إيجاد JSON في الرد');
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    if (!parsed.questions || parsed.questions.length === 0) throw new Error('لم يتم توليد أسئلة');
-
-    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a) ونحطها في صفحة التقييم الديناميكي
-    currentQuizSessionQuestions = parsed.questions.map(q => ({
-      q: q.q,
-      o: q.options,
-      a: q.answer
-    }));
-    quizIndex = 0;
-    quizScore = 0;
-
-    // نعيد رسم صفحة التقييم مع الأسئلة الجديدة
-    const container2 = document.getElementById('quiz-container');
-    container2.innerHTML = `
-      <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
-        <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">🤖 اختبار AI — ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
-        <div style="font-size:12px; color:var(--text2); line-height:1.6">تم توليد <strong style="color:var(--green)">${currentQuizSessionQuestions.length} أسئلة</strong> مخصصة بالذكاء الاصطناعي على مادة <strong style="color:var(--green)">${escapeHtml(s.name)}</strong>. كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
-      </div>
-      <div id="quiz-workspace"></div>
-    `;
-    showQuestion();
-  } catch (e) {
-    const container3 = document.getElementById('quiz-container');
-    container3.innerHTML = `
-      <div class="profile-card" style="border-right:4px solid var(--red); margin-bottom:14px;">
-        <div style="font-size:14px; font-weight:bold; color:var(--red); margin-bottom:6px;">⚠️ تعذّر توليد الأسئلة</div>
-        <div style="font-size:12px; color:var(--text2);">${escapeHtml(e.message)}</div>
-      </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="startAiQuiz(${subjectId})">🔄 إعادة المحاولة</button>
-        <button class="auth-btn" style="width:auto; padding:0 20px; background:transparent; border:1px solid var(--border2); color:var(--text2);" onclick="renderQuiz()">التقييم الاعتيادي بدلاً</button>
-      </div>
-    `;
-  } finally {
-    // نرجع الزرار لحالته الأصلية (لو الطالب رجع لصفحة الوحدات)
-    const btn2 = document.getElementById('ai-quiz-btn-' + subjectId);
-    if (btn2) { btn2.disabled = false; btn2.textContent = '🤖 اختبار AI'; }
-    if (btn) { btn.disabled = false; btn.textContent = '🤖 اختبار AI'; }
-  }
-}
-
-function renderAiQuestion() {
-  const area = document.getElementById('ai-quiz-workspace');
-  const { questions, index, score } = aiQuizState;
-
-  if (index >= questions.length) {
-    const pct = Math.round((score / questions.length) * 100);
-    const pts = score * 15;
-    userPoints = Math.min(MAX_POINTS, userPoints + pts);
-    saveUserData();
-    document.getElementById('sb-points').textContent = userPoints.toFixed(4);
-
-    area.innerHTML = `
-      <div style="text-align:center; padding:35px; background:var(--bg2); border:1px solid var(--border);">
-        <div style="font-size:48px; font-family:var(--mono); font-weight:900; color:var(--gold);">${pct}%</div>
-        <div style="font-size:14px; margin:12px 0; color:var(--text2); font-weight:bold;">اكتمل الاختبار! أجبت بشكل صحيح على ${score} من أصل ${questions.length} سؤال.</div>
-        <div style="font-family:var(--mono); font-size:13px; color:var(--green); margin-bottom:20px;">+${pts} نقطة أُضيفت لرصيدك 🎯</div>
-        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <button class="auth-btn" style="width:auto; padding:0 20px; background:var(--gold); color:#000;" onclick="goToDynamicQuiz()">📝 انتقل للتقييم الديناميكي</button>
-          <button class="auth-btn" style="width:auto; padding:0 20px; background:transparent; border:1px solid var(--border2); color:var(--text2);" onclick="closeAiQuiz()">إغلاق</button>
-        </div>
-      </div>`;
-    showToast('gain', `✅ انتهى اختبار ${escapeHtml(aiQuizState.subjectName)}`, `${score}/${questions.length} إجابة صحيحة`, '+' + pts);
-    return;
-  }
-
-  aiQuizState.answered = false;
-  const q = questions[index];
-  const progressPct = Math.round((index / questions.length) * 100);
-  const optsHtml = q.options.map((opt, i) => `
-    <button class="quiz-opt-btn" id="aiq-opt-${i}" onclick="checkAiAnswer(${i})">
-      <span class="quiz-opt-num">${i + 1}</span>
-      <span>${escapeHtml(opt)}</span>
-    </button>`).join('');
-
-  area.innerHTML = `
-    <div style="background:var(--bg2); border:1px solid var(--border); padding:22px; border-radius:4px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font-family:var(--mono); font-size:11px; color:var(--text3);">QUESTION ${index + 1}/${questions.length}</div>
-        <div class="quiz-score-pill">✓ ${score} صحيحة</div>
-      </div>
-      <div class="quiz-progress-track"><div class="quiz-progress-fill" style="width:${progressPct}%"></div></div>
-      <div style="font-size:15px; font-weight:bold; margin-bottom:16px; line-height:1.6; color:#fff;">${escapeHtml(q.q)}</div>
-      <div style="display:flex; flex-direction:column;">${optsHtml}</div>
-    </div>`;
-}
-
-function checkAiAnswer(chosen) {
-  if (aiQuizState.answered) return;
-  aiQuizState.answered = true;
-
-  const q = aiQuizState.questions[aiQuizState.index];
-  document.querySelectorAll('.quiz-opt-btn').forEach((btn, i) => {
-    btn.disabled = true;
-    if (i === q.answer) btn.classList.add('correct');
-    else if (i === chosen) btn.classList.add('wrong');
-  });
-
-  if (chosen === q.answer) {
-    aiQuizState.score++;
-    showToast('gain', '✅ إجابة صحيحة!', `مادة: ${escapeHtml(aiQuizState.subjectName)}`, '+15');
-  } else {
-    showToast('lose', '❌ إجابة خاطئة', `الإجابة الصحيحة: ${escapeHtml(q.options[q.answer])}`, '0');
-  }
-
-  setTimeout(() => { aiQuizState.index++; renderAiQuestion(); }, 1200);
-}
-
-function goToDynamicQuiz() {
-  closeAiQuiz();
-  // الانتقال لتبويب التقييم الديناميكي
-  const quizTab = document.querySelector('.tab-btn[onclick*="quiz"]');
-  showPage('quiz', quizTab);
-  if (quizTab) quizTab.classList.add('active');
 }
 
 window.onload = () => { checkAuth(); };
