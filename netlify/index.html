@@ -229,18 +229,89 @@ body::before {
 .mg-sq.selected { background: var(--green) !important; }
 .mg-sq.legal::after { content: ''; position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(78,168,138,.85); transform: translateZ(2px); }
 .mg-sq.legal-capture { box-shadow: inset 0 0 0 3px var(--red); }
-.mg-piece { transform: translateZ(14px) rotateX(-48deg); display: inline-block; filter: drop-shadow(0 4px 3px rgba(0,0,0,.55)); }
-.mg-piece.white-piece { color: #f5f0e6; -webkit-text-stroke: 1px #2a2018; }
-.mg-piece.black-piece { color: #181410; -webkit-text-stroke: 1px #8a7860; }
+/* قطع الشطرنج ثلاثية الأبعاد */
+.mg-piece {
+  transform: translateZ(0) rotateX(-48deg);
+  display: flex; align-items: center; justify-content: center;
+  width: 82%; height: 82%;
+  position: relative;
+  border-radius: 50% 50% 45% 45%;
+  cursor: pointer;
+}
+
+/* القاعدة المشتركة للقطع */
+.mg-piece::before {
+  content: attr(data-glyph);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(13px, 3.2vw, 22px);
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* قطع بيضاء */
+.mg-piece.white-piece {
+  background: radial-gradient(circle at 35% 25%, #ffffff 0%, #e8dfc8 40%, #c8b890 70%, #a89060 100%);
+  box-shadow:
+    0 1px 0 1px #7a6040,
+    0 3px 0 1px #5a4020,
+    0 5px 0 1px #3a2a10,
+    0 6px 8px rgba(0,0,0,0.6),
+    inset 0 1px 3px rgba(255,255,255,0.9),
+    inset 0 -2px 4px rgba(0,0,0,0.2);
+  border: 1px solid #9a8050;
+}
+.mg-piece.white-piece::before { color: #2a1a0a; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
+
+/* قطع سوداء */
+.mg-piece.black-piece {
+  background: radial-gradient(circle at 35% 25%, #6a5040 0%, #3a2818 40%, #1e1208 70%, #120a04 100%);
+  box-shadow:
+    0 1px 0 1px #0a0604,
+    0 3px 0 1px #080402,
+    0 5px 0 1px #060300,
+    0 6px 8px rgba(0,0,0,0.8),
+    inset 0 1px 3px rgba(120,80,40,0.5),
+    inset 0 -2px 4px rgba(0,0,0,0.6);
+  border: 1px solid #2a1a0a;
+}
+.mg-piece.black-piece::before { color: #e8c880; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
 /* الدامة */
 .mg-checkers-board {
   width: min(420px, 92vw); aspect-ratio: 1/1; margin: 24px auto; display: grid; grid-template-columns: repeat(8,1fr); grid-template-rows: repeat(8,1fr);
   border: 3px solid #2a2018; box-shadow: 0 10px 30px rgba(0,0,0,.5);
 }
-.mg-dama-piece { width: 78%; height: 78%; border-radius: 50%; box-shadow: inset 0 3px 4px rgba(255,255,255,.25), inset 0 -4px 6px rgba(0,0,0,.4), 0 3px 5px rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; font-size: clamp(12px,3vw,18px); }
-.mg-dama-piece.p1 { background: radial-gradient(circle at 35% 30%, #e8e0d0, #b8a878); }
-.mg-dama-piece.p2 { background: radial-gradient(circle at 35% 30%, #5a3a2a, #2a1810); color: #d8c6a0; }
+.mg-dama-piece {
+  width: 78%; height: 78%; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(12px,3vw,18px);
+  position: relative;
+}
+.mg-dama-piece.p1 {
+  background: radial-gradient(circle at 30% 25%, #ffffff, #e0d0b0 40%, #c0a870 70%, #9a8050 100%);
+  box-shadow:
+    0 2px 0 2px #7a6030,
+    0 5px 0 2px #5a4020,
+    0 7px 10px rgba(0,0,0,0.6),
+    inset 0 2px 4px rgba(255,255,255,0.8),
+    inset 0 -3px 5px rgba(0,0,0,0.2);
+  border: 1px solid #9a8050;
+  color: #2a1a00;
+}
+.mg-dama-piece.p2 {
+  background: radial-gradient(circle at 30% 25%, #6a4030, #3a2015 40%, #1e1008 70%, #100604 100%);
+  box-shadow:
+    0 2px 0 2px #080402,
+    0 5px 0 2px #050301,
+    0 7px 10px rgba(0,0,0,0.8),
+    inset 0 2px 4px rgba(120,70,30,0.4),
+    inset 0 -3px 5px rgba(0,0,0,0.5);
+  border: 1px solid #2a1508;
+  color: #e8c870;
+}
 
 /* ══ AUTH OVERLAY ══ */
 #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 14px; }
@@ -526,6 +597,18 @@ body::before {
       <div>
         <div style="font-size:13px; font-weight:bold;" id="mg-opponent-label">ضد: ---</div>
         <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:2px;" id="mg-turn-label">دورك الآن</div>
+      </div>
+      <!-- عداد القطع المدمرة -->
+      <div style="display:flex; gap:18px; align-items:center;">
+        <div style="text-align:center;">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--green); letter-spacing:1px; margin-bottom:3px;">💀 دمّرتها أنت</div>
+          <div id="mg-my-captures" style="font-family:var(--mono); font-size:22px; font-weight:bold; color:var(--green);">0</div>
+        </div>
+        <div style="width:1px; height:36px; background:var(--border);"></div>
+        <div style="text-align:center;">
+          <div style="font-family:var(--mono); font-size:10px; color:var(--red); letter-spacing:1px; margin-bottom:3px;">☠️ دمّرها هو</div>
+          <div id="mg-opp-captures" style="font-family:var(--mono); font-size:22px; font-weight:bold; color:var(--red);">0</div>
+        </div>
       </div>
       <button class="modal-cancel" onclick="leaveGameView()">↩ رجوع للقائمة</button>
       <button class="mg-btn decline" onclick="resignGame()" id="mg-resign-btn">🏳️ استسلام</button>
@@ -2298,9 +2381,12 @@ async function acceptGameChallenge(fromId) {
 
     const playersObj = {}; playersObj[fromId] = fromName; playersObj[mySysId] = myName;
     let colors = {};
+    // fromId = المُرسِل (اللي بعت التحدي) → أبيض يبدأ
+    // mySysId = القابل (اللي قبل التحدي) → أسود
     if (gameType === 'chess') { colors[fromId] = 'w'; colors[mySysId] = 'b'; }
     else { colors[fromId] = 'p1'; colors[mySysId] = 'p2'; }
 
+    const capturedInit = {}; capturedInit[fromId] = 0; capturedInit[mySysId] = 0;
     await gameRef.set({
       type: gameType,
       playerIds: [fromId, mySysId],
@@ -2315,6 +2401,7 @@ async function acceptGameChallenge(fromId) {
       enPassant: null,
       castling: { wK: true, wQ: true, bK: true, bQ: true },
       mustContinueCapture: null,
+      captured: capturedInit,
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
@@ -2395,6 +2482,10 @@ function renderMgGame() {
   if (!g) return;
   const oppId = g.playerIds.find(id => id !== mySysId);
   document.getElementById('mg-opponent-label').textContent = 'ضد: ' + (g.players[oppId] || oppId);
+  // تحديث عداد القطع المدمرة
+  const captured = g.captured || {};
+  document.getElementById('mg-my-captures').textContent = captured[mySysId] || 0;
+  document.getElementById('mg-opp-captures').textContent = captured[oppId] || 0;
 
   const banner = document.getElementById('mg-status-banner');
   const turnLabel = document.getElementById('mg-turn-label');
@@ -2642,6 +2733,8 @@ function renderChessBoard(g) {
   const isMyTurn = g.turn === mySysId && g.status === 'active';
   boardEl.innerHTML = '';
 
+  // اللاعب الأسود يشوف اللوحة من فوق (صفوف 0→7، أعمدة 7→0 عشان يكون قدامه)
+  // اللاعب الأبيض يشوف اللوحة من تحت (صفوف 7→0، أعمدة 0→7 الطبيعية)
   const rowsOrder = myColor === 'b' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
   const colsOrder = myColor === 'b' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
 
@@ -2651,10 +2744,10 @@ function renderChessBoard(g) {
       sq.className = 'mg-sq ' + (((r + c) % 2 === 0) ? 'light' : 'dark');
       const piece = board[r][c];
       if (piece) {
-        const span = document.createElement('span');
-        span.className = 'mg-piece ' + (mgPieceColor(piece) === 'w' ? 'white-piece' : 'black-piece');
-        span.textContent = MG_CHESS_GLYPHS[piece];
-        sq.appendChild(span);
+        const pieceEl = document.createElement('div');
+        pieceEl.className = 'mg-piece ' + (mgPieceColor(piece) === 'w' ? 'white-piece' : 'black-piece');
+        pieceEl.setAttribute('data-glyph', MG_CHESS_GLYPHS[piece]);
+        sq.appendChild(pieceEl);
       }
       if (mgChessSelected && mgChessSelected.r === r && mgChessSelected.c === c) sq.classList.add('selected');
       const lm = mgChessLegalMoves.find(m => m.r === r && m.c === c);
@@ -2668,14 +2761,23 @@ function renderChessBoard(g) {
 function onMgChessSquareClick(r, c, g, isMyTurn) {
   if (!isMyTurn) return;
   const board = g.board;
+  // تحقق مزدوج: من Firestore ومن المتغير المحلي
   const myColor = g.colors[mySysId];
+  if (!myColor) return;
   const piece = board[r][c];
 
   if (mgChessSelected) {
     const move = mgChessLegalMoves.find(m => m.r === r && m.c === c);
-    if (move) { submitMgChessMove(g, mgChessSelected, move); mgChessSelected = null; mgChessLegalMoves = []; return; }
+    if (move) {
+      const selectedPiece = board[mgChessSelected.r][mgChessSelected.c];
+      if (selectedPiece && mgPieceColor(selectedPiece) === myColor) {
+        submitMgChessMove(g, mgChessSelected, move);
+      }
+      mgChessSelected = null; mgChessLegalMoves = []; return;
+    }
   }
 
+  // مسموح فقط بتحديد قطعك الخاصة
   if (piece && mgPieceColor(piece) === myColor) {
     mgChessSelected = { r, c };
     mgChessLegalMoves = mgGetLegalMoves(board, r, c, g);
@@ -2723,11 +2825,18 @@ async function submitMgChessMove(g, from, move) {
     if (oppInCheck) winner = mySysId; else drawn = true;
   }
 
+  // تحديث عداد القطع المدمرة
+  let newCaptured = Object.assign({}, g.captured || {});
+  if (!newCaptured[mySysId]) newCaptured[mySysId] = 0;
+  if (!newCaptured[oppId]) newCaptured[oppId] = 0;
+  if (move.capture) newCaptured[mySysId] = (newCaptured[mySysId] || 0) + 1;
+
   await submitMgMove(board, {
     turn: status === 'active' ? oppId : g.turn,
     status, winner, drawn,
     castling: newCastling,
     enPassant: newEnPassant,
+    captured: newCaptured,
     lastMove: { from, to: { r: move.r, c: move.c } }
   });
 }
@@ -2824,13 +2933,21 @@ function onMgCheckersSquareClick(r, c, g, isMyTurn) {
   if (!isMyTurn) return;
   const board = g.board;
   const myOwner = g.colors[mySysId];
+  if (!myOwner) return;
   const piece = board[r][c];
 
   if (mgCheckersSelected) {
     const move = mgCheckersLegalMoves.find(m => m.r === r && m.c === c);
-    if (move) { submitMgCheckersMove(g, mgCheckersSelected, move); mgCheckersSelected = null; mgCheckersLegalMoves = []; return; }
+    if (move) {
+      const selectedPiece = board[mgCheckersSelected.r][mgCheckersSelected.c];
+      if (selectedPiece && mgCheckersOwner(selectedPiece) === myOwner) {
+        submitMgCheckersMove(g, mgCheckersSelected, move);
+      }
+      mgCheckersSelected = null; mgCheckersLegalMoves = []; return;
+    }
   }
 
+  // مسموح فقط بتحديد قطعك الخاصة
   if (piece && mgCheckersOwner(piece) === myOwner) {
     mgCheckersSelected = { r, c };
     mgCheckersLegalMoves = mgCheckersGetLegalMovesForSquare(board, r, c, g.mustContinueCapture);
@@ -2873,10 +2990,17 @@ async function submitMgCheckersMove(g, from, move) {
     if (!oppHasPieces || !oppHasMove) { status = 'finished'; winner = mySysId; }
   }
 
+  // تحديث عداد القطع المدمرة للدامة
+  let newCaptured = Object.assign({}, g.captured || {});
+  if (!newCaptured[mySysId]) newCaptured[mySysId] = 0;
+  if (!newCaptured[oppId]) newCaptured[oppId] = 0;
+  if (wasCapture) newCaptured[mySysId] = (newCaptured[mySysId] || 0) + 1;
+
   await submitMgMove(board, {
     turn: status === 'active' ? nextTurn : g.turn,
     status, winner, drawn: false,
     mustContinueCapture: mustContinue,
+    captured: newCaptured,
     lastMove: { from, to: { r: move.r, c: move.c } }
   });
 }
