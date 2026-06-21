@@ -2306,7 +2306,7 @@ async function acceptGameChallenge(fromId) {
       playerIds: [fromId, mySysId],
       players: playersObj,
       colors: colors,
-      board: initialBoard,
+      board: JSON.stringify(initialBoard),
       turn: fromId,
       status: 'active',
       winner: null,
@@ -2369,6 +2369,10 @@ function openGame(gameId) {
   mgGameUnsub = dbFs.collection('games').doc(gameId).onSnapshot(doc => {
     if (!doc.exists) { alert('هذه المباراة لم تعد موجودة.'); leaveGameView(); return; }
     mgCurrentGameData = { id: doc.id, ...doc.data() };
+    if (typeof mgCurrentGameData.board === 'string') {
+      try { mgCurrentGameData.board = JSON.parse(mgCurrentGameData.board); }
+      catch (e) { console.warn('تعذّر تحليل بيانات اللوحة:', e.message); }
+    }
     renderMgGame();
   }, err => console.warn('game listener error:', err.message));
 }
@@ -2478,7 +2482,7 @@ async function submitMgMove(newBoardState, extraFields) {
   if (!mgCurrentGameId) return;
   try {
     await dbFs.collection('games').doc(mgCurrentGameId).update(Object.assign({
-      board: newBoardState,
+      board: JSON.stringify(newBoardState),
       updatedAt: Date.now()
     }, extraFields));
   } catch (e) {
