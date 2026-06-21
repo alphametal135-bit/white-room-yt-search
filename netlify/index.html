@@ -2733,10 +2733,10 @@ function renderChessBoard(g) {
   const isMyTurn = g.turn === mySysId && g.status === 'active';
   boardEl.innerHTML = '';
 
-  // الأبيض (w) قطعه في الصفوف 6-7 → يشوف من الصف 7 للفوق = قطعه في الأسفل ✅
-  // الأسود (b) قطعه في الصفوف 0-1 → يشوف من الصف 0 للأسفل = قطعه في الأسفل ✅
-  const rowsOrder = myColor === 'w' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
-  const colsOrder = myColor === 'w' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  // الأبيض (w) قطعه في rows 6-7 → يشوف [0→7] = قطعه تظهر في الأسفل ✅
+  // الأسود (b) قطعه في rows 0-1 → يشوف [7→0] = قطعه تظهر في الأسفل ✅
+  const rowsOrder = myColor === 'w' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  const colsOrder = myColor === 'w' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
 
   for (const r of rowsOrder) {
     for (const c of colsOrder) {
@@ -2906,10 +2906,10 @@ function renderCheckersBoard(g) {
   const isMyTurn = g.turn === mySysId && g.status === 'active';
   boardEl.innerHTML = '';
 
-  // p1 قطعه في الصفوف 0-2 → يشوف من 7 للأسفل (قطعه تظهر تحت)
-  // p2 قطعه في الصفوف 5-7 → يشوف من 0 للأسفل (قطعه تظهر تحت) ← لكن هنا العكس صح
-  const rowsOrder = myOwner === 'p1' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
-  const colsOrder = myOwner === 'p1' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  // p1 قطعه في rows 0-2 → يشوف rows [7→0] = قطعه تظهر في الأسفل ✅
+  // p2 قطعه في rows 5-7 → يشوف rows [0→7] = قطعه تظهر في الأسفل ✅
+  const rowsOrder = myOwner === 'p1' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  const colsOrder = [0, 1, 2, 3, 4, 5, 6, 7];
 
   for (const r of rowsOrder) {
     for (const c of colsOrder) {
