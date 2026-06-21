@@ -1,3 +1,8 @@
+// netlify/functions/ai-proxy.js
+// Proxy لـ Google Gemini API — بيحل مشكلة CORS من المتصفح
+// ضع مفتاح الـ API في Netlify Dashboard → Site Settings → Environment Variables
+// باسم: GEMINI_API_KEY
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -15,34 +20,40 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY غير مضبوط' }),
+      body: JSON.stringify({ error: 'GEMINI_API_KEY غير مضبوط في بيئة Netlify' }),
     };
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(body),
-    });
+    const { prompt } = JSON.parse(event.body);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        }),
+      }
+    );
+
     const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
     return {
-      statusCode: response.status,
+      statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ text }),
     };
   } catch (err) {
     return {
