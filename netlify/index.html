@@ -2733,10 +2733,10 @@ function renderChessBoard(g) {
   const isMyTurn = g.turn === mySysId && g.status === 'active';
   boardEl.innerHTML = '';
 
-  // اللاعب الأسود يشوف اللوحة من فوق (صفوف 0→7، أعمدة 7→0 عشان يكون قدامه)
-  // اللاعب الأبيض يشوف اللوحة من تحت (صفوف 7→0، أعمدة 0→7 الطبيعية)
-  const rowsOrder = myColor === 'b' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
-  const colsOrder = myColor === 'b' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  // الأبيض (w) قطعه في الصفوف 6-7 → يشوف من الصف 7 للفوق = قطعه في الأسفل ✅
+  // الأسود (b) قطعه في الصفوف 0-1 → يشوف من الصف 0 للأسفل = قطعه في الأسفل ✅
+  const rowsOrder = myColor === 'w' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  const colsOrder = myColor === 'w' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
 
   for (const r of rowsOrder) {
     for (const c of colsOrder) {
@@ -2906,8 +2906,10 @@ function renderCheckersBoard(g) {
   const isMyTurn = g.turn === mySysId && g.status === 'active';
   boardEl.innerHTML = '';
 
-  const rowsOrder = myOwner === 'p2' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
-  const colsOrder = myOwner === 'p2' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  // p1 قطعه في الصفوف 0-2 → يشوف من 7 للأسفل (قطعه تظهر تحت)
+  // p2 قطعه في الصفوف 5-7 → يشوف من 0 للأسفل (قطعه تظهر تحت) ← لكن هنا العكس صح
+  const rowsOrder = myOwner === 'p1' ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  const colsOrder = myOwner === 'p1' ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
 
   for (const r of rowsOrder) {
     for (const c of colsOrder) {
