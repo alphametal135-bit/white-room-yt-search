@@ -20,7 +20,6 @@ exports.handler = async (event) => {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.log('ERROR: GEMINI_API_KEY missing');
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
@@ -30,7 +29,6 @@ exports.handler = async (event) => {
 
   try {
     const { prompt } = JSON.parse(event.body);
-    console.log('PROMPT LENGTH:', prompt ? prompt.length : 0);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -44,17 +42,8 @@ exports.handler = async (event) => {
       }
     );
 
-    console.log('GEMINI HTTP STATUS:', response.status);
-
     const data = await response.json();
-    console.log('GEMINI RAW RESPONSE:', JSON.stringify(data).slice(0, 3000));
-
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    console.log('EXTRACTED TEXT LENGTH:', text.length);
-
-    if (!text) {
-      console.log('NO TEXT EXTRACTED - finishReason:', data?.candidates?.[0]?.finishReason, 'promptFeedback:', JSON.stringify(data?.promptFeedback));
-    }
 
     return {
       statusCode: 200,
@@ -65,7 +54,6 @@ exports.handler = async (event) => {
       body: JSON.stringify({ text }),
     };
   } catch (err) {
-    console.log('CATCH ERROR:', err.message);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
