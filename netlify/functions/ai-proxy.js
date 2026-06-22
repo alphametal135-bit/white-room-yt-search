@@ -1,8 +1,6 @@
 // netlify/functions/ai-proxy.js
 // Proxy لـ Google Gemini API — بيحل مشكلة CORS من المتصفح
 
-const fetch = (...args) => import('node-fetch').then(({default: f}) => f(...args));
-
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
