@@ -3402,46 +3402,48 @@ async function chessOnlineHandleFinish(d) {
     const iWon = d.winner === chessOnlineMyColor;
     chessState.gameOverMsg = iWon ? '🏆 فزت بالمباراة! +' + CHESS_POINTS + ' نقطة' : '💀 خسرت المباراة. -' + CHESS_POINTS + ' نقطة';
 
-    // تطبيق النقاط مرة واحدة فقط (بواسطة الفائز)
-    if (iWon && mySysId && chessOnlineGameId) {
+    // تطبيق النقاط — كل لاعب يطبّق على نفسه فقط
+    if (mySysId && chessOnlineGameId) {
       try {
         const gameRef = dbFs.collection('chessGames').doc(chessOnlineGameId);
         const gameSnap = await gameRef.get();
-        if (gameSnap.exists && !gameSnap.data().pointsApplied) {
-          // تحديد IDs
-          const gd = gameSnap.data();
-          const winnerId = d.winner === 'w' ? gd.white : gd.black;
-          const loserId  = d.winner === 'w' ? gd.black : gd.white;
+        if (!gameSnap.exists) return;
+        const gd = gameSnap.data();
 
-          const batch = dbFs.batch();
-          // الفائز يكسب
-          batch.update(dbFs.collection('users').doc(winnerId), {
+        const myPointsKey = iWon ? 'winnerPointsApplied' : 'loserPointsApplied';
+        if (gd[myPointsKey]) {
+          // النقاط اتطبقت من قبل — حدّث المحلي بس من Firestore
+          const freshMe = await dbFs.collection('users').doc(mySysId).get();
+          userPoints = parseFloat(freshMe.data().points) || userPoints;
+          updateStatusBar();
+          return;
+        }
+
+        if (iWon) {
+          // الفائز يضيف نقاطه
+          await dbFs.collection('users').doc(mySysId).update({
             points: firebase.firestore.FieldValue.increment(CHESS_POINTS)
           });
-          // الخاسر يخسر (لا تنزل عن 0)
-          const loserSnap = await dbFs.collection('users').doc(loserId).get();
-          const loserPts = parseFloat(loserSnap.data().points) || 0;
-          const deduct = Math.min(CHESS_POINTS, loserPts);
-          if (deduct > 0) {
-            batch.update(dbFs.collection('users').doc(loserId), {
-              points: firebase.firestore.FieldValue.increment(-deduct)
-            });
-          }
-          // تعليم المباراة بأن النقاط طُبِّقت
-          batch.update(gameRef, { pointsApplied: true });
-          await batch.commit();
-
-          // تحديث النقاط المحلية
+          await gameRef.update({ winnerPointsApplied: true });
           userPoints = Math.min(1000, userPoints + CHESS_POINTS);
           updateStatusBar();
           showToast('gain', '🏆 فزت!', 'تم إضافة ' + CHESS_POINTS + ' نقطة لرصيدك', '+' + CHESS_POINTS);
+        } else {
+          // الخاسر يخصم نقاطه
+          const mySnap = await dbFs.collection('users').doc(mySysId).get();
+          const myPts = parseFloat(mySnap.data().points) || 0;
+          const deduct = Math.min(CHESS_POINTS, myPts);
+          if (deduct > 0) {
+            await dbFs.collection('users').doc(mySysId).update({
+              points: firebase.firestore.FieldValue.increment(-deduct)
+            });
+          }
+          await gameRef.update({ loserPointsApplied: true });
+          userPoints = Math.max(0, userPoints - deduct);
+          updateStatusBar();
+          showToast('lose', '💀 خسرت', 'تم خصم ' + CHESS_POINTS + ' نقطة من رصيدك', '-' + deduct);
         }
       } catch(e) { console.error('chess points error:', e); }
-    } else if (!iWon) {
-      // الخاسر يرى رسالة الخسارة
-      userPoints = Math.max(0, userPoints - CHESS_POINTS);
-      updateStatusBar();
-      showToast('lose', '💀 خسرت', 'تم خصم ' + CHESS_POINTS + ' نقطة من رصيدك', '-' + CHESS_POINTS);
     }
   }
 
