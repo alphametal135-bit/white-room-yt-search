@@ -1,6 +1,4 @@
 // netlify/functions/ai-proxy.js
-// Proxy لـ Google Gemini API — بيحل مشكلة CORS من المتصفح
-
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -23,7 +21,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: 'GEMINI_API_KEY غير مضبوط في بيئة Netlify' }),
+      body: JSON.stringify({ error: 'GEMINI_API_KEY غير موجود' }),
     };
   }
 
@@ -46,21 +44,37 @@ exports.handler = async (event) => {
     );
 
     const data = await response.json();
+
+    // لو في error من Google نرجعه واضح
+    if (data.error) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Google Error: ' + data.error.message + ' (code: ' + data.error.code + ')' }),
+      };
+    }
+
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    if (!text) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: 'Gemini رجع رد فاضي - finishReason: ' + (data?.candidates?.[0]?.finishReason || 'unknown') }),
+      };
+    }
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ text }),
     };
+
   } catch (err) {
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: err.message }),
+      body: JSON.stringify({ error: 'Exception: ' + err.message }),
     };
   }
 };
