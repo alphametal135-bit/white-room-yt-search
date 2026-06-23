@@ -471,7 +471,7 @@ body::before {
     <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
-  <div class="nav-user"><div id="notif-bell-wrap" style="position:relative;cursor:pointer;" onclick="toggleNotifPanel()"><span style="font-size:18px;">🔔</span><span id="notif-badge" style="position:absolute;top:-4px;left:-4px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;text-align:center;line-height:16px;">0</span></div>
+  <div class="nav-user"><div id="notif-bell-wrap" style="position:relative;cursor:pointer;" onclick="toggleNotifPanel()"><span style="font-size:18px;">🔔</span><span id="notif-badge" style="display:none;position:absolute;top:-4px;left:-4px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;text-align:center;line-height:16px;">0</span></div>
     SYSTEM ID: <span class="nav-user-id" id="sb-user-id">------</span>
     <button class="nav-logout" onclick="clearSession()">خروج أمني</button>
   </div>
@@ -703,7 +703,7 @@ body::before {
 
 <!-- ══ ADMIN DASHBOARD PAGE ══ -->
 <div class="page" id="page-admin">
-  <div class="eyebrow">⚙ لوحة تحكم الأدمن — إحصائيات المنظومة والإشعارات <span style="font-family:var(--mono);font-size:10px;color:var(--green);border:1px solid var(--green);padding:2px 7px;margin-right:10px;">● LIVE</span></div>
+  <div class="eyebrow">⚙ لوحة تحكم الأدمن — إحصائيات المنظومة والإشعارات</div>
   <div id="admin-content"><div style="color:var(--text3);font-size:12px;padding:20px;">جاري تحميل البيانات...</div></div>
 </div>
 
@@ -1385,7 +1385,6 @@ async function registerUser() {
   err.classList.remove('show');
 
   if (!name || !email || !pass) { err.textContent = "خطأ أمني: يرجى استكمال كافة الحقول والبيانات"; err.classList.add('show'); return; }
-  if (!/^[a-zA-Z0-9\u0600-\u06FF\s]+$/.test(name)) { err.textContent = "خطأ: الاسم يجب أن يحتوي على حروف وأرقام فقط — الرموز والعلامات غير مسموح بها"; err.classList.add('show'); return; }
   if (pass.length < 6) { err.textContent = "خطأ أمني: كلمة المرور يجب ألا تقل عن 6 خانات تشفيرية"; err.classList.add('show'); return; }
 
   registrationPending = true;
@@ -2262,9 +2261,6 @@ function showPage(name, btn) {
   document.getElementById('page-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
 
-  // إيقاف listener الأدمن لو خرجنا من الصفحة
-  if (name !== 'admin' && adminUnsubscribe) { adminUnsubscribe(); adminUnsubscribe = null; }
-
   if (name === 'tracker') renderTracker();
   if (name === 'profile') renderProfile();
   if (name === 'friends') renderFriends();
@@ -2487,10 +2483,21 @@ async function renderFriends() {
       let fDoc = await dbFs.collection('users').doc(f.id).get();
       let fData = fDoc.exists ? fDoc.data() : { points: 0, lastLoginDate: '---' };
       let div = document.createElement('div'); div.className = 'fr-card'; div.style.marginBottom = '2px';
+      const fPts  = parseFloat(fData.points) || 0;
+      const fUPts = parseFloat(fData.unitPoints) || 0;
+      const fRank = getRank(fPts);
+      const fTier = getTier(fUPts);
       div.innerHTML = `
         <div class="fr-info">
-          <strong>${escapeHtml(f.name)}</strong> <span style="font-family:var(--mono); color:var(--text3);">[${escapeHtml(f.id)}]</span>
-          <div style="font-size:11px; color:var(--gold); margin-top:2px;">النقاط المتراكمة: ${parseFloat(fData.points).toFixed(4)} PTS | المزامنة الأخيرة: ${escapeHtml(fData.lastLoginDate || '---')}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong>${escapeHtml(f.name)}</strong>
+            <span class="${fRank.c}" style="font-family:var(--mono);font-size:11px;">[${fRank.r}]</span>
+            <span class="tier-badge ${fTier.cls}" style="font-size:9px;padding:1px 6px;">${fTier.emoji} ${fTier.label}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">${escapeHtml(f.id)}</div>
+          <div style="font-size:11px;color:var(--gold);margin-top:3px;">
+            ⭐ ${fPts.toFixed(4)} PTS &nbsp;|&nbsp; 🔷 ${fUPts} وحدة &nbsp;|&nbsp; آخر دخول: ${escapeHtml(fData.lastLoginDate || '---')}
+          </div>
         </div>
         <button class="fr-chat-btn" onclick="openFriendChat('${escapeHtml(f.id)}')">💬 المراسلة الفورية</button>
       `;
@@ -2612,11 +2619,6 @@ async function renderLeaderboard() {
         ? `<img src="${u.photoURL}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;">`
         : `<div style="width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">👤</div>`;
 
-      // رتبة الترقي (TIER) من بيانات المستخدم
-      const uUnitPts = parseFloat(u.unitPoints) || 0;
-      const uTier = getTier(uUnitPts);
-      const tierBadgeHtml = `<span class="tier-badge ${uTier.cls}" style="font-size:9px;padding:1px 6px;margin-right:4px;">${uTier.emoji} ${uTier.label}</span>`;
-
       const row = document.createElement('div');
       row.className = 'lb-row' + (isMe ? ' me' : '');
       row.innerHTML = `
@@ -2624,10 +2626,7 @@ async function renderLeaderboard() {
         ${lbPhotoHtml}
         <div class="lb-info">
           <div class="lb-name">${escapeHtml(u.name || '---')} <span class="${rObj.c}" style="font-family:var(--mono); font-size:11px;">[${rObj.r}]</span></div>
-          <div class="lb-sub" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
-            <span>${escapeHtml(u.id)}</span>
-            ${tierBadgeHtml}
-          </div>
+          <div class="lb-sub">${escapeHtml(u.id)}</div>
           ${isPenalty ? `<div class="lb-penalty-tag">⛔ تحت العقوبة — متبقّي ${daysLeft} يوم</div>` : ''}
         </div>
         <div class="lb-pts">${pts.toFixed(4)} PTS</div>
@@ -2674,8 +2673,10 @@ async function viewStudentProfile(targetId) {
     if (!doc.exists) { body.innerHTML = '<div style="color:var(--red); font-size:12px;">تعذّر العثور على بيانات هذا الطالب.</div>'; return; }
 
     const d = doc.data();
-    const pts = parseFloat(d.points) || 0;
+    const pts  = parseFloat(d.points) || 0;
+    const uPts = parseFloat(d.unitPoints) || 0;
     const rankObj = getRank(pts);
+    const tierObj = getTier(uPts);
     const subjList = (d.data && d.data.subjects) || [];
     document.getElementById('spv-title').textContent = `ملف الطالب — ${d.name || targetId}`;
 
@@ -2706,11 +2707,25 @@ async function viewStudentProfile(targetId) {
       : `<div style="width:80px;height:80px;border-radius:50%;background:var(--bg2);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 10px;">👤</div>`;
 
     body.innerHTML = `
-      <div style="text-align:center; margin-bottom:6px;">
+      <div style="text-align:center; margin-bottom:10px;">
         ${photoHtml}
-        <div class="rank-circle ${rankObj.c}" style="width:64px; height:64px; font-size:20px;">${rankObj.r}</div>
-        <div style="font-size:13px; font-weight:bold; color:var(--green); margin-top:4px;">${rankObj.l}</div>
-        <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:4px;">SYSTEM ID: ${escapeHtml(targetId)} | ${pts.toFixed(4)} / ${MAX_POINTS} PTS</div>
+        <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin:8px 0 4px;">
+          <div style="text-align:center;">
+            <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">RANK</div>
+            <div class="rank-circle ${rankObj.c}" style="width:54px;height:54px;font-size:17px;">${rankObj.r}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">TIER</div>
+            <span class="tier-badge ${tierObj.cls}" style="font-size:13px;padding:8px 12px;display:inline-block;">${tierObj.emoji} ${tierObj.label}</span>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:bold;color:var(--green);margin-top:4px;">${rankObj.l}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px;">SYSTEM ID: ${escapeHtml(targetId)}</div>
+        <div style="font-size:10px;font-family:var(--mono);margin-top:3px;">
+          <span style="color:var(--green);">⭐ ${pts.toFixed(4)} / ${MAX_POINTS} PTS</span>
+          &nbsp;|&nbsp;
+          <span style="color:var(--gold);">🔷 ${uPts} وحدة</span>
+        </div>
       </div>
       ${statusHtml}
       <div style="font-size:12px; font-weight:bold; margin:16px 0 8px; color:var(--green);">🎯 المسارات الدراسية المسجلة</div>
@@ -2812,44 +2827,22 @@ function triggerPhotoUpload() {
 async function handlePhotoUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) {
-    alert('الصورة أكبر من 5MB — اختار صورة أصغر حجماً');
+  if (file.size > 2 * 1024 * 1024) {
+    alert('الصورة أكبر من 2MB — اختار صورة أصغر حجماً');
     return;
   }
-  try {
-    // ضغط الصورة وتصغيرها قبل الحفظ عشان تناسب حد Firestore (1MB للوثيقة)
-    const compressedBase64 = await compressImage(file, 200, 200, 0.7);
-    myPhotoURL = compressedBase64;
-    await dbFs.collection('users').doc(mySysId).update({ photoURL: myPhotoURL });
-    renderProfile();
-    showToast('gain', '✓ تم تحديث الصورة الشخصية', 'تم حفظ صورتك بنجاح', '✓');
-  } catch (err) {
-    alert('تعذّر حفظ الصورة: ' + err.message);
-  }
-}
-
-// ضغط الصورة إلى أبعاد وجودة أصغر عشان تتناسب مع حد Firestore
-function compressImage(file, maxW, maxH, quality) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('فشل قراءة الصورة'));
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('فشل تحميل الصورة'));
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        // تصغير الأبعاد مع الحفاظ على النسبة
-        if (w > h) { if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } }
-        else        { if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; } }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    myPhotoURL = e.target.result; // base64
+    try {
+      await dbFs.collection('users').doc(mySysId).update({ photoURL: myPhotoURL });
+      renderProfile(); // إعادة رسم الملف بالصورة الجديدة
+      showToast('gain', '✓ تم تحديث الصورة الشخصية', 'تم حفظ صورتك بنجاح', '✓');
+    } catch (err) {
+      alert('تعذّر حفظ الصورة: ' + err.message);
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 function getPhotoOrPlaceholder(photoURL, size = 80) {
@@ -4447,7 +4440,6 @@ async function chessDeclineInvite(gameId) {
 const ADMIN_SYS_IDS = ['WR-3512-7926']; // ضع هنا System ID الأدمن
 let notifUnsubscribe = null;
 let notifPanelOpen = false;
-let adminUnsubscribe = null;
 
 function isAdmin() { return ADMIN_SYS_IDS.includes(mySysId); }
 
@@ -4547,16 +4539,12 @@ async function sendNotifToUser(targetSysId, type, title, body) {
 
 // إرسال إشعار لكل الطلاب (للأدمن فقط)
 async function sendNotifToAll(type, title, body, rows) {
-  const CHUNK = 490;
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const chunk = rows.slice(i, i + CHUNK);
-    const batch = dbFs.batch();
-    chunk.forEach(u => {
-      const ref = dbFs.collection('users').doc(u.id).collection('notifications').doc();
-      batch.set(ref, { type, title, body, read: false, ts: Date.now(), fromAdmin: true });
-    });
-    await batch.commit();
-  }
+  const batch = dbFs.batch();
+  rows.forEach(u => {
+    const ref = dbFs.collection('users').doc(u.id).collection('notifications').doc();
+    batch.set(ref, { type, title, body, read: false, ts: Date.now(), fromAdmin: true });
+  });
+  await batch.commit();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -4569,15 +4557,11 @@ async function renderAdmin() {
     return;
   }
 
-  // إذا كان listener شغال بالفعل، متعملش واحد تاني
-  if (adminUnsubscribe) return;
-
   const cont = document.getElementById('admin-content');
   cont.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:20px;">⏳ جاري تحميل بيانات المنظومة...</div>';
 
-  // real-time listener على مجموعة الطلاب
-  adminUnsubscribe = dbFs.collection('users').orderBy('points', 'desc').limit(300)
-    .onSnapshot(async (snap) => {
+  try {
+    const snap = await dbFs.collection('users').orderBy('points', 'desc').limit(300).get();
     const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => u.accountStatus !== 'deleted');
 
     const totalUsers = allUsers.length;
@@ -4731,9 +4715,9 @@ async function renderAdmin() {
     // حفظ allUsers للاستخدام في الإشعارات
     window._adminAllUsers = allUsers;
 
-  }, err => {
-    cont.innerHTML = `<div style="color:var(--red);font-size:12px;padding:20px;">تعذّر تحميل البيانات: ${escapeHtml(err.message)}</div>`;
-  });
+  } catch(e) {
+    cont.innerHTML = `<div style="color:var(--red);font-size:12px;padding:20px;">تعذّر تحميل البيانات: ${escapeHtml(e.message)}</div>`;
+  }
 }
 
 async function adminSendNotif(targetId) {
