@@ -224,6 +224,31 @@ body::before {
 .unit-pts-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: 3px; height: 5px; margin-top: 4px; overflow: hidden; }
 .unit-pts-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width 0.5s ease; border-radius: 3px; }
 
+/* ══ STUDY ROADMAP ══ */
+.roadmap-section { margin-top: 28px; }
+.roadmap-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.roadmap-duration-btn { background: var(--surface); border: 1px solid var(--border2); color: var(--text2); font-family: var(--sans); font-size: 12px; font-weight: 600; padding: 7px 14px; cursor: pointer; transition: all .15s; }
+.roadmap-duration-btn:hover { border-color: var(--green); color: var(--green); }
+.roadmap-duration-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.roadmap-container { display: flex; flex-direction: column; gap: 2px; background: var(--border); border: 1px solid var(--border); }
+.roadmap-row { background: var(--surface); padding: 14px 18px; display: grid; grid-template-columns: 36px 32px 1fr 120px 130px 110px; align-items: center; gap: 14px; transition: background .12s; }
+.roadmap-row:hover { background: #1A1A22; }
+.roadmap-row.priority-1 { border-right: 4px solid var(--red); }
+.roadmap-row.priority-2 { border-right: 4px solid var(--gold); }
+.roadmap-row.priority-3 { border-right: 4px solid var(--green); }
+.roadmap-order { font-family: var(--mono); font-size: 20px; font-weight: 900; color: var(--text3); text-align: center; }
+.roadmap-order.rank1 { color: #F0D060; }
+.roadmap-order.rank2 { color: #C8D0DA; }
+.roadmap-order.rank3 { color: #D8935A; }
+.roadmap-why { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 3px; }
+.roadmap-time-badge { background: var(--bg2); border: 1px solid var(--border); padding: 4px 10px; font-family: var(--mono); font-size: 11px; color: var(--text2); text-align: center; }
+.roadmap-progress-wrap { display: flex; flex-direction: column; gap: 3px; }
+.roadmap-progress-label { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+.roadmap-bar-track { height: 4px; background: var(--bg3); border-radius: 2px; }
+.roadmap-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.roadmap-header { display: grid; grid-template-columns: 36px 32px 1fr 120px 130px 110px; gap: 14px; padding: 8px 18px; background: #0A0A0C; border: 1px solid var(--border); border-bottom: none; color: var(--text3); font-size: 11px; font-family: var(--sans); }
+.roadmap-empty { background: var(--surface); padding: 30px; text-align: center; color: var(--text3); border: 1px dashed var(--border); font-size: 13px; }
+
 /* ══ PROFILE PHOTO ══ */
 .profile-photo-wrap { position:relative; width:96px; height:96px; margin:0 auto 14px; cursor:pointer; }
 .profile-photo-wrap input[type=file]{ display:none; }
@@ -522,6 +547,29 @@ body::before {
         <div style="color:var(--text3); text-align:center; padding-top:20%; font-size:14px;">اختر درساً من القائمة الجانبية لبدء البث المدمج والاحتساب التلقائي</div>
       </div>
     </div>
+  </div>
+
+  <!-- ══ STUDY ROADMAP ══ -->
+  <div class="roadmap-section">
+    <div class="eyebrow">🗺 خريطة المذاكرة — ما تذاكره الأول حسب المدة المختارة</div>
+    <div class="roadmap-controls">
+      <span style="font-size:12px; color:var(--text2); font-weight:bold;">المدة المتاحة للمذاكرة:</span>
+      <button class="roadmap-duration-btn active" onclick="generateRoadmap(7, this)">أسبوع</button>
+      <button class="roadmap-duration-btn" onclick="generateRoadmap(30, this)">شهر</button>
+      <button class="roadmap-duration-btn" onclick="generateRoadmap(60, this)">شهرين</button>
+      <button class="roadmap-duration-btn" onclick="generateRoadmap(90, this)">3 أشهر</button>
+      <button class="roadmap-duration-btn" onclick="generateRoadmap(180, this)">6 أشهر</button>
+      <button class="roadmap-duration-btn" onclick="generateRoadmap(365, this)">سنة</button>
+    </div>
+    <div class="roadmap-header">
+      <div>ترتيب</div>
+      <div>رمز</div>
+      <div>الوحدة</div>
+      <div style="text-align:center">الوقت المتاح</div>
+      <div style="text-align:center">تقدم الرتبة</div>
+      <div style="text-align:center">الأولوية</div>
+    </div>
+    <div id="roadmap-container" class="roadmap-container"></div>
   </div>
 
   <div class="eyebrow">تحليل الحجم الزمني والقدرة التشغيلية المستقبلية</div>
@@ -1851,6 +1899,12 @@ function renderSubjectsList() {
     return;
   }
 
+  // تحديث خريطة المذاكرة مع كل تحديث للقائمة
+  const activeRoadmapBtn = document.querySelector('.roadmap-duration-btn.active');
+  const roadmapDaysMap = {'أسبوع':7,'شهر':30,'شهرين':60,'3 أشهر':90,'6 أشهر':180,'سنة':365};
+  const activeDays = activeRoadmapBtn ? (roadmapDaysMap[activeRoadmapBtn.textContent.trim()] || 7) : 7;
+  setTimeout(() => generateRoadmap(activeDays, null), 50);
+
   subjects.forEach(s => {
     let mHours = Math.round((s.minsPerDay * s.daysPerWeek * 4) / 60);
     let sRank = getHourTier(mHours).r;
@@ -2025,6 +2079,103 @@ async function addSubject() {
 
   saveUserData(); renderSubjectsList(); closeModal();
   nameInput.value = ''; catInput.value = '';
+}
+
+// ════════════════ خريطة المذاكرة ════════════════
+function generateRoadmap(days, btn) {
+  // تحديث الزرار النشط
+  document.querySelectorAll('.roadmap-duration-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const container = document.getElementById('roadmap-container');
+  if (!container) return;
+
+  if (!subjects || subjects.length === 0) {
+    container.innerHTML = '<div class="roadmap-empty">لا توجد وحدات دراسية مضافة بعد. أضف وحداتك أولاً من الزر في الأعلى.</div>';
+    return;
+  }
+
+  // نظام الترتيب: كل وحدة بتاخد score بناءً على:
+  // 1. رتبتها (الأضعف = أولوية أعلى)
+  // 2. عدد ساعات المذاكرة المتاحة خلال المدة دي
+  // 3. نقاط الوحدة (subjectUnitData)
+  const GRADE_ORDER = { 'F': 6, 'D': 5, 'C': 4, 'B': 3, 'A': 2, 'S': 1 };
+
+  const scored = subjects.map(s => {
+    const sUnit = (subjectUnitData && subjectUnitData[s.id]) || { pts: 0, grade: 'F', sCount: 0 };
+    const gradeScore = GRADE_ORDER[sUnit.grade] || 6; // F = أعلى أولوية
+    // ساعات متاحة = (دقائق/يوم × أيام/أسبوع / 7 × عدد الأيام المتاحة) / 60
+    const minsAvailable = Math.round((s.minsPerDay * s.daysPerWeek / 7) * days);
+    const hoursAvailable = (minsAvailable / 60).toFixed(1);
+    // نقاط المذاكرة المحتملة (0.001 × دقائق)
+    const potentialPts = (minsAvailable * 0.001).toFixed(2);
+
+    // priority score: كل ما زاد كل ما الأولوية أعلى
+    const priorityScore = gradeScore * 100 + (1000 - sUnit.pts);
+
+    return { s, sUnit, gradeScore, minsAvailable, hoursAvailable, potentialPts, priorityScore };
+  });
+
+  // ترتيب تنازلي حسب priority score
+  scored.sort((a, b) => b.priorityScore - a.priorityScore);
+
+  const gradeColors = {
+    'F': 'var(--text3)', 'D': '#A0A0B0', 'C': 'var(--green)',
+    'B': '#64A0FF', 'A': 'var(--gold)', 'S': '#FFC800'
+  };
+  const priorityLabels = ['حرج 🔴', 'مهم 🟡', 'جيد 🟢'];
+  const priorityClasses = ['priority-1', 'priority-2', 'priority-3'];
+  const barColors = ['var(--red)', 'var(--gold)', 'var(--green)'];
+
+  const NEXT_GRADE = { 'F': 'D', 'D': 'C', 'C': 'B', 'B': 'A', 'A': 'S', 'S': 'S' };
+  // نقاط مطلوبة للرتبة التالية (حسب SUBJECT_GRADE_RULES)
+  const GRADE_PTS = { 'F': 0, 'D': 50, 'C': 150, 'B': 300, 'A': 500, 'S': 750 };
+
+  let html = '';
+  scored.forEach((item, idx) => {
+    const { s, sUnit, hoursAvailable, potentialPts } = item;
+    const orderClass = idx === 0 ? 'rank1' : idx === 1 ? 'rank2' : idx === 2 ? 'rank3' : '';
+    const priorityIdx = idx === 0 ? 0 : idx <= 2 ? 1 : 2;
+    const rowClass = priorityClasses[Math.min(priorityIdx, 2)];
+    const barColor = barColors[Math.min(priorityIdx, 2)];
+
+    const currentGradeColor = gradeColors[sUnit.grade] || 'var(--text3)';
+    const nextGrade = NEXT_GRADE[sUnit.grade] || 'S';
+    const ptsNeeded = (GRADE_PTS[nextGrade] || 750) - sUnit.pts;
+    const ptsProgress = sUnit.grade === 'S' ? 100 : Math.max(0, Math.min(100, Math.round((sUnit.pts / (GRADE_PTS[nextGrade] || 750)) * 100)));
+
+    const whyText = sUnit.grade === 'S'
+      ? 'أتقنت هذه الوحدة ✓'
+      : `رتبة ${sUnit.grade} — محتاج ${ptsNeeded > 0 ? ptsNeeded + ' وحدة' : 'مراجعة'} للوصول لـ ${nextGrade}`;
+
+    const priorityLabel = priorityLabels[Math.min(priorityIdx, 2)];
+
+    html += `
+      <div class="roadmap-row ${rowClass}">
+        <div class="roadmap-order ${orderClass}">${idx + 1}</div>
+        <div style="font-size:22px; text-align:center;">${escapeHtml(s.emoji)}</div>
+        <div>
+          <div style="font-size:14px; font-weight:700; color:var(--text);">${escapeHtml(s.name)}</div>
+          <div style="font-size:11px; color:var(--text3); margin-top:1px;">${escapeHtml(s.cat)}</div>
+          <div class="roadmap-why">${whyText}</div>
+        </div>
+        <div class="roadmap-time-badge">
+          <div style="font-size:14px; color:var(--green); font-weight:bold;">${hoursAvailable}h</div>
+          <div style="font-size:9px; color:var(--text3); margin-top:2px;">خلال ${days} يوم</div>
+          <div style="font-size:9px; color:var(--gold);">+${potentialPts} نقطة محتملة</div>
+        </div>
+        <div class="roadmap-progress-wrap">
+          <div class="roadmap-progress-label">تقدم نحو رتبة ${nextGrade}: ${ptsProgress}%</div>
+          <div class="roadmap-bar-track">
+            <div class="roadmap-bar-fill" style="width:${ptsProgress}%; background:${barColor};"></div>
+          </div>
+          <div style="font-size:10px; color:${currentGradeColor}; margin-top:2px; font-family:var(--mono);">رتبة حالية: ${sUnit.grade} (${sUnit.pts} وحدة)</div>
+        </div>
+        <div style="text-align:center; font-size:12px; font-weight:bold; color:${barColor};">${priorityLabel}</div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function openEmbeddedViewer(subjectId) {
