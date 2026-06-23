@@ -1385,6 +1385,7 @@ async function registerUser() {
   err.classList.remove('show');
 
   if (!name || !email || !pass) { err.textContent = "خطأ أمني: يرجى استكمال كافة الحقول والبيانات"; err.classList.add('show'); return; }
+  if (!/^[a-zA-Z0-9\u0600-\u06FF\s]+$/.test(name)) { err.textContent = "خطأ: الاسم يجب أن يحتوي على حروف وأرقام فقط — الرموز والعلامات غير مسموح بها"; err.classList.add('show'); return; }
   if (pass.length < 6) { err.textContent = "خطأ أمني: كلمة المرور يجب ألا تقل عن 6 خانات تشفيرية"; err.classList.add('show'); return; }
 
   registrationPending = true;
