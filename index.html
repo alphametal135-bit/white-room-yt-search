@@ -168,6 +168,20 @@ body::before {
 .chat-tabs { flex: 1; overflow-y: auto; }
 .chat-tab-btn { width: 100%; padding: 12px 16px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text2); font-size: 13px; cursor: pointer; }
 .chat-tab-btn.active { background: var(--bg2); color: var(--green); font-weight: bold; }
+.zaatar-wrap{display:flex;flex-direction:column;height:calc(100vh - 120px);max-width:780px;margin:0 auto;}
+.zaatar-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.zaatar-bubble{max-width:75%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.7;word-break:break-word;}
+.zaatar-bubble.user{background:var(--green-dim);color:var(--green);align-self:flex-end;border-bottom-right-radius:3px;}
+.zaatar-bubble.ai{background:var(--surface2);color:var(--text1);align-self:flex-start;border-bottom-left-radius:3px;border:1px solid var(--border);}
+.zaatar-bubble.ai .zaatar-name{font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:4px;font-weight:bold;}
+.zaatar-bubble.typing{opacity:0.6;}
+.zaatar-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);}
+.zaatar-input-row textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text1);font-family:var(--sans);resize:none;outline:none;height:44px;max-height:120px;overflow-y:auto;}
+.zaatar-input-row button{background:var(--green);color:#000;border:none;border-radius:8px;padding:0 18px;font-size:16px;cursor:pointer;font-weight:bold;transition:opacity .15s;}
+.zaatar-input-row button:disabled{opacity:0.4;cursor:not-allowed;}
+.zaatar-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);}
+.zaatar-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),#2d7a4f);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.zaatar-clear{margin-right:auto;background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer;}
 .chat-main { background: var(--bg2); display: flex; flex-direction: column; }
 .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 .chat-msg { max-width: 75%; padding: 10px 14px; font-size: 13px; line-height: 1.5; border-radius: 4px; }
@@ -494,6 +508,7 @@ body::before {
     <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">الدردشة المشتركة</button>
     <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 تدريب العقل</button>
     <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
+    <button class="tab-btn" onclick="showPage('zaatar', this)">🌿 زعتر</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
   <div class="nav-user"><div id="notif-bell-wrap" style="position:relative;cursor:pointer;" onclick="toggleNotifPanel()"><span style="font-size:18px;">🔔</span><span id="notif-badge" style="display:none;position:absolute;top:-4px;left:-4px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;text-align:center;line-height:16px;">0</span></div>
@@ -750,6 +765,24 @@ body::before {
 </div>
 
 <!-- ══ ADMIN DASHBOARD PAGE ══ -->
+<div class="page" id="page-zaatar">
+  <div class="zaatar-wrap">
+    <div class="zaatar-header">
+      <div class="zaatar-avatar">🌿</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">زعتر</div>
+        <div style="font-size:11px;color:var(--text3);">مساعدك الدراسي الذكي — دايماً هنا</div>
+      </div>
+      <button class="zaatar-clear" onclick="zaatarClear()">🗑 محادثة جديدة</button>
+    </div>
+    <div class="zaatar-msgs" id="zaatar-msgs"></div>
+    <div class="zaatar-input-row">
+      <textarea id="zaatar-input" placeholder="اسأل زعتر أي حاجة..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();zaatarSend();}"></textarea>
+      <button id="zaatar-send-btn" onclick="zaatarSend()">➤</button>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-admin">
   <div class="eyebrow">⚙ لوحة تحكم الأدمن — إحصائيات المنظومة والإشعارات</div>
   <div id="admin-content"><div style="color:var(--text3);font-size:12px;padding:20px;">جاري تحميل البيانات...</div></div>
@@ -2405,9 +2438,105 @@ function resolveFocusCheck(isFocused) {
   resumeActiveVideo();
 }
 
+
+// ════════════════ زعتر — مساعد AI دراسي ════════════════
+const ZAATAR_SYSTEM = `أنت "زعتر"، مساعد دراسي ذكي ومحبوب داخل منظومة THE WHITE ROOM التعليمية.
+شخصيتك:
+- ودود ومشجع ومرح
+- بتتكلم بنفس لغة الطالب تلقائياً — عربي، إنجليزي، فرنساوي، أي لغة يكتب بيها
+- لو كتب عربي ترد عربي، لو كتب English ترد English، وهكذا
+- بتساعد الطلاب في المذاكرة، الفهم، حل المسائل، والتحفيز
+- بتستخدم أمثلة بسيطة وواضحة
+- بتمدح الطالب وبتشجعه لما بيصح أو بيفهم
+- لو الطالب زهق أو تعبان بتحفزه وبتفضل جنبه
+- ردودك مختصرة وواضحة — مش طويلة ومملة
+- ممكن تستخدم emojis بشكل معقول
+- اسمك زعتر وبتفتخر بيه 🌿`;
+
+let zaatarHistory = [];
+let zaatarLoading = false;
+
+function zaatarClear() {
+  zaatarHistory = [];
+  const msgs = document.getElementById('zaatar-msgs');
+  if (msgs) msgs.innerHTML = '';
+  zaatarAddBubble('ai', 'أهلاً! أنا زعتر 🌿 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
+}
+
+function zaatarAddBubble(role, text) {
+  const msgs = document.getElementById('zaatar-msgs');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.className = 'zaatar-bubble ' + role;
+  if (role === 'ai') {
+    div.innerHTML = '<div class="zaatar-name">🌿 زعتر</div>' + text.replace(/\n/g, '<br>');
+  } else {
+    div.textContent = text;
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function zaatarSend() {
+  if (zaatarLoading) return;
+  const input = document.getElementById('zaatar-input');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  input.value = '';
+
+  zaatarAddBubble('user', text);
+  zaatarHistory.push({ role: 'user', content: text });
+
+  zaatarLoading = true;
+  document.getElementById('zaatar-send-btn').disabled = true;
+
+  // typing indicator
+  const msgs = document.getElementById('zaatar-msgs');
+  const typing = document.createElement('div');
+  typing.className = 'zaatar-bubble ai typing';
+  typing.innerHTML = '<div class="zaatar-name">🌿 زعتر</div>يكتب...';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    // Build prompt with history
+    const historyText = zaatarHistory.slice(-10).map(m =>
+      (m.role === 'user' ? 'الطالب: ' : 'زعتر: ') + m.content
+    ).join('\n');
+
+    const fullPrompt = ZAATAR_SYSTEM + '\n\nسجل المحادثة:\n' + historyText;
+
+    const res = await fetch('/.netlify/functions/ai-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: fullPrompt })
+    });
+
+    const data = await res.json();
+    const reply = data.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
+
+    typing.remove();
+    zaatarAddBubble('ai', reply);
+    zaatarHistory.push({ role: 'assistant', content: reply });
+
+  } catch(e) {
+    typing.remove();
+    zaatarAddBubble('ai', 'فيه مشكلة في الاتصال 😕 جرب تاني بعد شوية.');
+    console.error('zaatar error:', e);
+  }
+
+  zaatarLoading = false;
+  document.getElementById('zaatar-send-btn').disabled = false;
+  input.focus();
+}
+
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (name === 'zaatar' && document.getElementById('zaatar-msgs') && document.getElementById('zaatar-msgs').children.length === 0) {
+    setTimeout(() => zaatarClear(), 50);
+  }
 
   document.getElementById('page-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
