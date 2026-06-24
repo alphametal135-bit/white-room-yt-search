@@ -1,94 +1,72 @@
 // netlify/functions/ai-proxy.js
-const https = require('https');
+
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
-      body: '',
-    };
+    return { statusCode: 200, headers: HEADERS, body: '' };
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return { statusCode: 405, headers: HEADERS, body: 'Method Not Allowed' };
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return {
       statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: 'GEMINI_API_KEY غير موجود' }),
+      headers: HEADERS,
+      body: JSON.stringify({ error: 'GEMINI_API_KEY غير موجود في Netlify Environment Variables' }),
     };
   }
 
   try {
     const { prompt } = JSON.parse(event.body);
+    if (!prompt) {
+      return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'prompt مش موجود' }) };
+    }
 
-    const requestBody = JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+      }),
     });
 
-    const result = await new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'generativelanguage.googleapis.com',
-        path: `/v1beta/models/gemini-2.5-flash:generateContent`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-          'Content-Length': Buffer.byteLength(requestBody)
-        }
-      };
+    const data = await res.json();
 
-      const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => resolve({ status: res.statusCode, body: data }));
-      });
-
-      req.on('error', reject);
-      req.write(requestBody);
-      req.end();
-    });
-
-    const data = JSON.parse(result.body);
-
-    if (data.error) {
+    if (!res.ok) {
+      console.error('Gemini error:', JSON.stringify(data));
       return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Google Error: ' + data.error.message + ' (code: ' + data.error.code + ')' }),
+        statusCode: res.status,
+        headers: HEADERS,
+        body: JSON.stringify({ error: data?.error?.message || 'Gemini API error' }),
       };
     }
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    if (!text) {
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: 'Gemini رجع رد فاضي - finishReason: ' + (data?.candidates?.[0]?.finishReason || 'unknown') }),
-      };
-    }
-
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: HEADERS,
       body: JSON.stringify({ text }),
     };
 
   } catch (err) {
+    console.error('proxy error:', err.message);
     return {
       statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: 'Exception: ' + err.message }),
+      headers: HEADERS,
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };
