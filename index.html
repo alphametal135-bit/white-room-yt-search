@@ -419,7 +419,8 @@ body::before {
   background: var(--surface); border: 1.5px solid var(--gold);
   color: var(--gold); font-size: 17px; font-weight: bold;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; margin: 4px auto 0; flex-shrink: 0;
+  cursor: pointer; margin: 20px auto 10px; flex-shrink: 0;
+  align-self: center;
   animation: auth-info-pulse 1.8s ease-in-out infinite;
 }
 @keyframes auth-info-pulse {
@@ -443,7 +444,7 @@ body::before {
 #auth-overlay.hidden { display: none; }
 .auth-box { width: 100%; max-width: 440px; background: var(--surface); border: 1px solid var(--border2); border-top: 3px solid var(--green); padding: 28px; }
 .auth-field { margin-bottom: 16px; }
-.auth-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); padding: 10px; outline: none; }
+.auth-input { width: 100%; height: 42px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); padding: 10px 12px; outline: none; box-sizing: border-box; }
 .auth-btn { width: 100%; padding: 12px; background: var(--green); border: none; color: white; cursor: pointer; font-family: var(--sans); font-size: 12px; font-weight: bold; letter-spacing: 1px; }
 .auth-switch { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text3); }
 .auth-switch a { color: var(--green); cursor: pointer; text-decoration: underline; }
@@ -1092,11 +1093,11 @@ body::before {
     <div class="auth-error" id="login-err"></div>
     <div class="auth-field">
       <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">معرف النظام الموحد SYSTEM ID</label>
-      <input type="text" id="login-id" class="auth-input" placeholder="WR-XXXX-XXXX" style="font-family:var(--mono)">
+      <input type="text" id="login-id" class="auth-input" placeholder="WR-XXXX-XXXX" style="font-family:var(--mono)" onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
     </div>
     <div class="auth-field">
       <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">كلمة المرور PASSWORD</label>
-      <input type="password" id="login-pass" class="auth-input" placeholder="••••••••">
+      <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginWithLoader()">
     </div>
     <button class="auth-btn" id="login-btn" onclick="loginWithLoader()">المصادقة والدخول الموحد ▶</button>
     <div style="text-align:center; margin: 8px 0;">
@@ -1117,15 +1118,15 @@ body::before {
     <div id="reg-s1">
       <div class="auth-field">
         <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">اسم المستخدم الكامل</label>
-        <input type="text" id="reg-name" class="auth-input" placeholder="أدخل اسمك هنا" oninput="this.value=this.value.replace(/[^A-Za-z0-9\u0600-\u06FF\s]/g,'')">
+        <input type="text" id="reg-name" class="auth-input" placeholder="أدخل اسمك هنا" oninput="this.value=this.value.replace(/[^A-Za-z0-90600-06FFs]/g,'')" onkeydown="if(event.key==='Enter') document.getElementById('reg-email').focus()">
       </div>
       <div class="auth-field">
         <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">البريد الإلكتروني الحامي</label>
-        <input type="email" id="reg-email" class="auth-input" placeholder="username@gmail.com">
+        <input type="email" id="reg-email" class="auth-input" placeholder="username@gmail.com" onkeydown="if(event.key==='Enter') document.getElementById('reg-pass').focus()">
       </div>
       <div class="auth-field">
         <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">كلمة المرور الأمنية</label>
-        <input type="password" id="reg-pass" class="auth-input" placeholder="6 خانات كحد أدنى">
+        <input type="password" id="reg-pass" class="auth-input" placeholder="6 خانات كحد أدنى" onkeydown="if(event.key==='Enter') registerUser()">
       </div>
       <button class="auth-btn" onclick="registerUser()">إنشاء وتوليد كود التشفير الموحد ▶</button>
     </div>
@@ -1773,13 +1774,20 @@ function toggleBgMusic() {
 async function registerUser() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value.trim();
+  const pass = document.getElementById('reg-pass').value;
   const err = document.getElementById('reg-err');
   err.classList.remove('show');
+  err.style.color = '';
 
-  if (!name || !email || !pass) { err.textContent = "خطأ أمني: يرجى استكمال كافة الحقول والبيانات"; err.classList.add('show'); return; }
-  if (!/^[A-Za-z0-9\u0600-\u06FF\s]+$/.test(name)) { err.textContent = "اسم المستخدم يجب أن يحتوي على حروف وأرقام فقط (بدون رموز خاصة)"; err.classList.add('show'); return; }
-  if (pass.length < 6) { err.textContent = "خطأ أمني: كلمة المرور يجب ألا تقل عن 6 خانات تشفيرية"; err.classList.add('show'); return; }
+  if (!name) { err.textContent = "⚠ يرجى إدخال اسمك الكامل"; err.classList.add('show'); document.getElementById('reg-name').focus(); return; }
+  if (!email) { err.textContent = "⚠ يرجى إدخال البريد الإلكتروني"; err.classList.add('show'); document.getElementById('reg-email').focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "⚠ صيغة البريد الإلكتروني غير صحيحة"; err.classList.add('show'); document.getElementById('reg-email').focus(); return; }
+  if (!pass) { err.textContent = "⚠ يرجى إدخال كلمة المرور"; err.classList.add('show'); document.getElementById('reg-pass').focus(); return; }
+  if (pass.length < 6) { err.textContent = "⚠ كلمة المرور يجب ألا تقل عن 6 خانات"; err.classList.add('show'); document.getElementById('reg-pass').focus(); return; }
+  if (!/^[A-Za-z0-9\u0600-\u06FF\s]+$/.test(name)) { err.textContent = "⚠ اسم المستخدم يجب أن يحتوي على حروف وأرقام فقط"; err.classList.add('show'); return; }
+
+  const btn = document.querySelector('#reg-s1 .auth-btn');
+  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<span class="auth-btn-loader"></span> جاري إنشاء الحساب...'; btn.disabled = true; }
 
   registrationPending = true;
   try {
@@ -1816,6 +1824,8 @@ async function registerUser() {
     document.getElementById('reg-switch-footer').style.display = 'none';
   } catch (e) {
     registrationPending = false;
+    const btn = document.querySelector('#reg-s1 .auth-btn');
+    if (btn) { btn.classList.remove('loading'); btn.disabled = false; btn.textContent = 'إنشاء وتوليد كود التشفير الموحد ▶'; }
     err.textContent = authErrorToArabic(e); err.classList.add('show');
   }
 }
@@ -1840,13 +1850,29 @@ function loginWithLoader() {
 
 async function login() {
   const id = document.getElementById('login-id').value.trim().toUpperCase();
-  const pass = document.getElementById('login-pass').value.trim();
+  const pass = document.getElementById('login-pass').value;
   const err = document.getElementById('login-err');
   err.classList.remove('show');
+  err.style.color = '';
+
+  if (!id || !id.startsWith('WR-')) {
+    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: WR-XXXX-XXXX";
+    err.classList.add('show');
+    return;
+  }
+  if (!pass) {
+    err.textContent = "يرجى إدخال كلمة المرور";
+    err.classList.add('show');
+    return;
+  }
 
   try {
     const lookup = await dbFs.collection('idLookup').doc(id).get();
-    if (!lookup.exists) { err.textContent = "فشل المصادقة: المعرف الموحد أو كلمة المرور غير صحيحة"; err.classList.add('show'); return; }
+    if (!lookup.exists) {
+      err.textContent = "فشل المصادقة: المعرف الموحد غير موجود في النظام";
+      err.classList.add('show');
+      return;
+    }
     await auth.signInWithEmailAndPassword(lookup.data().email, pass);
     // checkAuth هتتشغل تلقائياً عبر onAuthStateChanged بعد نجاح الدخول
   } catch (e) {
@@ -1858,26 +1884,39 @@ async function forgotPassword() {
   const id = document.getElementById('login-id').value.trim().toUpperCase();
   const err = document.getElementById('login-err');
   err.classList.remove('show');
+  err.style.color = '';
 
-  if (!id || !id.startsWith('WR-')) {
-    err.textContent = 'أدخل SYSTEM ID الخاص بك أولاً في حقل المعرف';
+  if (!id) {
+    err.textContent = '⚠ أدخل SYSTEM ID الخاص بك أولاً في الحقل أعلاه';
     err.classList.add('show');
+    document.getElementById('login-id').focus();
     return;
   }
+  if (!id.startsWith('WR-') || id.length < 12) {
+    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: WR-XXXX-XXXX';
+    err.classList.add('show');
+    document.getElementById('login-id').focus();
+    return;
+  }
+
+  err.style.color = 'var(--text3)';
+  err.textContent = '⏳ جاري البحث عن حسابك...';
+  err.classList.add('show');
 
   try {
     const lookup = await dbFs.collection('idLookup').doc(id).get();
     if (!lookup.exists) {
-      err.textContent = 'المعرف الموحد غير موجود في النظام';
+      err.style.color = '';
+      err.textContent = '⚠ المعرف الموحد غير موجود في النظام';
       err.classList.add('show');
       return;
     }
     const email = lookup.data().email;
     await auth.sendPasswordResetEmail(email);
     err.style.color = 'var(--green)';
-    err.textContent = '✓ تم إرسال رابط إعادة التعيين على بريدك الإلكتروني';
+    err.textContent = '✓ تم إرسال رابط إعادة التعيين على بريدك الإلكتروني — افحص Spam لو ما وصلكش';
     err.classList.add('show');
-    setTimeout(() => { err.style.color = ''; err.classList.remove('show'); }, 5000);
+    setTimeout(() => { err.style.color = ''; err.classList.remove('show'); }, 8000);
   } catch (e) {
     err.style.color = '';
     err.textContent = authErrorToArabic(e);
