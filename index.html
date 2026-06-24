@@ -508,7 +508,7 @@ body::before {
     <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">الدردشة المشتركة</button>
     <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 تدريب العقل</button>
     <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
-    <button class="tab-btn" onclick="showPage('zaatar', this)">🌿 زعتر</button>
+    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 زعتر</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
   <div class="nav-user"><div id="notif-bell-wrap" style="position:relative;cursor:pointer;" onclick="toggleNotifPanel()"><span style="font-size:18px;">🔔</span><span id="notif-badge" style="display:none;position:absolute;top:-4px;left:-4px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;text-align:center;line-height:16px;">0</span></div>
@@ -768,7 +768,7 @@ body::before {
 <div class="page" id="page-zaatar">
   <div class="zaatar-wrap">
     <div class="zaatar-header">
-      <div class="zaatar-avatar">🌿</div>
+      <div class="zaatar-avatar">🤖</div>
       <div>
         <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">زعتر</div>
         <div style="font-size:11px;color:var(--text3);">مساعدك الدراسي الذكي — دايماً هنا</div>
@@ -2451,7 +2451,7 @@ const ZAATAR_SYSTEM = `أنت "زعتر"، مساعد دراسي ذكي ومحب
 - لو الطالب زهق أو تعبان بتحفزه وبتفضل جنبه
 - ردودك مختصرة وواضحة — مش طويلة ومملة
 - ممكن تستخدم emojis بشكل معقول
-- اسمك زعتر وبتفتخر بيه 🌿
+- اسمك زعتر وبتفتخر بيه 🤖
 - لو حد سألك مين الي صنعك أو طوّرك أو برمجك بأي لغة كانت، ردّ إن الي صنعك وطوّرك هو "مهندس أحمد يحيى أحمد"، وإن Google وGemini هم الي بيدربوا النموذج الي أنت مبني عليه 🌿`;
 
 let zaatarHistory = [];
@@ -2461,7 +2461,7 @@ function zaatarClear() {
   zaatarHistory = [];
   const msgs = document.getElementById('zaatar-msgs');
   if (msgs) msgs.innerHTML = '';
-  zaatarAddBubble('ai', 'أهلاً! أنا زعتر 🌿 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
+  zaatarAddBubble('ai', 'أهلاً! أنا زعتر 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
 }
 
 function zaatarAddBubble(role, text) {
@@ -2470,7 +2470,7 @@ function zaatarAddBubble(role, text) {
   const div = document.createElement('div');
   div.className = 'zaatar-bubble ' + role;
   if (role === 'ai') {
-    div.innerHTML = '<div class="zaatar-name">🌿 زعتر</div>' + text.replace(/\n/g, '<br>');
+    div.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>' + text.replace(/\n/g, '<br>');
   } else {
     div.textContent = text;
   }
@@ -2496,7 +2496,7 @@ async function zaatarSend() {
   const msgs = document.getElementById('zaatar-msgs');
   const typing = document.createElement('div');
   typing.className = 'zaatar-bubble ai typing';
-  typing.innerHTML = '<div class="zaatar-name">🌿 زعتر</div>يكتب...';
+  typing.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>يكتب...';
   msgs.appendChild(typing);
   msgs.scrollTop = msgs.scrollHeight;
 
