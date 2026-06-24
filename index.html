@@ -630,14 +630,24 @@ body::after {
 
 /* ══ توهج أحمر لاسم مؤسس النظام ومعرفه (System ID) في أي مكان بالنظام ══ */
 .founder-glow {
-  color: var(--red) !important;
-  font-weight: bold;
-  animation: founder-glow-pulse 1.6s ease-in-out infinite;
+  color: #FF2222 !important;
+  font-weight: 900 !important;
+  animation: founder-glow-pulse 1.4s ease-in-out infinite;
+  display: inline-block;
 }
 @keyframes founder-glow-pulse {
-  0%, 100% { text-shadow: 0 0 3px rgba(220,38,38,.5), 0 0 6px rgba(220,38,38,.3); }
-  50% { text-shadow: 0 0 10px rgba(220,38,38,.95), 0 0 18px rgba(220,38,38,.7); }
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(255,30,30,.9), 0 0 10px rgba(255,30,30,.6), 0 0 20px rgba(255,50,50,.3);
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(255,30,30,1), 0 0 22px rgba(255,30,30,.95), 0 0 44px rgba(255,60,60,.7), 0 0 70px rgba(255,30,30,.4);
+    filter: brightness(1.35);
+  }
 }
+/* صف كامل في الجداول للمؤسس */
+.founder-row td { background: rgba(255,30,30,0.06) !important; }
+.founder-row { border-right: 3px solid #FF2222 !important; }
 
 /* ══ AUTH INFO — أيقونة دائرية صغيرة بدل اللوحة الكبيرة ══ */
 .auth-info-btn {
@@ -3802,14 +3812,21 @@ async function renderLeaderboard() {
         ? `<img src="${u.photoURL}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;">`
         : `<div style="width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">👤</div>`;
 
+      const isFounderRow = u.id === 'WR-3512-7926';
       const row = document.createElement('div');
-      row.className = 'lb-row' + (isMe ? ' me' : '');
+      row.className = 'lb-row' + (isMe ? ' me' : '') + (isFounderRow ? ' founder-row' : '');
+      const lbNameHtml = isFounderRow
+        ? `<span class="founder-glow">احمد__موأسس النظام</span> <span class="${rObj.c}" style="font-family:var(--mono);font-size:11px;">[${rObj.r}]</span>`
+        : `${escapeHtml(u.name || '---')} <span class="${rObj.c}" style="font-family:var(--mono);font-size:11px;">[${rObj.r}]</span>`;
+      const lbSubHtml = isFounderRow
+        ? `<span class="founder-glow" style="font-size:10px;">${escapeHtml(u.id)}</span>`
+        : escapeHtml(u.id);
       row.innerHTML = `
         <div class="lb-rank-num ${topClass}">#${rankPos}</div>
         ${lbPhotoHtml}
         <div class="lb-info">
-          <div class="lb-name">${escapeHtml(u.name || '---')} <span class="${rObj.c}" style="font-family:var(--mono); font-size:11px;">[${rObj.r}]</span></div>
-          <div class="lb-sub">${escapeHtml(u.id)}</div>
+          <div class="lb-name">${lbNameHtml}</div>
+          <div class="lb-sub">${lbSubHtml}</div>
           ${isPenalty ? `<div class="lb-penalty-tag">⛔ تحت العقوبة — متبقّي ${daysLeft} يوم</div>` : ''}
         </div>
         <div class="lb-pts">${pts.toFixed(4)} PTS</div>
@@ -5797,10 +5814,14 @@ async function renderAdmin() {
       const tObj = getTier(uPts);
       const statusColor = u.accountStatus === 'active' ? 'var(--green)' : u.accountStatus === 'probation' ? 'var(--gold)' : 'var(--red)';
       const statusLabel = u.accountStatus === 'active' ? 'نشط' : u.accountStatus === 'probation' ? 'إنذار' : 'انتظار';
+      const isFounder = u.id === 'WR-3512-7926';
+      const founderClass = isFounder ? 'founder-row' : '';
+      const nameDisplay = isFounder ? `<span class="founder-glow">${escapeHtml(u.name || '---')}</span>` : escapeHtml(u.name || '---');
+      const idDisplay = isFounder ? `<span class="founder-glow">${escapeHtml(u.id)}</span>` : `<span style="color:var(--green);">${escapeHtml(u.id)}</span>`;
       return `
-        <tr style="border-bottom:1px solid var(--border);">
-          <td style="padding:8px 10px;font-size:11px;font-family:var(--mono);color:var(--green);">${escapeHtml(u.id)}</td>
-          <td style="padding:8px 10px;font-size:12px;font-weight:bold;">${escapeHtml(u.name || '---')}</td>
+        <tr class="${founderClass}" style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px 10px;font-size:11px;font-family:var(--mono);">${idDisplay}</td>
+          <td style="padding:8px 10px;font-size:12px;font-weight:bold;">${nameDisplay}</td>
           <td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--green);">${pts.toFixed(0)}</td>
           <td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--gold);">${uPts}</td>
           <td style="padding:8px 10px;"><span class="${rObj.c}" style="font-family:var(--mono);font-size:11px;">${rObj.r}</span></td>
@@ -5811,7 +5832,8 @@ async function renderAdmin() {
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
               <button onclick="adminSendNotif('${u.id}')" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--sans);">📨 إشعار</button>
               <button onclick="viewStudentDetail('${u.id}')" style="background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--sans);">📋 ملف</button>
-              <button onclick="openAdminActionModal('${u.id}','${(u.name||u.id).replace(/'/g,\"&apos;\")}')"; style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--sans);">⚖️ إجراء</button>
+              <button onclick="openAdminChat('${u.id}','${(u.name||u.id).replace(/'/g,"&apos;")}');switchAdminTab('chat',document.querySelectorAll('.admin-tab-btn')[1])" style="background:rgba(100,160,255,0.1);border:1px solid #64A0FF;color:#64A0FF;font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--sans);">💬 مراسلة</button>
+              <button onclick="openAdminActionModal('${u.id}','${(u.name||u.id).replace(/'/g,"&apos;")}')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--sans);">⚖️ إجراء</button>
             </div>
           </td>
         </tr>
@@ -5972,14 +5994,18 @@ async function loadAdminChatList() {
 function renderAdminChatList(users) {
   const listEl = document.getElementById('admin-chat-list');
   if (!users.length) { listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">لا يوجد طلاب</div>'; return; }
-  listEl.innerHTML = users.map(u => `
-    <div class="admin-chat-user-item ${adminCurrentChatTarget === u.id ? 'active' : ''}" onclick="openAdminChat('${escapeHtml(u.id)}', '${escapeHtml(u.name || u.id)}')">
+  listEl.innerHTML = users.map(u => {
+    const isF = u.id === 'WR-3512-7926';
+    const nameHtml = isF ? '<span class="founder-glow">احمد__موأسس النظام</span>' : escapeHtml(u.name || '---');
+    const idHtml   = isF ? '<span class="founder-glow" style="font-size:10px;">' + escapeHtml(u.id) + '</span>' : escapeHtml(u.id);
+    return `
+    <div class="admin-chat-user-item ${adminCurrentChatTarget === u.id ? 'active' : ''}" onclick="openAdminChat('${escapeHtml(u.id)}', '${escapeHtml(u.name || u.id)}')" style="${isF ? 'border-right:2px solid #FF2222;background:rgba(255,30,30,0.05);' : ''}">
       <div>
-        <div class="admin-chat-user-name">${escapeHtml(u.name || '---')}</div>
-        <div class="admin-chat-user-id">${escapeHtml(u.id)}</div>
+        <div class="admin-chat-user-name">${nameHtml}</div>
+        <div class="admin-chat-user-id">${idHtml}</div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function filterAdminChatList() {
@@ -6090,7 +6116,10 @@ async function loadAdminActionsList() {
         const sc = u.accountStatus==='active'?'var(--green)':u.accountStatus==='probation'?'var(--gold)':'var(--red)';
         const sl = u.accountStatus==='active'?'نشط':u.accountStatus==='probation'?'إنذار':'انتظار';
         const nm = escapeHtml(u.name||u.id);
-        return '<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-size:11px;font-family:var(--mono);color:var(--green);">'+escapeHtml(u.id)+'</td><td style="padding:8px 10px;font-size:12px;font-weight:bold;">'+nm+'</td><td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--green);">'+parseFloat(u.points||0).toFixed(0)+'</td><td style="padding:8px 10px;font-size:10px;color:'+sc+';font-weight:bold;">'+sl+'</td><td style="padding:8px 10px;"><div style="display:flex;gap:6px;flex-wrap:wrap;"><button onclick="openAdminActionModal(\''+u.id+'\',\''+nm+'\')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer;">⚖️ إجراء</button><button onclick="viewStudentDetail(\''+u.id+'\')" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);font-size:10px;padding:3px 8px;cursor:pointer;">📋 تفاصيل</button></div></td></tr>';
+        const isF2 = u.id === 'WR-3512-7926';
+        const idCell2 = isF2 ? '<span class="founder-glow">'+escapeHtml(u.id)+'</span>' : '<span style="color:var(--green);">'+escapeHtml(u.id)+'</span>';
+        const nmCell2 = isF2 ? '<span class="founder-glow">احمد__موأسس النظام</span>' : nm;
+        return '<tr style="border-bottom:1px solid var(--border);'+(isF2?'border-right:3px solid #FF2222;background:rgba(255,30,30,0.05);':'')+'"><td style="padding:8px 10px;font-size:11px;font-family:var(--mono);">'+idCell2+'</td><td style="padding:8px 10px;font-size:12px;font-weight:bold;">'+nmCell2+'</td><td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--green);">'+parseFloat(u.points||0).toFixed(0)+'</td><td style="padding:8px 10px;font-size:10px;color:'+sc+';font-weight:bold;">'+sl+'</td><td style="padding:8px 10px;"><div style="display:flex;gap:6px;flex-wrap:wrap;"><button onclick="openAdminActionModal(\''+u.id+'\',\''+nm+'\')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-size:10px;padding:3px 8px;cursor:pointer;">⚖️ إجراء</button><button onclick="viewStudentDetail(\''+u.id+'\')" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);font-size:10px;padding:3px 8px;cursor:pointer;">📋 تفاصيل</button></div></td></tr>';
       }).join('')
     + '</tbody></table></div>';
   } catch(e) { el.innerHTML = '<div style="color:var(--red);font-size:12px;">خطأ: '+escapeHtml(e.message)+'</div>'; }
@@ -6149,41 +6178,170 @@ async function executeAdminAction() {
 
 async function viewStudentDetail(uid) {
   const modal = document.getElementById('student-detail-modal-bg');
-  document.getElementById('sdm-name').textContent = '⏳';
-  document.getElementById('sdm-id').textContent = uid;
-  document.getElementById('sdm-body').innerHTML = '';
+  const isFounder = uid === 'WR-3512-7926';
+  document.getElementById('sdm-name').innerHTML = isFounder
+    ? '<span class="founder-glow">احمد__موأسس النظام</span>'
+    : '⏳ جاري التحميل...';
+  document.getElementById('sdm-id').innerHTML = isFounder
+    ? '<span class="founder-glow">' + uid + '</span>'
+    : uid;
+  document.getElementById('sdm-body').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:20px;text-align:center;">⏳ جاري تحميل بيانات الطالب الكاملة...</div>';
   modal.classList.add('open');
   try {
     const snap = await dbFs.collection('users').doc(uid).get();
     if (!snap.exists) { document.getElementById('sdm-body').innerHTML = '<div style="color:var(--red);">لم يُعثر على الطالب</div>'; return; }
     const u = snap.data();
-    document.getElementById('sdm-name').textContent = u.name || uid;
+
+    const displayName = isFounder ? '<span class="founder-glow">احمد__موأسس النظام</span>' : escapeHtml(u.name || uid);
+    document.getElementById('sdm-name').innerHTML = displayName;
+
     const pts = parseFloat(u.points||0), uPts = parseFloat(u.unitPoints||0);
     const rObj = getRank(pts), tObj = getTier(uPts);
     const sl = u.accountStatus==='active'?'🟢 نشط':u.accountStatus==='probation'?'🟡 إنذار':'🔴 انتظار';
-    const subjectsCount = u.subjects ? Object.keys(u.subjects).length : 0;
-    const actSnap = await dbFs.collection('adminActions').where('targetId','==',uid).orderBy('ts','desc').limit(5).get();
-    const actHtml = actSnap.empty ? '<div style="color:var(--text3);font-size:11px;">لا توجد إجراءات سابقة</div>' :
-      actSnap.docs.map(d => { const a=d.data(); return '<div style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;"><span style="color:var(--gold);">'+new Date(a.ts).toLocaleDateString('ar-EG')+'</span> — '+escapeHtml(a.type)+' — '+escapeHtml(a.title)+'</div>'; }).join('');
-    const nm = escapeHtml(u.name||uid);
+    const statusColor = u.accountStatus==='active'?'var(--green)':u.accountStatus==='probation'?'var(--gold)':'var(--red)';
+
+    // بيانات المواد
+    const subjects_u = (u.data && u.data.subjects) || [];
+    const subjectUnitData_u = u.subjectUnitData || {};
+    const quizHistory_u = (u.data && u.data.quizHistory) || [];
+    const doneDays_u = (u.data && u.data.doneDays) || {};
+    const attendanceCount = Object.values(doneDays_u).filter(v=>v).length;
+    const chessUnitPts_u = parseFloat(u.chessUnitPts)||0;
+    const mindUnitPts_u  = parseFloat(u.mindgamesUnitPts)||0;
+    const subjectUnitTotal = Object.values(subjectUnitData_u).reduce((a,v)=>(a+(v.pts||0)),0);
+
+    // الإجراءات السابقة
+    let actHtml = '<div style="color:var(--text3);font-size:11px;padding:6px;">لا توجد إجراءات سابقة</div>';
+    try {
+      const actSnap = await dbFs.collection('adminActions').where('targetId','==',uid).orderBy('ts','desc').limit(5).get();
+      if (!actSnap.empty) {
+        actHtml = actSnap.docs.map(d => {
+          const a=d.data();
+          return '<div style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;"><span style="color:var(--gold);">'+new Date(a.ts).toLocaleDateString('ar-EG')+'</span> — <span style="color:var(--red);">'+escapeHtml(a.type)+'</span> — '+escapeHtml(a.title)+'</div>';
+        }).join('');
+      }
+    } catch(e2) {}
+
+    // جدول المواد
+    const gradeColors = { F:'var(--text3)', D:'#A0A0B0', C:'var(--green)', B:'#64A0FF', A:'var(--gold)', S:'#FFC800' };
+    const subjectsRows = subjects_u.length === 0
+      ? '<tr><td colspan="5" style="padding:12px;text-align:center;color:var(--text3);font-size:11px;">لا توجد مواد مضافة</td></tr>'
+      : subjects_u.map(s => {
+          const su = subjectUnitData_u[s.id] || { pts:0, grade:'F' };
+          const gc = gradeColors[su.grade] || 'var(--text3)';
+          const tier_s = getTier(su.pts||0);
+          const mHours = ((s.minsPerDay * s.daysPerWeek * 4)/60).toFixed(1);
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 10px;font-size:12px;">${escapeHtml(s.emoji||'')} ${escapeHtml(s.name)}</td>
+            <td style="padding:6px 10px;font-size:11px;color:var(--text3);">${escapeHtml(s.cat||'')}</td>
+            <td style="padding:6px 10px;font-family:var(--mono);font-size:13px;font-weight:bold;color:${gc};">${su.grade}</td>
+            <td style="padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--gold);">${su.pts||0} <span style="font-size:9px;color:var(--text3);">وحدة</span></td>
+            <td style="padding:6px 10px;font-size:10px;color:var(--text3);">${s.minsPerDay}د/يوم × ${s.daysPerWeek}أيام = ${mHours}h/شهر</td>
+          </tr>`;
+        }).join('');
+
+    // آخر 5 اختبارات
+    const quizRows = quizHistory_u.length === 0
+      ? '<tr><td colspan="4" style="padding:10px;text-align:center;color:var(--text3);font-size:11px;">لا توجد اختبارات</td></tr>'
+      : quizHistory_u.slice(-5).reverse().map(q => {
+          const gc2 = gradeColors[q.grade] || 'var(--text3)';
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:5px 10px;font-size:11px;">${escapeHtml(q.subjectName||'---')}</td>
+            <td style="padding:5px 10px;font-family:var(--mono);font-size:12px;font-weight:bold;color:${gc2};">${q.grade||'---'}</td>
+            <td style="padding:5px 10px;font-family:var(--mono);font-size:11px;color:var(--green);">${q.score||0}%</td>
+            <td style="padding:5px 10px;font-size:10px;color:var(--text3);">${q.date||'---'}</td>
+          </tr>`;
+        }).join('');
+
+    const nm = (u.name||uid).replace(/'/g,"&apos;");
+
     document.getElementById('sdm-body').innerHTML = `
-      <div class="student-detail-grid">
-        <div class="student-detail-item"><div class="student-detail-label">النقاط التشغيلية</div><div class="student-detail-value" style="color:var(--green);">${pts.toFixed(0)}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">نقاط الوحدة (TIER)</div><div class="student-detail-value" style="color:var(--gold);">${uPts}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">رتبة التميز (RANK)</div><div class="student-detail-value"><span class="${rObj.c}">${rObj.r}</span></div></div>
-        <div class="student-detail-item"><div class="student-detail-label">رتبة الوحدة (TIER)</div><div class="student-detail-value">${tObj.emoji} ${tObj.label}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">حالة الحساب</div><div class="student-detail-value" style="font-size:12px;">${sl}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">آخر دخول</div><div class="student-detail-value" style="font-size:12px;">${u.lastLoginDate||'---'}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">عدد المسارات</div><div class="student-detail-value">${subjectsCount}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">سلسلة الحضور</div><div class="student-detail-value">${u.streak||0} يوم</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">البريد الإلكتروني</div><div class="student-detail-value" style="font-size:11px;">${escapeHtml(u.email||'---')}</div></div>
-        <div class="student-detail-item"><div class="student-detail-label">تاريخ التسجيل</div><div class="student-detail-value" style="font-size:11px;">${u.createdAt?new Date(u.createdAt).toLocaleDateString('ar-EG'):'---'}</div></div>
+      <!-- معلومات رئيسية -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:14px;">
+        <div style="background:var(--bg2);padding:10px 14px;">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">النقاط التشغيلية</div>
+          <div style="font-family:var(--mono);font-size:22px;color:var(--green);font-weight:bold;">${pts.toFixed(1)}<span style="font-size:11px;color:var(--text3);margin-right:4px;">/ 1000</span></div>
+          <div style="height:3px;background:var(--bg3);margin-top:5px;"><div style="height:100%;background:var(--green);width:${Math.min(100,(pts/1000)*100).toFixed(1)}%;"></div></div>
+        </div>
+        <div style="background:var(--bg2);padding:10px 14px;">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">نقاط وحدة الترقي</div>
+          <div style="font-family:var(--mono);font-size:22px;color:var(--gold);font-weight:bold;">${uPts}</div>
+          <div style="margin-top:4px;"><span class="tier-badge ${tObj.cls}" style="font-size:10px;">${tObj.emoji} ${tObj.label}</span></div>
+        </div>
+        <div style="background:var(--bg2);padding:10px 14px;">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">RANK</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:bold;"><span class="${rObj.c}">${rObj.r}</span></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">${rObj.l}</div>
+        </div>
+        <div style="background:var(--bg2);padding:10px 14px;">
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;">حالة الحساب</div>
+          <div style="font-size:14px;font-weight:bold;color:${statusColor};">${sl}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">آخر دخول: ${u.lastLoginDate||'---'}</div>
+        </div>
       </div>
-      <div style="margin-top:14px;font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:8px;">⚖️ الإجراءات التأديبية السابقة</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);padding:8px;">${actHtml}</div>
-      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-        <button onclick="openAdminActionModal('${uid}','${nm}');document.getElementById('student-detail-modal-bg').classList.remove('open')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);padding:8px 16px;cursor:pointer;font-family:var(--sans);font-size:12px;">⚖️ إجراء تأديبي</button>
-      </div>`;
+
+      <!-- إحصائيات وحدة الترقي -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-right:3px solid var(--gold);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:bold;color:var(--gold);margin-bottom:8px;">🏅 تفاصيل نقاط وحدة الترقي</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+          <div><div style="font-family:var(--mono);font-size:16px;color:var(--gold);">${subjectUnitTotal}</div><div style="font-size:10px;color:var(--text3);">من المواد</div></div>
+          <div><div style="font-family:var(--mono);font-size:16px;color:#64A0FF;">${chessUnitPts_u}</div><div style="font-size:10px;color:var(--text3);">من الشطرنج</div></div>
+          <div><div style="font-family:var(--mono);font-size:16px;color:#DC5050;">${mindUnitPts_u}</div><div style="font-size:10px;color:var(--text3);">من الألعاب</div></div>
+          <div><div style="font-family:var(--mono);font-size:16px;color:var(--green);">${attendanceCount}</div><div style="font-size:10px;color:var(--text3);">أيام حضور</div></div>
+        </div>
+      </div>
+
+      ${u.accountStatus === 'probation' ? `
+      <!-- تفاصيل الإنذار -->
+      <div style="background:rgba(248,113,113,0.08);border:1px solid var(--red);border-right:3px solid var(--red);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:bold;color:var(--red);margin-bottom:6px;">⚠️ الحساب في وضع الإنذار</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;">
+          <div><span style="color:var(--text3);">نقاط الإنذار: </span><span style="font-family:var(--mono);color:var(--red);font-weight:bold;">${u.probationPoints??'---'}</span></div>
+          <div><span style="color:var(--text3);">بداية الإنذار: </span><span style="font-family:var(--mono);">${u.probationStartDate||'---'}</span></div>
+          <div><span style="color:var(--text3);">آخر مكافأة: </span><span style="font-family:var(--mono);">${u.lastMonthlyBonusDate||'---'}</span></div>
+        </div>
+      </div>` : ''}
+
+      <!-- جدول المواد -->
+      <div style="font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:6px;">📚 المواد الدراسية (${subjects_u.length})</div>
+      <div style="overflow-x:auto;border:1px solid var(--border);margin-bottom:14px;">
+        <table style="width:100%;border-collapse:collapse;background:var(--surface);">
+          <thead><tr style="background:var(--bg2);border-bottom:1px solid var(--border2);">
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">المادة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">التصنيف</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">الرتبة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">الوحدة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">الجدول</th>
+          </tr></thead>
+          <tbody>${subjectsRows}</tbody>
+        </table>
+      </div>
+
+      <!-- آخر الاختبارات -->
+      <div style="font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:6px;">📝 آخر الاختبارات</div>
+      <div style="overflow-x:auto;border:1px solid var(--border);margin-bottom:14px;">
+        <table style="width:100%;border-collapse:collapse;background:var(--surface);">
+          <thead><tr style="background:var(--bg2);border-bottom:1px solid var(--border2);">
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">المادة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">الرتبة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">النتيجة</th>
+            <th style="padding:6px 10px;text-align:right;font-size:10px;color:var(--text3);">التاريخ</th>
+          </tr></thead>
+          <tbody>${quizRows}</tbody>
+        </table>
+      </div>
+
+      <!-- الإجراءات السابقة -->
+      <div style="font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:6px;">⚖️ الإجراءات التأديبية السابقة</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);margin-bottom:14px;">${actHtml}</div>
+
+      <!-- أزرار الإجراءات -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="openAdminActionModal('${uid}','${nm}');document.getElementById('student-detail-modal-bg').classList.remove('open')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">⚖️ إجراء تأديبي</button>
+        <button onclick="adminSendNotif('${uid}');document.getElementById('student-detail-modal-bg').classList.remove('open')" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">📨 إشعار مباشر</button>
+        <button onclick="document.getElementById('student-detail-modal-bg').classList.remove('open');openAdminChat('${uid}','${nm}');switchAdminTab('chat',document.querySelectorAll('.admin-tab-btn')[1])" style="background:rgba(100,160,255,0.1);border:1px solid #64A0FF;color:#64A0FF;padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">💬 مراسلة الطالب</button>
+      </div>
+    `;
   } catch(e) { document.getElementById('sdm-body').innerHTML = '<div style="color:var(--red);font-size:12px;">خطأ: '+escapeHtml(e.message)+'</div>'; }
 }
 
