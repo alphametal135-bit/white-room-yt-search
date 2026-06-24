@@ -7,6 +7,13 @@ const HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+const MODELS = [
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash-8b',
+  'gemini-1.5-flash',
+  'gemini-2.0-flash',
+];
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: HEADERS, body: '' };
@@ -31,34 +38,43 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'prompt مش موجود' }) };
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+    let lastError = '';
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
-      }),
-    });
+    for (const model of MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const data = await res.json();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+        }),
+      });
 
-    if (!res.ok) {
-      console.error('Gemini error:', JSON.stringify(data));
-      return {
-        statusCode: res.status,
-        headers: HEADERS,
-        body: JSON.stringify({ error: data?.error?.message || 'Gemini API error' }),
-      };
+      const data = await res.json();
+
+      if (res.ok) {
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return {
+          statusCode: 200,
+          headers: HEADERS,
+          body: JSON.stringify({ text, model }),
+        };
+      }
+
+      lastError = data?.error?.message || `${model} failed`;
+      console.warn(`Model ${model} failed:`, lastError);
+
+      if (!lastError.includes('quota') && !lastError.includes('RESOURCE_EXHAUSTED') && !lastError.includes('429')) {
+        break;
+      }
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
     return {
-      statusCode: 200,
+      statusCode: 429,
       headers: HEADERS,
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ error: lastError }),
     };
 
   } catch (err) {
