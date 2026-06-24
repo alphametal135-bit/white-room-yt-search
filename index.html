@@ -2456,6 +2456,25 @@ const ZAATAR_SYSTEM = `أنت "زعتر"، مساعد دراسي ذكي ومحب
 
 let zaatarHistory = [];
 let zaatarLoading = false;
+const ZAATAR_DAILY_LIMIT = 15;
+const ZAATAR_WARN_AT = 5;
+
+function zaatarGetTodayKey() {
+  const d = new Date();
+  const day = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  return 'zaatar_msgs_' + day + '_' + (mySysId || 'guest');
+}
+
+function zaatarGetCount() {
+  return parseInt(localStorage.getItem(zaatarGetTodayKey()) || '0');
+}
+
+function zaatarIncCount() {
+  const key = zaatarGetTodayKey();
+  const count = zaatarGetCount() + 1;
+  localStorage.setItem(key, count);
+  return count;
+}
 
 function zaatarClear() {
   zaatarHistory = [];
@@ -2479,15 +2498,42 @@ function zaatarAddBubble(role, text) {
   return div;
 }
 
+function zaatarLockChat() {
+  const input = document.getElementById('zaatar-input');
+  const btn = document.getElementById('zaatar-send-btn');
+  if (input) { input.disabled = true; input.placeholder = 'الشات مقفول لهيوم — أشوفك بكرا 😊'; }
+  if (btn) btn.disabled = true;
+}
+
+function zaatarCheckLimit() {
+  const count = zaatarGetCount();
+  const remaining = ZAATAR_DAILY_LIMIT - count;
+
+  if (remaining <= 0) {
+    zaatarAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
+    zaatarLockChat();
+    return false;
+  }
+
+  if (remaining === ZAATAR_WARN_AT) {
+    zaatarAddBubble('ai', `⚠️ تنبيه: فضلك بس ${remaining} رسايل النهارده — نكمل بكرا إن شاء الله! 😊`);
+  }
+
+  return true;
+}
+
 async function zaatarSend() {
   if (zaatarLoading) return;
   const input = document.getElementById('zaatar-input');
   const text = (input.value || '').trim();
   if (!text) return;
-  input.value = '';
 
+  if (!zaatarCheckLimit()) return;
+
+  input.value = '';
   zaatarAddBubble('user', text);
   zaatarHistory.push({ role: 'user', content: text });
+  const newCount = zaatarIncCount();
 
   zaatarLoading = true;
   document.getElementById('zaatar-send-btn').disabled = true;
@@ -2536,7 +2582,14 @@ function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (name === 'zaatar' && document.getElementById('zaatar-msgs') && document.getElementById('zaatar-msgs').children.length === 0) {
-    setTimeout(() => zaatarClear(), 50);
+    setTimeout(() => {
+      zaatarClear();
+      const remaining = ZAATAR_DAILY_LIMIT - zaatarGetCount();
+      if (remaining <= 0) {
+        zaatarAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
+        zaatarLockChat();
+      }
+    }, 50);
   }
 
   document.getElementById('page-' + name).classList.add('active');
