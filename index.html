@@ -1703,13 +1703,13 @@ function loginWithLoader() {
   const btn = document.getElementById('login-btn');
   if (!btn) { login(); return; }
   btn.classList.add('loading');
-  btn.innerHTML = '<span class="auth-btn-loader"></span> جاري تحميل البرنامج...';
-  setTimeout(() => {
-    login().catch(() => {}).finally(() => {
-      btn.classList.remove('loading');
-      btn.textContent = 'المصادقة والدخول الموحد ▶';
-    });
-  }, 5000);
+  btn.innerHTML = '<span class="auth-btn-loader"></span> جاري التحقق...';
+  btn.disabled = true;
+  login().catch(() => {}).finally(() => {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.textContent = 'المصادقة والدخول الموحد ▶';
+  });
 }
 
 async function login() {
