@@ -141,7 +141,7 @@ body::after {
 .wr-logo-frame { flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: radial-gradient(circle, rgba(64,224,208,0.22) 0%, rgba(10,12,16,0.9) 65%, rgba(10,12,16,1) 100%); border: 1px solid rgba(90,224,208,0.45); box-shadow: 0 0 10px rgba(64,224,208,0.35), inset 0 0 8px rgba(64,224,208,0.15); overflow: hidden; }
 .wr-logo-frame img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .nav-tabs { display: flex; }
-.tab-btn { padding: 0 16px; height: 52px; border: none; background: transparent; color: #555; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.tab-btn { padding: 0 11px; height: 52px; border: none; background: transparent; color: #555; font-family: var(--sans); font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; margin-bottom: -2px; letter-spacing: 0.2px; }
 .tab-btn:hover { color: #aaa; }
 .tab-btn.active { color: #fff; border-bottom-color: var(--green); }
 .nav-user { font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 10px; }
@@ -393,14 +393,14 @@ body::after {
 .chat-tab-btn.active { background: var(--bg2); color: var(--green); font-weight: bold; }
 .zaatar-wrap {
   display: flex; flex-direction: column;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 200px);
   max-width: 800px; margin: 0 auto;
   background: rgba(22, 22, 42, 0.55);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.18);
+  border: 1px solid rgba(176, 110, 243, 0.20);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 80, 200, 0.20), 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 60px rgba(100, 0, 180, 0.22), 0 4px 16px rgba(0,0,0,0.4);
 }
 .zaatar-msgs {
   flex: 1; overflow-y: auto; padding: 20px;
@@ -416,19 +416,19 @@ body::after {
 }
 @keyframes bubblePop { from { opacity:0; transform: scale(0.94) translateY(6px); } to { opacity:1; transform: scale(1) translateY(0); } }
 .zaatar-bubble.user {
-  background: linear-gradient(135deg, rgba(14,165,233,0.30), rgba(56,189,248,0.18));
-  border: 1px solid rgba(56,189,248,0.28);
+  background: linear-gradient(135deg, rgba(139,47,201,0.35), rgba(240,36,158,0.18));
+  border: 1px solid rgba(176,110,243,0.30);
   color: var(--text); align-self: flex-end;
   border-bottom-left-radius: 5px;
-  box-shadow: 0 4px 16px rgba(56,189,248,0.12);
+  box-shadow: 0 4px 16px rgba(139,47,201,0.15);
 }
 .zaatar-bubble.ai {
-  background: rgba(8, 25, 65, 0.60);
+  background: rgba(22, 10, 45, 0.70);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(56,189,248,0.14);
+  border: 1px solid rgba(176,110,243,0.16);
   color: var(--text); align-self: flex-start;
   border-bottom-right-radius: 5px;
-  box-shadow: 0 4px 16px rgba(0,50,150,0.15);
+  box-shadow: 0 4px 16px rgba(100,0,180,0.15);
 }
 .zaatar-bubble.ai .zaatar-name {
   font-size: 10px; color: var(--green);
@@ -438,48 +438,48 @@ body::after {
 .zaatar-bubble.typing { opacity: 0.65; }
 .cyberbot-input-row {
   display: flex; gap: 10px; padding: 14px 18px;
-  border-top: 1px solid rgba(56,189,248,0.12);
-  background: rgba(5,15,40,0.60);
+  border-top: 1px solid rgba(176,110,243,0.14);
+  background: rgba(12,5,28,0.70);
   backdrop-filter: blur(12px);
 }
 .cyberbot-input-row textarea {
   flex: 1;
-  background: rgba(8, 25, 65, 0.55);
-  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(18, 8, 40, 0.60);
+  border: 1px solid rgba(176,110,243,0.20);
   border-radius: 14px;
   padding: 11px 16px; font-size: 13px;
   color: var(--text); font-family: var(--sans);
   resize: none; outline: none; height: 46px; max-height: 120px; overflow-y: auto;
   transition: border-color .2s;
 }
-.cyberbot-input-row textarea:focus { border-color: rgba(56,189,248,0.45); }
+.cyberbot-input-row textarea:focus { border-color: rgba(176,110,243,0.55); box-shadow: 0 0 0 3px rgba(139,47,201,0.10); }
 .cyberbot-input-row button {
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  background: linear-gradient(90deg, #8b2fc9, #f0249e);
   color: #fff; border: none; border-radius: 14px;
   padding: 0 20px; font-size: 18px; cursor: pointer;
   font-weight: bold; transition: all .2s;
-  box-shadow: 0 4px 14px rgba(56,189,248,0.28);
+  box-shadow: 0 4px 14px rgba(139,47,201,0.35);
 }
-.cyberbot-input-row button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56,189,248,0.38); }
+.cyberbot-input-row button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(240,36,158,0.45); }
 .cyberbot-input-row button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .zaatar-header {
   display: flex; align-items: center; gap: 14px;
   padding: 16px 20px;
   border-bottom: 1px solid rgba(56,189,248,0.14);
-  background: rgba(5, 18, 48, 0.65);
+  background: rgba(15, 5, 35, 0.70);
   backdrop-filter: blur(14px);
 }
 .zaatar-avatar {
   width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  background: linear-gradient(135deg, #8b2fc9, #f0249e);
   display: flex; align-items: center; justify-content: center;
   font-size: 22px;
-  box-shadow: 0 0 16px rgba(56,189,248,0.35);
+  box-shadow: 0 0 16px rgba(139,47,201,0.45);
 }
 .zaatar-clear {
   margin-right: auto;
-  background: rgba(56,189,248,0.06);
-  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(176,110,243,0.07);
+  border: 1px solid rgba(176,110,243,0.20);
   color: var(--text3); border-radius: 8px;
   padding: 6px 14px; font-size: 11px; cursor: pointer;
   transition: all .15s;
@@ -1122,14 +1122,14 @@ body::after {
     CYBER DEFENSE SYSTEM v3.2
   </div>
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showPage('subjects', this)">🛡 مسارات الأمن السيبراني</button>
-    <button class="tab-btn" onclick="showPage('tracker', this)">📡 📡 الحضور والالتزام</button>
-    <button class="tab-btn" onclick="showPage('quiz', this)">🔍 اختبار الاختراق</button>
+    <button class="tab-btn active" onclick="showPage('subjects', this)">🛡 المسارات</button>
+    <button class="tab-btn" onclick="showPage('tracker', this)">📡 الحضور والالتزام</button>
+    <button class="tab-btn" onclick="showPage('quiz', this)">🔍 الاختبارات</button>
     <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة المحللين</button>
-    <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتسللين</button>
+    <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتفوقين</button>
     <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">💬 قناة الاتصال الآمن</button>
     <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 التدريب العملي</button>
-    <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف المحلل</button>
+    <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف الطالب</button>
     <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 CyberBot</button>
     <button class="tab-btn" onclick="showPage('reports', this)">🚨 الإبلاغ عن تهديد</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
