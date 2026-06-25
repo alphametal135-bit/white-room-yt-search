@@ -1123,7 +1123,7 @@ body::after {
   </div>
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="showPage('subjects', this)">🛡 مسارات الأمن السيبراني</button>
-    <button class="tab-btn" onclick="showPage('tracker', this)">📡 الحضور والالتزام</button>
+    <button class="tab-btn" onclick="showPage('tracker', this)">📡 📡 الحضور والالتزام</button>
     <button class="tab-btn" onclick="showPage('quiz', this)">🔍 اختبار الاختراق</button>
     <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة المحللين</button>
     <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتسللين</button>
@@ -1326,7 +1326,7 @@ body::after {
 </div>
 
 <div class="page" id="page-chess">
-  <div class="eyebrow">لعبة الشطرنج — قواعد كاملة <a onclick="showPage('mindgames', document.querySelector('.tab-btn[onclick*=mindgames]'))" style="font-size:11px; color:var(--text3); cursor:pointer; margin-right:10px;">‹ رجوع لتدريب العقل</a></div>
+  <div class="eyebrow">لعبة الشطرنج — قواعد كاملة <a onclick="showPage('mindgames', document.querySelector('.tab-btn[onclick*=mindgames]'))" style="font-size:11px; color:var(--text3); cursor:pointer; margin-right:10px;">‹ رجوع ل🧠 التدريب العملي</a></div>
 
   <div class="chess-setup" id="chess-setup">
     <h3>إعداد المباراة</h3>
@@ -1396,9 +1396,9 @@ body::after {
         <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">🤖 CyberBot</div>
         <div style="font-size:11px;color:var(--text3);">مساعدك الدراسي الذكي — دايماً هنا</div>
       </div>
-      <button class="zaatar-clear" onclick="zaatarClear()">🗑 محادثة جديدة</button>
+      <button class="zaatar-clear" onclick="cyberbotClear()">🗑 محادثة جديدة</button>
     </div>
-    <div class="zaatar-msgs" id="cyberbot-msgs"></div>
+    <div class="cyberbot-msgs" id="cyberbot-msgs"></div>
     <div class="cyberbot-input-row">
       <textarea id="cyberbot-input" placeholder="اسأل CyberBot عن الأمن السيبراني..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
       <button id="cyberbot-send-btn" onclick="cyberbotSend()">➤</button>
@@ -3316,35 +3316,35 @@ const CYBERBOT_SYSTEM = `أنت "CyberBot"، مساعد متخصص في الأم
 
 let zaatarHistory = [];
 let zaatarLoading = false;
-const ZAATAR_DAILY_LIMIT = 15;
-const ZAATAR_WARN_AT = 5;
+const CYBERBOT_DAILY_LIMIT = 15;
+const CYBERBOT_WARN_AT = 5;
 
-function zaatarGetTodayKey() {
+function cyberbotGetTodayKey() {
   const d = new Date();
   const day = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
   return 'zaatar_msgs_' + day + '_' + (mySysId || 'guest');
 }
 
-function zaatarGetCount() {
-  return parseInt(localStorage.getItem(zaatarGetTodayKey()) || '0');
+function cyberbotGetCount() {
+  return parseInt(localStorage.getItem(cyberbotGetTodayKey()) || '0');
 }
 
-function zaatarIncCount() {
-  const key = zaatarGetTodayKey();
-  const count = zaatarGetCount() + 1;
+function cyberbotIncCount() {
+  const key = cyberbotGetTodayKey();
+  const count = cyberbotGetCount() + 1;
   localStorage.setItem(key, count);
   return count;
 }
 
-function zaatarClear() {
+function cyberbotClear() {
   zaatarHistory = [];
-  const msgs = document.getElementById('zaatar-msgs');
+  const msgs = document.getElementById('cyberbot-msgs');
   if (msgs) msgs.innerHTML = '';
-  zaatarAddBubble('ai', 'أهلاً! أنا CyberBot 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
+  cyberbotAddBubble('ai', 'أهلاً! أنا CyberBot 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
 }
 
-function zaatarAddBubble(role, text) {
-  const msgs = document.getElementById('zaatar-msgs');
+function cyberbotAddBubble(role, text) {
+  const msgs = document.getElementById('cyberbot-msgs');
   if (!msgs) return;
   const div = document.createElement('div');
   div.className = 'zaatar-bubble ' + role;
@@ -3358,25 +3358,25 @@ function zaatarAddBubble(role, text) {
   return div;
 }
 
-function zaatarLockChat() {
+function cyberbotLockChat() {
   const input = document.getElementById('cyberbot-input');
-  const btn = document.getElementById('zaatar-send-btn');
+  const btn = document.getElementById('cyberbot-send-btn');
   if (input) { input.disabled = true; input.placeholder = 'الشات مقفول لهيوم — أشوفك بكرا 😊'; }
   if (btn) btn.disabled = true;
 }
 
-function zaatarCheckLimit() {
-  const count = zaatarGetCount();
-  const remaining = ZAATAR_DAILY_LIMIT - count;
+function cyberbotCheckLimit() {
+  const count = cyberbotGetCount();
+  const remaining = CYBERBOT_DAILY_LIMIT - count;
 
   if (remaining <= 0) {
-    zaatarAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
-    zaatarLockChat();
+    cyberbotAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
+    cyberbotLockChat();
     return false;
   }
 
-  if (remaining === ZAATAR_WARN_AT) {
-    zaatarAddBubble('ai', `⚠️ تنبيه: فضلك بس ${remaining} رسايل النهارده — نكمل بكرا إن شاء الله! 😊`);
+  if (remaining === CYBERBOT_WARN_AT) {
+    cyberbotAddBubble('ai', `⚠️ تنبيه: فضلك بس ${remaining} رسايل النهارده — نكمل بكرا إن شاء الله! 😊`);
   }
 
   return true;
@@ -3388,18 +3388,18 @@ async function cyberbotSend() {
   const text = (input.value || '').trim();
   if (!text) return;
 
-  if (!zaatarCheckLimit()) return;
+  if (!cyberbotCheckLimit()) return;
 
   input.value = '';
-  zaatarAddBubble('user', text);
+  cyberbotAddBubble('user', text);
   zaatarHistory.push({ role: 'user', content: text });
-  const newCount = zaatarIncCount();
+  const newCount = cyberbotIncCount();
 
   zaatarLoading = true;
-  document.getElementById('zaatar-send-btn').disabled = true;
+  document.getElementById('cyberbot-send-btn').disabled = true;
 
   // typing indicator
-  const msgs = document.getElementById('zaatar-msgs');
+  const msgs = document.getElementById('cyberbot-msgs');
   const typing = document.createElement('div');
   typing.className = 'zaatar-bubble ai typing';
   typing.innerHTML = '<div class="zaatar-name">🤖 CyberBot</div>يكتب...';
@@ -3424,17 +3424,17 @@ async function cyberbotSend() {
     const reply = data.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
 
     typing.remove();
-    zaatarAddBubble('ai', reply);
+    cyberbotAddBubble('ai', reply);
     zaatarHistory.push({ role: 'assistant', content: reply });
 
   } catch(e) {
     typing.remove();
-    zaatarAddBubble('ai', 'فيه مشكلة في الاتصال 😕 جرب تاني بعد شوية.');
+    cyberbotAddBubble('ai', 'فيه مشكلة في الاتصال 😕 جرب تاني بعد شوية.');
     console.error('zaatar error:', e);
   }
 
   zaatarLoading = false;
-  document.getElementById('zaatar-send-btn').disabled = false;
+  document.getElementById('cyberbot-send-btn').disabled = false;
   input.focus();
 }
 
@@ -3443,13 +3443,13 @@ function showPage(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (name === 'reports') setTimeout(loadFounderMessages, 300);
   if (name === 'admin') setTimeout(() => { if(isAdmin()) startAdminNotifListener(); }, 600);
-  if (name === 'zaatar' && document.getElementById('zaatar-msgs') && document.getElementById('zaatar-msgs').children.length === 0) {
+  if (name === 'zaatar' && document.getElementById('cyberbot-msgs') && document.getElementById('cyberbot-msgs').children.length === 0) {
     setTimeout(() => {
-      zaatarClear();
-      const remaining = ZAATAR_DAILY_LIMIT - zaatarGetCount();
+      cyberbotClear();
+      const remaining = CYBERBOT_DAILY_LIMIT - cyberbotGetCount();
       if (remaining <= 0) {
-        zaatarAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
-        zaatarLockChat();
+        cyberbotAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
+        cyberbotLockChat();
       }
     }, 50);
   }
@@ -3579,7 +3579,7 @@ function showQuestion() {
     userPoints = Math.min(MAX_POINTS, userPoints + ptsEarned);
     saveUserData();
     // نقاط وحدة الترقي من الاختبار العام (يُعامَل كمادة id=0 اسمها "التقييم العام")
-    applySubjectQuizResult(0, 'التقييم الديناميكي العام', finalPct);
+    applySubjectQuizResult(0, '🔍 اختبار الاختراق العام', finalPct);
 
     area.innerHTML = `
       <div style="text-align:center; padding:35px; background:var(--surface); border:1px solid var(--border);">
@@ -3717,7 +3717,7 @@ async function sendFriendReq() {
   }
 }
 
-// ── المنطق الأساسي المشترك لإرسال طلب ترابط، يُستخدم من صفحة الزملاء وصفحة قائمة المتفوقين ──
+// ── المنطق الأساسي المشترك لإرسال طلب ترابط، يُستخدم من صفحة الزملاء وصفحة 🏆 لوحة المحللين ──
 async function sendFriendRequestCore(targetId) {
   if (!targetId) return { ok: false, msg: "معرّف غير صالح" };
   if (targetId === mySysId) return { ok: false, msg: "خطأ أمني: لا يمكن إرسال طلب ارتباط لنفس معرّفك السيستمي الحالي" };
@@ -3763,11 +3763,11 @@ async function rejectFriend(fromId) {
 }
 function openFriendChat(id) { activeChatTab = 'pm_' + id; showPage('chat', document.getElementById('nav-tab-chat')); }
 
-// ════════════════ قائمة المتفوقين (عبر Firestore) ════════════════
+// ════════════════ 🏆 لوحة المحللين (عبر Firestore) ════════════════
 
 async function renderLeaderboard() {
   const cont = document.getElementById('leaderboard-list-container');
-  cont.innerHTML = '<div style="font-size:11px; color:var(--text3); padding:14px;">⏳ يتم تحميل قائمة المتفوقين...</div>';
+  cont.innerHTML = '<div style="font-size:11px; color:var(--text3); padding:14px;">⏳ يتم تحميل 🏆 لوحة المحللين...</div>';
 
   try {
     if (friendsCache.length === 0) {
@@ -3840,7 +3840,7 @@ async function renderLeaderboard() {
 
     cont.appendChild(listWrap);
   } catch (e) {
-    cont.innerHTML = `<div style="font-size:11px; color:var(--red); padding:14px;">تعذّر تحميل قائمة المتفوقين: ${escapeHtml(e.message)}</div>`;
+    cont.innerHTML = `<div style="font-size:11px; color:var(--red); padding:14px;">تعذّر تحميل 🏆 لوحة المحللين: ${escapeHtml(e.message)}</div>`;
   }
 }
 
@@ -4282,7 +4282,7 @@ async function startAiQuiz(subjectId) {
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="renderQuiz()">📝 التقييم الديناميكي العام بدلاً</button>
+          <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="renderQuiz()">📝 🔍 اختبار الاختراق العام بدلاً</button>
         </div>
       `;
       if (btn) { btn.disabled = false; btn.textContent = '🤖 اختبار AI'; }
@@ -4334,7 +4334,7 @@ ${sourceTitles ? `المصادر: ${sourceTitles}` : ''}
 
     if (!parsed.questions || parsed.questions.length === 0) throw new Error('لم يتم توليد أسئلة');
 
-    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a) ونحطها في صفحة التقييم الديناميكي
+    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a) ونحطها في صفحة 🔍 اختبار الاختراق
     currentQuizSessionQuestions = parsed.questions.map(q => ({
       q: q.q,
       o: q.options,
@@ -4451,7 +4451,7 @@ function checkAiAnswer(chosen) {
 
 function goToDynamicQuiz() {
   closeAiQuiz();
-  // الانتقال لتبويب التقييم الديناميكي
+  // الانتقال لتبويب 🔍 اختبار الاختراق
   const quizTab = document.querySelector('.tab-btn[onclick*="quiz"]');
   showPage('quiz', quizTab);
   if (quizTab) quizTab.classList.add('active');
