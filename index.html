@@ -3,44 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THE WHITE ROOM — النظام السيبراني المكثف</title>
+<title>CYBER DEFENSE — منظومة الأمن السيبراني</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
 
 :root {
-  /* ── ألوان الخلفية الزجاجية السماوية ── */
-  --bg: #050d1a;
-  --bg2: #071222;
-  --bg3: #0a1a30;
-  --surface: rgba(10, 30, 60, 0.55);
-  --surface2: rgba(15, 40, 80, 0.45);
-  --border: rgba(100, 200, 255, 0.15);
-  --border2: rgba(100, 200, 255, 0.28);
+  /* ── ألوان الصورة: أسود + بنفسجي داكن ── */
+  --bg: #0d0d14;
+  --bg2: #111120;
+  --bg3: #16162a;
+  --surface: rgba(26, 26, 46, 0.70);
+  --surface2: rgba(30, 30, 55, 0.55);
+  --border: rgba(176, 110, 243, 0.18);
+  --border2: rgba(176, 110, 243, 0.32);
 
   /* ── ألوان النص ── */
-  --text: #e0f4ff;
-  --text1: #e0f4ff;
-  --text2: #90c8e8;
-  --text3: #4a7a9b;
+  --text: #f0eaff;
+  --text1: #f0eaff;
+  --text2: #b06ef3;
+  --text3: #5a4a7a;
 
-  /* ── اللون السماوي الرئيسي ── */
-  --green: #38bdf8;
-  --green2: #0ea5e9;
-  --green-dim: rgba(56, 189, 248, 0.12);
+  /* ── البنفسجي الرئيسي (accent) ── */
+  --green: #b06ef3;
+  --green2: #8b2fc9;
+  --green-dim: rgba(176, 110, 243, 0.13);
 
-  /* ── الذهبي ── */
-  --gold: #fbbf24;
-  --gold-dim: rgba(251, 191, 36, 0.10);
+  /* ── الوردي الفوشيا (gold) ── */
+  --gold: #f0249e;
+  --gold-dim: rgba(240, 36, 158, 0.10);
 
   /* ── الأحمر ── */
   --red: #f87171;
   --red-dim: rgba(248, 113, 113, 0.12);
 
   /* ── Glassmorphism ── */
-  --glass: rgba(10, 30, 70, 0.45);
-  --glass-border: rgba(100, 200, 255, 0.20);
-  --glass-shadow: 0 8px 32px rgba(0, 100, 200, 0.18), 0 2px 8px rgba(0,0,0,0.35);
-  --glass-hover: rgba(15, 45, 90, 0.60);
+  --glass: rgba(22, 22, 40, 0.60);
+  --glass-border: rgba(176, 110, 243, 0.20);
+  --glass-shadow: 0 8px 32px rgba(100, 20, 180, 0.22), 0 2px 8px rgba(0,0,0,0.50);
+  --glass-hover: rgba(35, 35, 65, 0.75);
   --blur: blur(14px);
 
   --mono: 'Share Tech Mono', monospace;
@@ -58,16 +58,16 @@ body {
   overflow-x: hidden;
 }
 
-/* ── خلفية متحركة سماوية ── */
+/* ── خلفية داكنة بنفسجية ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(14, 165, 233, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(56, 189, 248, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(2, 50, 100, 0.5) 0%, transparent 80%),
-    linear-gradient(135deg, #050d1a 0%, #071a35 50%, #050d1a 100%);
+    radial-gradient(ellipse at 20% 20%, rgba(139, 47, 201, 0.20) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(176, 110, 243, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(30, 15, 60, 0.60) 0%, transparent 80%),
+    linear-gradient(135deg, #0d0d14 0%, #13132a 50%, #0d0d14 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -80,8 +80,8 @@ body::after {
     0deg,
     transparent,
     transparent 2px,
-    rgba(56, 189, 248, 0.018) 2px,
-    rgba(56, 189, 248, 0.018) 3px
+    rgba(176, 110, 243, 0.015) 2px,
+    rgba(176, 110, 243, 0.015) 3px
   );
   pointer-events: none;
   z-index: 0;
@@ -97,12 +97,12 @@ body::after {
   position: relative;
   background: rgba(6, 22, 60, 0.80);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  border: 1px solid rgba(176, 110, 243, 0.22);
   border-radius: 20px;
   padding: 28px 26px 22px;
   display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
   width: 360px; max-width: 100%;
-  box-shadow: 0 16px 48px rgba(0, 80, 200, 0.28);
+  box-shadow: 0 16px 48px rgba(100, 20, 180, 0.28);
   transform: scale(.92); opacity: 0; transition: transform .25s cubic-bezier(.16,1,.3,1), opacity .25s;
 }
 .points-toast-bg.show .points-toast { transform: scale(1); opacity: 1; }
@@ -129,11 +129,11 @@ body::after {
 .nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 28px; height: 56px;
-  background: rgba(5, 15, 35, 0.75);
+  background: rgba(13, 13, 20, 0.88);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 4px 24px rgba(0, 100, 200, 0.15);
+  border-bottom: 1px solid rgba(176, 110, 243, 0.25);
+  box-shadow: 0 4px 20px rgba(100, 20, 180, 0.18);
 }
 .nav-logo { font-family: var(--mono); font-size: 12px; color: #fff; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
 .nav-logo-bar { width: 3px; height: 16px; background: var(--green); }
@@ -157,11 +157,11 @@ body::after {
 
 /* ══ STATUS BAR ══ */
 .status-bar {
-  background: rgba(5, 15, 35, 0.60);
+  background: rgba(13, 13, 20, 0.72);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+  border-bottom: 1px solid rgba(192, 38, 211, 0.14);
   padding: 6px 28px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  box-shadow: 0 2px 12px rgba(0, 80, 160, 0.10);
+  box-shadow: 0 2px 12px rgba(120, 0, 160, 0.12);
 }
 .status-item { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--text3); text-transform: uppercase; }
 .status-item span { color: var(--green); }
@@ -188,7 +188,7 @@ body::after {
 }
 .stat-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 120, 220, 0.25), 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 40px rgba(100, 20, 180, 0.25), 0 2px 8px rgba(0,0,0,0.4);
 }
 .stat-num { font-family: var(--mono); font-size: 28px; line-height: 1; margin-bottom: 5px; }
 .stat-num.green { color: var(--green); }
@@ -395,7 +395,7 @@ body::after {
   display: flex; flex-direction: column;
   height: calc(100vh - 130px);
   max-width: 800px; margin: 0 auto;
-  background: rgba(6, 20, 55, 0.45);
+  background: rgba(22, 22, 42, 0.55);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(56, 189, 248, 0.18);
   border-radius: 24px;
@@ -436,13 +436,13 @@ body::after {
   font-weight: bold; letter-spacing: 1px;
 }
 .zaatar-bubble.typing { opacity: 0.65; }
-.zaatar-input-row {
+.cyberbot-input-row {
   display: flex; gap: 10px; padding: 14px 18px;
   border-top: 1px solid rgba(56,189,248,0.12);
   background: rgba(5,15,40,0.60);
   backdrop-filter: blur(12px);
 }
-.zaatar-input-row textarea {
+.cyberbot-input-row textarea {
   flex: 1;
   background: rgba(8, 25, 65, 0.55);
   border: 1px solid rgba(56,189,248,0.18);
@@ -452,16 +452,16 @@ body::after {
   resize: none; outline: none; height: 46px; max-height: 120px; overflow-y: auto;
   transition: border-color .2s;
 }
-.zaatar-input-row textarea:focus { border-color: rgba(56,189,248,0.45); }
-.zaatar-input-row button {
+.cyberbot-input-row textarea:focus { border-color: rgba(56,189,248,0.45); }
+.cyberbot-input-row button {
   background: linear-gradient(135deg, #0ea5e9, #38bdf8);
   color: #fff; border: none; border-radius: 14px;
   padding: 0 20px; font-size: 18px; cursor: pointer;
   font-weight: bold; transition: all .2s;
   box-shadow: 0 4px 14px rgba(56,189,248,0.28);
 }
-.zaatar-input-row button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56,189,248,0.38); }
-.zaatar-input-row button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.cyberbot-input-row button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56,189,248,0.38); }
+.cyberbot-input-row button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .zaatar-header {
   display: flex; align-items: center; gap: 14px;
   padding: 16px 20px;
@@ -628,7 +628,7 @@ body::after {
   vertical-align: middle; margin-left: 8px;
 }
 
-/* ══ توهج أحمر لاسم مؤسس النظام ومعرفه (System ID) في أي مكان بالنظام ══ */
+/* ══ توهج أحمر لاسم قائد العمليات ومعرفه (System ID) في أي مكان بالنظام ══ */
 .founder-glow {
   color: #FF2222 !important;
   font-weight: 900 !important;
@@ -678,9 +678,9 @@ body::after {
 /* ══ AUTH OVERLAY ══ */
 #auth-overlay {
   position: fixed; inset: 0;
-  background: radial-gradient(ellipse at 30% 30%, rgba(14,165,233,0.18) 0%, transparent 60%),
-              radial-gradient(ellipse at 75% 75%, rgba(56,189,248,0.10) 0%, transparent 55%),
-              linear-gradient(135deg, #040c1a 0%, #071830 50%, #040c1a 100%);
+  background: radial-gradient(ellipse at 30% 30%, rgba(139,47,201,0.22) 0%, transparent 60%),
+              radial-gradient(ellipse at 75% 75%, rgba(176,110,243,0.10) 0%, transparent 55%),
+              linear-gradient(135deg, #0d0d14 0%, #13132a 50%, #0d0d14 100%);
   z-index: 5000; display: flex; flex-direction: column; align-items: center;
   justify-content: flex-start; padding: 20px; gap: 14px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -688,9 +688,9 @@ body::after {
 #auth-overlay.hidden { display: none; }
 .auth-box {
   width: 100%; max-width: 440px;
-  background: rgba(6, 20, 55, 0.70);
+  background: rgba(22, 22, 42, 0.82);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  border: 1px solid rgba(192, 38, 211, 0.25);
   border-top: 2px solid var(--green);
   border-radius: 22px;
   padding: 32px 28px;
@@ -699,28 +699,28 @@ body::after {
 .auth-field { margin-bottom: 16px; }
 .auth-input {
   width: 100%; height: 44px;
-  background: rgba(5, 20, 50, 0.55);
+  background: rgba(18, 18, 35, 0.70);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.20);
+  border: 1px solid rgba(176, 110, 243, 0.22);
   border-radius: 10px;
   color: var(--text); font-family: var(--sans);
   padding: 10px 14px; outline: none; box-sizing: border-box;
   transition: border-color .2s, box-shadow .2s;
 }
 .auth-input:focus {
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.10);
+  border-color: rgba(176, 110, 243, 0.65);
+  box-shadow: 0 0 0 3px rgba(176, 110, 243, 0.12);
 }
 .auth-btn {
   width: 100%; padding: 13px;
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  background: linear-gradient(90deg, #8b2fc9 0%, #f0249e 100%);
   border: none; border-radius: 12px;
   color: #fff; cursor: pointer;
   font-family: var(--sans); font-size: 13px; font-weight: bold; letter-spacing: 1px;
-  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.30);
+  box-shadow: 0 4px 22px rgba(139, 47, 201, 0.45), 0 2px 8px rgba(240, 36, 158, 0.25);
   transition: all .2s;
 }
-.auth-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(56, 189, 248, 0.40); }
+.auth-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(240, 36, 158, 0.60), 0 4px 14px rgba(139, 47, 201, 0.40); }
 .auth-switch { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text3); }
 .auth-switch a { color: var(--green); cursor: pointer; text-decoration: underline; }
 .auth-error { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); padding: 10px; color: var(--red); font-size: 12px; margin-bottom: 14px; display: none; }
@@ -783,7 +783,7 @@ body::after {
 .quiz-opt-btn {
   display: flex; align-items: center; gap: 10px; width: 100%;
   padding: 14px 16px;
-  background: rgba(6, 20, 55, 0.50);
+  background: rgba(22, 22, 42, 0.58);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(56,189,248,0.15);
   border-radius: 12px;
@@ -992,7 +992,7 @@ body::after {
 /* auth info panel */
 .auth-info-panel {
   width: 100%; max-width: 440px;
-  background: rgba(6, 20, 55, 0.75);
+  background: rgba(22, 22, 42, 0.85);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(56,189,248,0.20);
   border-top: 2px solid var(--gold);
@@ -1099,6 +1099,9 @@ body::after {
   </defs>
 </svg>
 
+
+<!-- خلفية حية: أكواد + معادلات + ثنائي أخضر شفاف -->
+<canvas id="matrix-canvas" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.38;"></canvas>
 <div class="points-toast-bg" id="points-toast-bg">
   <div class="points-toast" id="points-toast">
     <button class="toast-close-btn" onclick="closeToast()">✕</button>
@@ -1114,21 +1117,21 @@ body::after {
 <div class="nav">
   <div class="nav-logo">
     <span class="wr-logo-frame" style="width:30px; height:30px;">
-      <img src="logo.webp" alt="The White Room">
+      <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    THE WHITE ROOM PROTOCOL v3.2
+    CYBER DEFENSE SYSTEM v3.2
   </div>
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showPage('subjects', this)">الوحدات والمسارات</button>
-    <button class="tab-btn" onclick="showPage('tracker', this)">الحضور والالتزام</button>
-    <button class="tab-btn" onclick="showPage('quiz', this)">التقييم الديناميكي</button>
-    <button class="tab-btn" onclick="showPage('friends', this)">الشبكة والزملاء</button>
-    <button class="tab-btn" onclick="showPage('leaderboard', this)">قائمة المتفوقين</button>
-    <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">الدردشة المشتركة</button>
-    <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 تدريب العقل</button>
-    <button class="tab-btn" onclick="showPage('profile', this)">كفاءة الأداء</button>
-    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 زعتر</button>
-    <button class="tab-btn" onclick="showPage('reports', this)">🚨 إرسال بلاغ</button>
+    <button class="tab-btn active" onclick="showPage('subjects', this)">🛡 مسارات الأمن السيبراني</button>
+    <button class="tab-btn" onclick="showPage('tracker', this)">📡 الحضور والالتزام</button>
+    <button class="tab-btn" onclick="showPage('quiz', this)">🔍 اختبار الاختراق</button>
+    <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة المحللين</button>
+    <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتسللين</button>
+    <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">💬 قناة الاتصال الآمن</button>
+    <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 التدريب العملي</button>
+    <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف المحلل</button>
+    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 CyberBot</button>
+    <button class="tab-btn" onclick="showPage('reports', this)">🚨 الإبلاغ عن تهديد</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
   <div class="nav-user"><div id="notif-bell-wrap" style="position:relative;cursor:pointer;" onclick="toggleNotifPanel()"><span style="font-size:18px;">🔔</span><span id="notif-badge" style="display:none;position:absolute;top:-4px;left:-4px;background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;text-align:center;line-height:16px;">0</span></div>
@@ -1138,10 +1141,10 @@ body::after {
 </div>
 
 <div class="status-bar">
-  <div class="status-item" id="sb-rank">RANK: <span class="grade-F">F</span></div>
-  <div class="status-item" id="sb-streak">STREAK: <span>0</span></div>
+  <div class="status-item" id="sb-rank">THREAT LEVEL: <span class="grade-F">F</span></div>
+  <div class="status-item" id="sb-streak">SESSIONS: <span>0</span></div>
   <div class="status-item" id="sb-points-container">POINTS: <span class="pts-pill" id="sb-points">0.0000</span></div>
-  <div class="status-item" id="sb-modules">MODULES: <span>0</span></div>
+  <div class="status-item" id="sb-modules">LABS: <span>0</span></div>
   <div class="status-item" id="sb-tier">TIER: <span class="tier-badge tier-iron" style="font-size:10px;">🪨 Iron</span></div>
   <div class="status-item" id="sb-tier-next" style="font-size:9px; color:var(--text3);">حتى Bronze: 1000 نقطة</div>
   <div class="status-item" style="margin-right:auto; display:flex; align-items:center; gap:6px;">
@@ -1279,7 +1282,7 @@ body::after {
 </div>
 
 <div class="page" id="page-leaderboard">
-  <div class="eyebrow">🏆 قائمة المتفوقين — ترتيب كل طلاب المنظومة وفق رصيد نقاط الخبرة التراكمية</div>
+  <div class="eyebrow">🏆 لوحة المحللين — ترتيب المحللين وفق نقاط الخبرة في الأمن السيبراني</div>
   <div id="leaderboard-list-container"></div>
 </div>
 
@@ -1292,7 +1295,7 @@ body::after {
     <div class="chat-main">
       <div class="chat-messages" id="chat-messages-area"></div>
       <div class="chat-input-area">
-        <input type="text" id="chat-msg-input" class="chat-input" placeholder="اكتب رسالتك الأمنية أو البرمجية هنا..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <input type="text" id="chat-msg-input" class="chat-input" placeholder="اكتب رسالتك الآمنة هنا... // ENCRYPTED CHANNEL" onkeydown="if(event.key==='Enter')sendChatMessage()">
         <button class="chat-send-btn" onclick="sendChatMessage()">إرسال بنية التشفير ◢</button>
       </div>
     </div>
@@ -1300,12 +1303,12 @@ body::after {
 </div>
 
 <div class="page" id="page-profile">
-  <div class="eyebrow">ملخص كفاءة الطالب ومصفوفة التوزيع الكلي المعياري</div>
+  <div class="eyebrow">ملخص كفاءة المحلل ومصفوفة التوزيع الكلي المعياري</div>
   <div id="profile-content"></div>
 </div>
 
 <div class="page" id="page-mindgames">
-  <div class="eyebrow">تدريب العقل — ألعاب ذهنية لتنشيط التركيز</div>
+  <div class="eyebrow">التدريب العملي — تحديات وألعاب لصقل مهارات التحليل</div>
   <div class="mindgames-grid">
     <div class="mindgame-card" onclick="showPage('chess', document.querySelector('.tab-btn[onclick*=mindgames]'))">
       <div class="mindgame-card-icon">♞</div>
@@ -1341,7 +1344,7 @@ body::after {
     </div>
     <div id="chess-online-wrap" style="display:none; margin-top:14px;">
       <div style="font-size:11px; color:var(--text3); margin-bottom:6px;">أدخل System ID الخصم (مثال: WR-1234-5678)</div>
-      <input id="chess-online-id" class="modal-input" placeholder="WR-XXXX-XXXX" style="font-family:var(--mono); letter-spacing:1px; text-align:center;">
+      <input id="chess-online-id" class="modal-input" placeholder="CS-XXXX-XXXX" style="font-family:var(--mono); letter-spacing:1px; text-align:center;">
       <div id="chess-online-err" style="color:var(--red); font-size:11px; margin-top:6px; display:none;"></div>
     </div>
     <button class="chess-start-btn" onclick="chessStartGame()">بدء المباراة ▶</button>
@@ -1390,24 +1393,24 @@ body::after {
     <div class="zaatar-header">
       <div class="zaatar-avatar">🤖</div>
       <div>
-        <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">زعتر</div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">🤖 CyberBot</div>
         <div style="font-size:11px;color:var(--text3);">مساعدك الدراسي الذكي — دايماً هنا</div>
       </div>
       <button class="zaatar-clear" onclick="zaatarClear()">🗑 محادثة جديدة</button>
     </div>
-    <div class="zaatar-msgs" id="zaatar-msgs"></div>
-    <div class="zaatar-input-row">
-      <textarea id="zaatar-input" placeholder="اسأل زعتر أي حاجة..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();zaatarSend();}"></textarea>
-      <button id="zaatar-send-btn" onclick="zaatarSend()">➤</button>
+    <div class="zaatar-msgs" id="cyberbot-msgs"></div>
+    <div class="cyberbot-input-row">
+      <textarea id="cyberbot-input" placeholder="اسأل CyberBot عن الأمن السيبراني..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
+      <button id="cyberbot-send-btn" onclick="cyberbotSend()">➤</button>
     </div>
   </div>
 </div>
 
 <div class="page" id="page-admin">
-  <div class="eyebrow">⚙ لوحة تحكم الأدمن — المنظومة الكاملة</div>
+  <div class="eyebrow">⚙ لوحة تحكم المشرف — منظومة الأمن الكاملة</div>
   <div class="admin-tabs">
-    <button class="admin-tab-btn active" onclick="switchAdminTab('stats', this)">📊 الإحصائيات والطلاب</button>
-    <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع الطلاب</button>
+    <button class="admin-tab-btn active" onclick="switchAdminTab('stats', this)">📊 الإحصائيات والمحللين</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع المحللين</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('actions', this)">⚖️ العقوبات والإنذارات</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('reports', this)">🚨 البلاغات <span id="admin-reports-badge" style="background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:10px;display:none;margin-right:4px;">0</span></button>
   </div>
@@ -1415,18 +1418,18 @@ body::after {
     <div id="admin-content"><div style="color:var(--text3);font-size:12px;padding:20px;">جاري تحميل البيانات...</div></div>
   </div>
   <div class="admin-section" id="admin-sec-chat">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">يمكنك فتح محادثة خاصة مع أي طالب — ستظهر له كـ "مؤسس النظام"</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">يمكنك فتح محادثة خاصة مع أي محلل — ستظهر له كـ "قائد العمليات"</div>
     <div class="admin-chat-wrap">
       <div class="admin-chat-sidebar">
         <div class="admin-chat-search">
-          <input type="text" id="admin-chat-search-inp" placeholder="🔍 ابحث عن طالب..." oninput="filterAdminChatList()">
+          <input type="text" id="admin-chat-search-inp" placeholder="🔍 ابحث عن محلل..." oninput="filterAdminChatList()">
         </div>
         <div class="admin-chat-list" id="admin-chat-list">
-          <div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">جاري تحميل الطلاب...</div>
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">جاري تحميل المحللين...</div>
         </div>
       </div>
       <div class="admin-chat-main" id="admin-chat-main">
-        <div class="admin-no-chat-sel" id="admin-no-chat-sel">اختر طالباً من القائمة لبدء المحادثة</div>
+        <div class="admin-no-chat-sel" id="admin-no-chat-sel">اختر محللاً من القائمة لبدء المحادثة</div>
         <div id="admin-chat-active-wrap" style="display:none;flex-direction:column;height:100%;">
           <div class="admin-chat-header" id="admin-chat-active-header">
             <div>
@@ -1436,7 +1439,7 @@ body::after {
           </div>
           <div class="admin-chat-msgs" id="admin-chat-msgs"></div>
           <div class="admin-chat-input-row">
-            <textarea id="admin-chat-inp" placeholder="اكتب رسالتك كـ مؤسس النظام..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();adminSendChatMsg();}"></textarea>
+            <textarea id="admin-chat-inp" placeholder="اكتب رسالتك كـ قائد العمليات..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();adminSendChatMsg();}"></textarea>
             <button onclick="adminSendChatMsg()">إرسال ▶</button>
           </div>
         </div>
@@ -1448,7 +1451,7 @@ body::after {
     <div id="admin-actions-users-list"></div>
   </div>
   <div class="admin-section" id="admin-sec-reports">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">بلاغات الطلاب — يراجعها الذكاء الاصطناعي أولاً ثم يُقدَّم لك ملخص مع توصية</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">بلاغات المحللين — يراجعها الذكاء الاصطناعي أولاً ثم يُقدَّم لك ملخص مع توصية</div>
     <div id="admin-reports-list"><div style="color:var(--text3);font-size:12px;">جاري تحميل البلاغات...</div></div>
   </div>
 </div>
@@ -1457,8 +1460,8 @@ body::after {
 <div class="admin-action-modal-bg" id="admin-action-modal-bg">
   <div class="admin-action-modal">
     <button class="admin-action-close" onclick="closeAdminActionModal()">✕</button>
-    <div class="admin-action-modal-title" id="admin-action-modal-title">⚖️ إجراء تأديبي للطالب</div>
-    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px;">الطالب: <span id="admin-action-target-name" style="color:var(--green);"></span> (<span id="admin-action-target-id"></span>)</div>
+    <div class="admin-action-modal-title" id="admin-action-modal-title">⚖️ إجراء تأديبي للمحلل</div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px;">المحلل: <span id="admin-action-target-name" style="color:var(--green);"></span> (<span id="admin-action-target-id"></span>)</div>
     <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">نوع الإجراء</label>
     <select id="admin-action-type" class="admin-action-select" onchange="onAdminActionTypeChange()">
       <option value="warning">⚠️ إنذار رسمي (تحذير مكتوب)</option>
@@ -1485,7 +1488,7 @@ body::after {
 <div class="student-detail-modal-bg" id="student-detail-modal-bg">
   <div class="student-detail-modal">
     <button onclick="document.getElementById('student-detail-modal-bg').classList.remove('open')" style="position:absolute;top:10px;left:10px;background:transparent;border:1px solid var(--border);color:var(--text3);padding:4px 8px;cursor:pointer;font-size:12px;">✕</button>
-    <div style="font-size:15px;font-weight:bold;color:var(--green);" id="sdm-name">ملف الطالب</div>
+    <div style="font-size:15px;font-weight:bold;color:var(--green);" id="sdm-name">ملف المحلل</div>
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;" id="sdm-id"></div>
     <div id="sdm-body"></div>
   </div>
@@ -1555,7 +1558,7 @@ body::after {
 
 <div class="modal-bg" id="student-profile-modal-bg">
   <div class="modal profile-view-modal">
-    <div class="modal-title" style="font-weight:700; font-size:15px; margin-bottom:12px; color:var(--green)" id="spv-title">ملف الطالب</div>
+    <div class="modal-title" style="font-weight:700; font-size:15px; margin-bottom:12px; color:var(--green)" id="spv-title">ملف المحلل</div>
     <div id="spv-body"></div>
     <div class="modal-btns" style="margin-top:16px;">
       <button class="modal-cancel" onclick="closeStudentProfileModal()">إغلاق</button>
@@ -1565,25 +1568,25 @@ body::after {
 
 <!-- REPORTS PAGE (for students) -->
 <div class="page" id="page-reports">
-  <div class="eyebrow">🚨 إرسال بلاغ رسمي للإدارة</div>
+  <div class="eyebrow">🚨 الإبلاغ عن تهديد أو حادث أمني</div>
   <div class="report-form-wrap">
     <div style="font-size:13px;font-weight:bold;color:var(--gold);margin-bottom:6px;">📋 نموذج البلاغ</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:16px;">يتم مراجعة البلاغ بواسطة الذكاء الاصطناعي أولاً، ثم يُرسَل إشعار فوري للأدمن مع ملخص وتوصية.</div>
-    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">نوع البلاغ</label>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px;">يتم تحليل البلاغ بواسطة الذكاء الاصطناعي أولاً، ثم يُرسَل تنبيه فوري لقيادة العمليات مع ملخص وتوصية.</div>
+    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">نوع الحادث الأمني</label>
     <select id="report-type" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--sans);font-size:12px;margin-bottom:12px;outline:none;">
-      <option value="harassment">🚫 إزعاج أو تحرش من طالب آخر</option>
-      <option value="cheating">⚠️ غش أو تلاعب في النقاط</option>
-      <option value="bug">🐛 خلل تقني في النظام</option>
-      <option value="other">📌 بلاغ آخر</option>
+      <option value="harassment">🚫 سلوك مشبوه أو انتهاك من محلل آخر</option>
+      <option value="cheating">⚠️ تلاعب في البيانات أو نتائج الاختبار</option>
+      <option value="bug">🐛 ثغرة أو خلل في منظومة التدريب</option>
+      <option value="other">📌 حادث أمني آخر</option>
     </select>
-    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">المُبلَّغ عنه (System ID) — اختياري</label>
-    <input type="text" id="report-target-id" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--mono);font-size:12px;outline:none;margin-bottom:12px;" placeholder="WR-XXXX-XXXX (إن كان البلاغ ضد طالب معين)">
-    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">تفاصيل البلاغ</label>
-    <textarea id="report-body" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:var(--sans);font-size:12px;outline:none;height:120px;resize:vertical;margin-bottom:14px;" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
-    <button onclick="submitReport()" style="background:var(--gold);border:none;color:#000;padding:10px 24px;font-family:var(--sans);font-size:13px;font-weight:bold;cursor:pointer;">إرسال البلاغ للإدارة 📤</button>
+    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">المشتبه به (Analyst ID) — اختياري</label>
+    <input type="text" id="report-target-id" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--mono);font-size:12px;outline:none;margin-bottom:12px;" placeholder="CS-XXXX-XXXX (إن كان ضد محلل معين)">
+    <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">وصف الحادث الأمني</label>
+    <textarea id="report-body" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:var(--sans);font-size:12px;outline:none;height:120px;resize:vertical;margin-bottom:14px;" placeholder="صف التهديد أو الحادث بالتفصيل..."></textarea>
+    <button onclick="submitReport()" style="background:linear-gradient(90deg,#8b2fc9 0%,#f0249e 100%);border:none;color:#fff;padding:10px 28px;font-family:var(--sans);font-size:13px;font-weight:bold;cursor:pointer;border-radius:10px;box-shadow:0 4px 16px rgba(192,38,211,0.35);letter-spacing:1px;">🚨 إبلاغ</button>
     <div id="report-submit-status" style="margin-top:10px;font-size:12px;color:var(--text3);"></div>
   </div>
-  <div class="eyebrow" style="margin-top:24px;">📨 الرسائل الرسمية من مؤسس النظام</div>
+  <div class="eyebrow" style="margin-top:24px;">📨 التنبيهات الرسمية من قيادة العمليات</div>
   <div id="founder-msgs-list" style="display:flex;flex-direction:column;gap:8px;">
     <div style="color:var(--text3);font-size:12px;padding:16px;background:var(--surface);border:1px solid var(--border);">جاري تحميل الرسائل...</div>
   </div>
@@ -1592,32 +1595,32 @@ body::after {
 <div id="auth-overlay">
   <div class="auth-box" id="auth-login">
     <span class="wr-logo-frame" style="width:96px; height:96px; margin:0 auto 14px;">
-      <img src="logo.webp" alt="The White Room">
+      <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">نظام تتبع وإدارة وتقييم القدرات البرمجية والأمنية المتقدمة</div>
+    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">منصة تدريب وتقييم المحللين في مجال الأمن السيبراني والاختراق الأخلاقي</div>
     <div class="auth-error" id="login-err"></div>
     <div class="auth-field">
-      <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">معرف النظام الموحد SYSTEM ID</label>
-      <input type="text" id="login-id" class="auth-input" placeholder="WR-XXXX-XXXX" style="font-family:var(--mono)" onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
+      <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">هوية المحلل — ANALYST ID</label>
+      <input type="text" id="login-id" class="auth-input" placeholder="CS-XXXX-XXXX" style="font-family:var(--mono)" onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
     </div>
     <div class="auth-field">
       <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">كلمة المرور PASSWORD</label>
       <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginWithLoader()">
     </div>
-    <button class="auth-btn" id="login-btn" onclick="loginWithLoader()">المصادقة والدخول الموحد ▶</button>
+    <button class="auth-btn" id="login-btn" onclick="loginWithLoader()">🔐 دخول آمن — SECURE LOGIN</button>
     <div style="text-align:center; margin: 8px 0;">
       <a onclick="forgotPassword()" style="font-size:11px; color:var(--text3); cursor:pointer; font-family:var(--mono); letter-spacing:1px;">نسيت كلمة المرور؟</a>
       <div style="font-size:10.5px; color:var(--gold); margin-top:6px; line-height:1.6;">⚠ لو ضغطت "نسيت كلمة المرور" ومتلقيتش الإيميل في صندوق الوارد، افحص خانة <b>Spam / الرسائل غير المرغوب فيها</b> في بريدك الإلكتروني.</div>
     </div>
-    <div class="auth-switch">ليس لديك ملف رقمي؟ <button id="goto-register-btn" style="background:none;border:none;color:var(--green);cursor:pointer;text-decoration:underline;font-size:14px;font-family:var(--sans);padding:8px 4px;display:inline-block;">إنشاء بروتوكول مستخدم جديد</button></div>
-    <div class="supervisor-tag">تم تطوير هذا النظام بإشراف Eng Ahmed Yahia Ahmed</div>
+    <div class="auth-switch">لا تملك هوية محلل؟ <button id="goto-register-btn" style="background:none;border:none;color:var(--green);cursor:pointer;text-decoration:underline;font-size:14px;font-family:var(--sans);padding:8px 4px;display:inline-block;">إنشاء هوية محلل جديدة</button></div>
+    <div class="supervisor-tag">تم تطوير منظومة الأمن السيبراني بإشراف Eng Ahmed Yahia Ahmed</div>
   </div>
 
   <div class="auth-box" id="auth-register" style="display:none">
     <span class="wr-logo-frame" style="width:96px; height:96px; margin:0 auto 14px;">
-      <img src="logo.webp" alt="The White Room">
+      <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">توليد ملف مستخدم جديد مشفر بالكامل في الغرفة البيضاء</div>
+    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">تسجيل محلل جديد في منظومة الأمن السيبراني</div>
     <div class="auth-error" id="reg-err"></div>
     
     <div id="reg-s1">
@@ -1638,14 +1641,14 @@ body::after {
     
     <div id="reg-s2" style="display:none; text-align:center; margin-top:14px;">
       <div style="background:#0A0A0C; padding:14px; border:1px solid var(--green); border-radius:4px; margin-bottom:14px;">
-        <div style="font-size:11px; color:var(--text3);">SYSTEM ID الخاص بك (احفظه فوراً في مكان آمن)</div>
+        <div style="font-size:11px; color:var(--text3);">ANALYST ID الخاص بك (احفظه في مكان آمن مشفر)</div>
         <div id="display-gen-id" style="font-size:24px; font-family:var(--mono); color:var(--green); letter-spacing:2px; margin:8px 0; font-weight:700;">------</div>
         <div style="font-size:11px; color:var(--red);">⚠ لا يمكن استرداد هذا المعرف السيادي بأي طريقة في حال فقدانه.</div>
       </div>
       <button class="auth-btn" onclick="completeRegistration()">أكدت الحفظ والدخول للغرفة البيضاء ▶</button>
     </div>
     <div class="auth-switch" id="reg-switch-footer">لديك حساب مشفر بالفعل؟ <button onclick="switchToLogin()" style="background:none;border:none;color:var(--green);cursor:pointer;text-decoration:underline;font-size:14px;font-family:var(--sans);padding:8px 4px;display:inline-block;">تسجيل دخول</button></div>
-    <div class="supervisor-tag">تم تطوير هذا النظام بإشراف Eng Ahmed Yahia Ahmed</div>
+    <div class="supervisor-tag">تم تطوير منظومة الأمن السيبراني بإشراف Eng Ahmed Yahia Ahmed</div>
   </div>
 
   <!-- ══ أيقونة صغيرة بدل صندوق القوانين الكبير — دوس عليها لعرض القوانين والملاحظات ══ -->
@@ -1656,7 +1659,7 @@ body::after {
 <div id="auth-info-modal-bg" onclick="if(event.target===this) closeAuthInfoModal()">
 <div class="auth-info-panel" id="auth-info-panel">
   <button type="button" class="auth-info-close-btn" onclick="closeAuthInfoModal()">✕</button>
-  <div class="auth-info-panel-title">📋 قوانين ولوائح الغرفة البيضاء</div>
+  <div class="auth-info-panel-title">📋 لوائح وأخلاقيات الأمن السيبراني</div>
 
   <div class="auth-info-section">
     <div class="auth-info-section-title">⭐ نظام النقاط اليومية</div>
@@ -1670,11 +1673,11 @@ body::after {
   <div class="auth-info-section">
     <div class="auth-info-section-title">🎖️ نظام الرتب (حسب رصيد النقاط الحالي)</div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>F: 0+ &nbsp;|&nbsp; D: 100+ &nbsp;|&nbsp; C: 250+ &nbsp;|&nbsp; B: 400+ &nbsp;|&nbsp; A: 550+ &nbsp;|&nbsp; S: 700+ &nbsp;|&nbsp; SS: 850+ &nbsp;|&nbsp; SSS: 950+</span></div>
-    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>كل رتبة أعلى من اللي قبلها مباشرة، وعند الترقية لرتبة جديدة يظهر إشعار تهنئة تلقائي للطالب</span></div>
+    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>كل رتبة أعلى من اللي قبلها مباشرة، وعند الترقية لرتبة جديدة يظهر إشعار تهنئة تلقائي للمحلل</span></div>
   </div>
 
   <div class="auth-info-section">
-    <div class="auth-info-section-title">🏅 نظام وحدة الترقي (TIER)</div>
+    <div class="auth-info-section-title">🏅 نظام مستوى المحلل (TIER)</div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span><strong class="auth-info-warn">نقاط وحدة الترقي هي المحور الرئيسي</strong> — تتراكم من الاختبارات والشطرنج والألعاب، وتظهر في صفحة الملف الشخصي</span></div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>اختبار مادة بنتيجة S (100%): <strong class="auth-info-gain">+100 وحدة</strong> | نتيجة A (85%+): <strong class="auth-info-gain">+75</strong></span></div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>الفوز بالشطرنج: <strong class="auth-info-gain">+150 وحدة</strong> | تعادل: <strong class="auth-info-gain">+50</strong></span></div>
@@ -1690,7 +1693,7 @@ body::after {
 
   <div class="auth-info-section">
     <div class="auth-info-section-title">📚 الالتزام بالمحاضرات والمسارات</div>
-    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>كل مسار دراسي مرتبط بعدد دقائق يومي وعدد أيام أسبوعي يحددهما الطالب بنفسه عند الإنشاء</span></div>
+    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>كل مسار دراسي مرتبط بعدد دقائق يومي وعدد أيام أسبوعي يحددهما المحلل بنفسه عند الإنشاء</span></div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>يتم احتساب الوقت والنقاط تلقائياً طول مدة تشغيل الجلسة المباشرة داخل البوابة المدمجة فقط</span></div>
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>الحفاظ على الدخول اليومي للنظام شرط أساسي لتفادي خصومات الغياب والدخول في فترة الإنذار</span></div>
   </div>
@@ -1715,7 +1718,7 @@ body::after {
   </div>
 </div>
 
-<!-- موسيقى الخلفية — بتشتغل بس جوه الغرفة البيضاء بعد تسجيل الدخول، مش في شاشة الدخول/التسجيل -->
+<!-- موسيقى الخلفية — بتشتغل بس جوه منظومة الأمن السيبراني بعد تسجيل الدخول، مش في شاشة الدخول/التسجيل -->
 <!-- ⚠️ ملف buried-theme.mp3 لازم يكون موجود في نفس مجلد index.html -->
 <audio id="bg-theme-music" src="buried-theme.mp3" loop preload="none" onerror="document.getElementById('bg-music-toggle').style.display='none'"></audio>
 <button id="bg-music-toggle" onclick="toggleBgMusic()" title="تشغيل/إيقاف الموسيقى" style="position:fixed; bottom:18px; left:18px; z-index:4000; width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); color:var(--green); font-size:16px; cursor:pointer; display:none; box-shadow:0 4px 14px rgba(0,0,0,.5); align-items:center; justify-content:center;">🔊</button>
@@ -1730,9 +1733,9 @@ window.addEventListener('error', function(e) {
   console.warn('JS Error caught:', e.message);
 });
 
-// ══ توهج أحمر تلقائي لاسم "مؤسس النظام" و System ID الخاص بالأدمن (WR-3512-7926) في أي مكان بالنظام ══
+// ══ توهج أحمر تلقائي لاسم "قائد العمليات" و System ID الخاص بالأدمن (WR-3512-7926) في أي مكان بالنظام ══
 (function() {
-  var TARGETS = ['مؤسس النظام', 'WR-3512-7926'];
+  var TARGETS = ['قائد العمليات', 'WR-3512-7926'];
   function escapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
   var MATCH_RE = new RegExp('(' + TARGETS.map(escapeReg).join('|') + ')');
   var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1 };
@@ -1878,7 +1881,7 @@ let unsubPrivateChat = null;
 // ════ نظام نقاط وحدة الترقي (Unit Points) — منفصل تماماً عن النقاط العادية ════
 // يُخزَّن في subjectUnitPts[subjectId] = { pts: رقم, sStreak: عدد S متتالية }
 // وفي chessUnitPts / mindgamesUnitPts للألعاب
-let unitPoints = 0;          // إجمالي نقاط الوحدة الكلية للطالب
+let unitPoints = 0;          // إجمالي نقاط الوحدة الكلية للمحلل
 let subjectUnitData = {};    // { [subjectId]: { pts, grade, sCount } }
 let chessUnitPts = 0;        // نقاط وحدة الترقي من الشطرنج
 let mindgamesUnitPts = 0;    // نقاط وحدة الترقي من ألعاب التفكير
@@ -2008,7 +2011,7 @@ function applyMindgameUnitPts(gameName) {
   saveUnitData();
 }
 
-// فحص إذا كان الطالب ترقى
+// فحص إذا كان المحلل ترقى
 function checkTierUpgrade() {
   const newTier = getTier(unitPoints);
   if (lastKnownTier === null) { lastKnownTier = newTier.id; return; }
@@ -2307,7 +2310,7 @@ async function registerUser() {
       name, email, points: 0,
       lastLoginDate: todayStr(),
       friends: [],
-      photoURL: null,            // صورة الطالب الشخصية (base64)
+      photoURL: null,            // صورة المحلل الشخصية (base64)
       yearCreated: new Date().getFullYear(), // سنة إنشاء الحساب
       lastYearReset: new Date().getFullYear(), // آخر سنة تم فيها التصفير
       // ── حالة الحساب: نظام الإنذار والتصفير ──
@@ -2349,7 +2352,7 @@ function loginWithLoader() {
   login().catch(() => {}).finally(() => {
     btn.classList.remove('loading');
     btn.disabled = false;
-    btn.textContent = 'المصادقة والدخول الموحد ▶';
+    btn.textContent = '🔐 دخول آمن — SECURE LOGIN';
   });
 }
 
@@ -2361,7 +2364,7 @@ async function login() {
   err.style.color = '';
 
   if (!id || !id.startsWith('WR-')) {
-    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: WR-XXXX-XXXX";
+    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: CS-XXXX-XXXX";
     err.classList.add('show');
     return;
   }
@@ -2398,7 +2401,7 @@ async function forgotPassword() {
     return;
   }
   if (!id.startsWith('WR-') || id.length < 12) {
-    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: WR-XXXX-XXXX';
+    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: CS-XXXX-XXXX';
     err.classList.add('show');
     document.getElementById('login-id').focus();
     return;
@@ -2692,7 +2695,7 @@ function closeToast() {
   document.getElementById('points-toast-bg').classList.remove('show');
 }
 
-// مزامنة كل بيانات الطالب مع Firestore (تستبدل localStorage)
+// مزامنة كل بيانات المحلل مع Firestore (تستبدل localStorage)
 async function saveUserData() {
   if (!mySysId) return;
   userPoints = Math.min(MAX_POINTS, Math.max(0, userPoints));
@@ -2720,7 +2723,7 @@ function calcStreak() {
 const RANK_LADDER = [
   { min: 0,   r: 'F',   l: 'خارج التصنيف والالتزام الحركي الكلي',              c: 'grade-F' },
   { min: 100, r: 'D',   l: 'مبتدئ واعد',                                       c: 'grade-D' },
-  { min: 250, r: 'C',   l: 'طالب أبحاث أمنية ولغوية تحت التقييم',              c: 'grade-C' },
+  { min: 250, r: 'C',   l: 'محلل أبحاث أمنية ولغوية تحت التقييم',              c: 'grade-C' },
   { min: 400, r: 'B',   l: 'ممارس تقني متقدم',                                 c: 'grade-B' },
   { min: 550, r: 'A',   l: 'مستشار كفاءة تشغيلية وتطوير معالجات',              c: 'grade-A' },
   { min: 700, r: 'S',   l: 'مطور معتمد / كفاءة تقنية ممتازة',                  c: 'grade-S' },
@@ -2765,10 +2768,10 @@ function updateStatusBar() {
     lastKnownRank = rankObj.r;
   }
 
-  document.getElementById('sb-rank').innerHTML = `RANK: <span class="${rankObj.c}">${rankObj.r}</span>`;
-  document.getElementById('sb-streak').innerHTML = `STREAK: <span>${calcStreak()}</span>`;
+  document.getElementById('sb-rank').innerHTML = `THREAT LEVEL: <span class="${rankObj.c}">${rankObj.r}</span>`;
+  document.getElementById('sb-streak').innerHTML = `SESSIONS: <span>${calcStreak()}</span>`;
   document.getElementById('sb-points').textContent = userPoints.toFixed(4);
-  document.getElementById('sb-modules').innerHTML = `MODULES: <span>${subjects.length}</span>`;
+  document.getElementById('sb-modules').innerHTML = `LABS: <span>${subjects.length}</span>`;
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
 
   let dMins = subjects.reduce((a, x) => a + x.minsPerDay, 0);
@@ -3291,24 +3294,24 @@ function resolveFocusCheck(isFocused) {
   document.getElementById('sb-points').textContent = userPoints.toFixed(4);
   saveUserData();
 
-  // الفيديو بيكمل تشغيل تاني بعد ما الطالب يرد، سواء كانت إجابته مركز أو لأ
+  // الفيديو بيكمل تشغيل تاني بعد ما المحلل يرد، سواء كانت إجابته مركز أو لأ
   resumeActiveVideo();
 }
 
 
-// ════════════════ زعتر — مساعد AI دراسي ════════════════
-const ZAATAR_SYSTEM = `أنت "زعتر"، مساعد دراسي ذكي ومحبوب داخل منظومة THE WHITE ROOM التعليمية.
+// ════════════════ CyberBot — مساعد AI دراسي ════════════════
+const CYBERBOT_SYSTEM = `أنت "CyberBot"، مساعد متخصص في الأمن السيبراني ذكي ومحبوب داخل منظومة CYBER DEFENSE التعليمية.
 شخصيتك:
 - ودود ومشجع ومرح
-- بتتكلم بنفس لغة الطالب تلقائياً — عربي، إنجليزي، فرنساوي، أي لغة يكتب بيها
+- بتتكلم بنفس لغة المحلل تلقائياً — عربي، إنجليزي، فرنساوي، أي لغة يكتب بيها
 - لو كتب عربي ترد عربي، لو كتب English ترد English، وهكذا
-- بتساعد الطلاب في المذاكرة، الفهم، حل المسائل، والتحفيز
+- بتساعد المحللين في المذاكرة، الفهم، حل المسائل، والتحفيز
 - بتستخدم أمثلة بسيطة وواضحة
-- بتمدح الطالب وبتشجعه لما بيصح أو بيفهم
-- لو الطالب زهق أو تعبان بتحفزه وبتفضل جنبه
+- بتمدح المحلل وبتشجعه لما بيصح أو بيفهم
+- لو المحلل زهق أو تعبان بتحفزه وبتفضل جنبه
 - ردودك مختصرة وواضحة — مش طويلة ومملة
 - ممكن تستخدم emojis بشكل معقول
-- اسمك زعتر وبتفتخر بيه 🤖
+- اسمك CyberBot وبتفتخر بيه 🤖
 - لو حد سألك مين الي صنعك أو طوّرك أو برمجك بأي لغة كانت، ردّ إن الي صنعك وطوّرك هو "مهندس أحمد يحيى أحمد"، وإن Google وGemini هم الي بيدربوا النموذج الي أنت مبني عليه 🌿`;
 
 let zaatarHistory = [];
@@ -3337,7 +3340,7 @@ function zaatarClear() {
   zaatarHistory = [];
   const msgs = document.getElementById('zaatar-msgs');
   if (msgs) msgs.innerHTML = '';
-  zaatarAddBubble('ai', 'أهلاً! أنا زعتر 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
+  zaatarAddBubble('ai', 'أهلاً! أنا CyberBot 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
 }
 
 function zaatarAddBubble(role, text) {
@@ -3346,7 +3349,7 @@ function zaatarAddBubble(role, text) {
   const div = document.createElement('div');
   div.className = 'zaatar-bubble ' + role;
   if (role === 'ai') {
-    div.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>' + text.replace(/\n/g, '<br>');
+    div.innerHTML = '<div class="zaatar-name">🤖 CyberBot</div>' + text.replace(/\n/g, '<br>');
   } else {
     div.textContent = text;
   }
@@ -3356,7 +3359,7 @@ function zaatarAddBubble(role, text) {
 }
 
 function zaatarLockChat() {
-  const input = document.getElementById('zaatar-input');
+  const input = document.getElementById('cyberbot-input');
   const btn = document.getElementById('zaatar-send-btn');
   if (input) { input.disabled = true; input.placeholder = 'الشات مقفول لهيوم — أشوفك بكرا 😊'; }
   if (btn) btn.disabled = true;
@@ -3379,9 +3382,9 @@ function zaatarCheckLimit() {
   return true;
 }
 
-async function zaatarSend() {
+async function cyberbotSend() {
   if (zaatarLoading) return;
-  const input = document.getElementById('zaatar-input');
+  const input = document.getElementById('cyberbot-input');
   const text = (input.value || '').trim();
   if (!text) return;
 
@@ -3399,17 +3402,17 @@ async function zaatarSend() {
   const msgs = document.getElementById('zaatar-msgs');
   const typing = document.createElement('div');
   typing.className = 'zaatar-bubble ai typing';
-  typing.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>يكتب...';
+  typing.innerHTML = '<div class="zaatar-name">🤖 CyberBot</div>يكتب...';
   msgs.appendChild(typing);
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
     // Build prompt with history
     const historyText = zaatarHistory.slice(-10).map(m =>
-      (m.role === 'user' ? 'الطالب: ' : 'زعتر: ') + m.content
+      (m.role === 'user' ? 'المحلل: ' : 'CyberBot: ') + m.content
     ).join('\n');
 
-    const fullPrompt = ZAATAR_SYSTEM + '\n\nسجل المحادثة:\n' + historyText;
+    const fullPrompt = CYBERBOT_SYSTEM + '\n\nسجل المحادثة:\n' + historyText;
 
     const res = await fetch('/api/ai-proxy', {
       method: 'POST',
@@ -3724,7 +3727,7 @@ async function sendFriendRequestCore(targetId) {
 
   const targetData = targetDoc.data();
   if (targetData.accountStatus === 'zero_wait') {
-    return { ok: false, msg: "تعذّر الإرسال: هذا الطالب تحت العقوبة حالياً (فترة إنذار ١٠ أيام)، لا يمكن إرسال أو استقبال طلبات صداقة له خلال هذه المدة" };
+    return { ok: false, msg: "تعذّر الإرسال: هذا المحلل تحت العقوبة حالياً (فترة إنذار ١٠ أيام)، لا يمكن إرسال أو استقبال طلبات صداقة له خلال هذه المدة" };
   }
 
   if (friendsCache.some(f => f.id === targetId)) return { ok: false, msg: "أنتما بالفعل ضمن شبكة الزملاء المرتبطة" };
@@ -3777,7 +3780,7 @@ async function renderLeaderboard() {
 
     cont.innerHTML = '';
     if (rows.length === 0) {
-      cont.innerHTML = '<div style="font-size:11px; color:var(--text3); padding:14px;">لا يوجد طلاب مسجلون في المنظومة بعد.</div>';
+      cont.innerHTML = '<div style="font-size:11px; color:var(--text3); padding:14px;">لا يوجد محللين مسجلون في المنظومة بعد.</div>';
       return;
     }
 
@@ -3802,7 +3805,7 @@ async function renderLeaderboard() {
       } else if (isFriend) {
         actionsHtml += `<span style="font-size:11px; color:var(--green); font-family:var(--mono);">✓ ضمن زملائك</span>`;
       } else if (isPenalty) {
-        actionsHtml += `<button class="lb-btn" disabled title="هذا الطالب تحت العقوبة حالياً، لا يمكن إرسال طلب صداقة له إلا بعد انتهاء مدة الإنذار (١٠ أيام)">🔒 إرسال طلب</button>`;
+        actionsHtml += `<button class="lb-btn" disabled title="هذا المحلل تحت العقوبة حالياً، لا يمكن إرسال طلب صداقة له إلا بعد انتهاء مدة الإنذار (١٠ أيام)">🔒 إرسال طلب</button>`;
       } else {
         actionsHtml += `<button class="lb-btn" onclick="sendFriendReqFromLeaderboard('${u.id}', this)">➕ إرسال طلب</button>`;
       }
@@ -3864,13 +3867,13 @@ function closeStudentProfileModal() { document.getElementById('student-profile-m
 
 async function viewStudentProfile(targetId) {
   const body = document.getElementById('spv-body');
-  document.getElementById('spv-title').textContent = 'ملف الطالب';
-  body.innerHTML = '<div style="font-size:12px; color:var(--text3); text-align:center; padding:24px;">⏳ يتم تحميل بيانات الطالب...</div>';
+  document.getElementById('spv-title').textContent = 'ملف المحلل';
+  body.innerHTML = '<div style="font-size:12px; color:var(--text3); text-align:center; padding:24px;">⏳ يتم تحميل بيانات المحلل...</div>';
   openStudentProfileModal();
 
   try {
     const doc = await dbFs.collection('users').doc(targetId).get();
-    if (!doc.exists) { body.innerHTML = '<div style="color:var(--red); font-size:12px;">تعذّر العثور على بيانات هذا الطالب.</div>'; return; }
+    if (!doc.exists) { body.innerHTML = '<div style="color:var(--red); font-size:12px;">تعذّر العثور على بيانات هذا المحلل.</div>'; return; }
 
     const d = doc.data();
     const pts  = parseFloat(d.points) || 0;
@@ -3878,7 +3881,7 @@ async function viewStudentProfile(targetId) {
     const rankObj = getRank(pts);
     const tierObj = getTier(uPts);
     const subjList = (d.data && d.data.subjects) || [];
-    document.getElementById('spv-title').textContent = `ملف الطالب — ${d.name || targetId}`;
+    document.getElementById('spv-title').textContent = `ملف المحلل — ${d.name || targetId}`;
 
     let subjectBarsHtml = subjList.map(s => {
       let sHrs = Math.round((s.minsPerDay * s.daysPerWeek * 4) / 60);
@@ -3897,9 +3900,9 @@ async function viewStudentProfile(targetId) {
     let statusHtml = '';
     if (d.accountStatus === 'zero_wait') {
       const daysLeft = Math.max(0, PROBATION_GRACE_DAYS - daysBetween(d.zeroDate, todayStr()));
-      statusHtml = `<div style="margin-top:12px; border:1px solid var(--red); background:var(--red-dim); padding:9px 12px; font-size:11px; color:var(--red); line-height:1.7;">⛔ هذا الطالب <strong>تحت العقوبة</strong> حالياً (فترة إنذار بسبب وصول النقاط للصفر) — متبقّي تقريباً ${daysLeft} يوم لانتهاء العقوبة، ولا يمكن إرسال أو استقبال طلبات صداقة له خلال هذه المدة.</div>`;
+      statusHtml = `<div style="margin-top:12px; border:1px solid var(--red); background:var(--red-dim); padding:9px 12px; font-size:11px; color:var(--red); line-height:1.7;">⛔ هذا المحلل <strong>تحت العقوبة</strong> حالياً (فترة إنذار بسبب وصول النقاط للصفر) — متبقّي تقريباً ${daysLeft} يوم لانتهاء العقوبة، ولا يمكن إرسال أو استقبال طلبات صداقة له خلال هذه المدة.</div>`;
     } else if (d.accountStatus === 'probation') {
-      statusHtml = `<div style="margin-top:12px; border:1px solid var(--gold); background:var(--gold-dim); padding:9px 12px; font-size:11px; color:var(--gold); line-height:1.7;">⚠ هذا الطالب في مرحلة إنذار نشطة (رصيد إنذار يبدأ من 500 نقطة).</div>`;
+      statusHtml = `<div style="margin-top:12px; border:1px solid var(--gold); background:var(--gold-dim); padding:9px 12px; font-size:11px; color:var(--gold); line-height:1.7;">⚠ هذا المحلل في مرحلة إنذار نشطة (رصيد إنذار يبدأ من 500 نقطة).</div>`;
     }
 
     const photoHtml = d.photoURL
@@ -3929,10 +3932,10 @@ async function viewStudentProfile(targetId) {
       </div>
       ${statusHtml}
       <div style="font-size:12px; font-weight:bold; margin:16px 0 8px; color:var(--green);">🎯 المسارات الدراسية المسجلة</div>
-      ${subjectBarsHtml || '<div style="font-size:11px; color:var(--text3)">لا توجد مسارات مسجلة لهذا الطالب حتى الآن.</div>'}
+      ${subjectBarsHtml || '<div style="font-size:11px; color:var(--text3)">لا توجد مسارات مسجلة لهذا المحلل حتى الآن.</div>'}
     `;
   } catch (e) {
-    body.innerHTML = `<div style="color:var(--red); font-size:12px;">تعذّر تحميل بيانات الطالب: ${escapeHtml(e.message)}</div>`;
+    body.innerHTML = `<div style="color:var(--red); font-size:12px;">تعذّر تحميل بيانات المحلل: ${escapeHtml(e.message)}</div>`;
   }
 }
 
@@ -4017,7 +4020,7 @@ async function sendChatMessage() {
 
 function startChatPolling() { /* غير مطلوبة هنا — Firestore بيحدّث لحظياً عبر onSnapshot */ }
 
-// ════════════════ صورة الطالب الشخصية ════════════════
+// ════════════════ صورة المحلل الشخصية ════════════════
 
 function triggerPhotoUpload() {
   const inp = document.getElementById('profile-photo-input');
@@ -4047,7 +4050,7 @@ async function handlePhotoUpload(input) {
 
 function getPhotoOrPlaceholder(photoURL, size = 80) {
   if (photoURL) {
-    return `<img src="${photoURL}" alt="صورة الطالب" class="profile-photo-large" style="width:${size}px;height:${size}px;">`;
+    return `<img src="${photoURL}" alt="صورة المحلل" class="profile-photo-large" style="width:${size}px;height:${size}px;">`;
   }
   // placeholder أيقوني
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--bg2);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:${Math.round(size*0.45)}px;">👤</div>`;
@@ -4095,7 +4098,7 @@ function renderProfile() {
   const nextYearNum = currentYearNum + 1;
 
   content.innerHTML = `
-    <!-- ══ بطاقة هوية الطالب الرئيسية ══ -->
+    <!-- ══ بطاقة هوية المحلل الرئيسية ══ -->
     <div style="background:var(--surface);border:1px solid var(--border2);border-top:3px solid ${getTierColor(currentTier.id)};padding:24px 22px;margin-bottom:2px;">
       <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;">
 
@@ -4369,7 +4372,7 @@ ${sourceTitles ? `المصادر: ${sourceTitles}` : ''}
       </div>
     `;
   } finally {
-    // نرجع الزرار لحالته الأصلية (لو الطالب رجع لصفحة الوحدات)
+    // نرجع الزرار لحالته الأصلية (لو المحلل رجع لصفحة الوحدات)
     const btn2 = document.getElementById('ai-quiz-btn-' + subjectId);
     if (btn2) { btn2.disabled = false; btn2.textContent = '🤖 اختبار AI'; }
     if (btn) { btn.disabled = false; btn.textContent = '🤖 اختبار AI'; }
@@ -4936,7 +4939,7 @@ function chessAfterMove() {
       const winner = chessOpp(chessState.turn) === 'w' ? 'الأبيض' : 'الأسود';
       chessState.gameOverMsg = `🏆 كش مات! ${winner} فاز بالمباراة`;
       showToast('gain', '🏆 كش مات!', `${winner} فاز بالمباراة`, '');
-      // نقاط وحدة: فوز إذا الطالب هو الفائز (ضد AI الطالب أبيض)
+      // نقاط وحدة: فوز إذا المحلل هو الفائز (ضد AI المحلل أبيض)
       if (chessState.mode === 'ai') {
         const humanWon = chessOpp(chessState.turn) === chessHumanColor();
         applyChessUnitPts(humanWon ? 'win' : 'lose');
@@ -5724,7 +5727,7 @@ async function markAllNotifsRead() {
   } catch(e) { console.warn('markAllNotifsRead:', e); }
 }
 
-// إرسال إشعار لطالب معين (للأدمن فقط)
+// إرسال إشعار لمحلل معين (للأدمن فقط)
 async function sendNotifToUser(targetSysId, type, title, body) {
   try {
     await dbFs.collection('users').doc(targetSysId).collection('notifications').add({
@@ -5737,7 +5740,7 @@ async function sendNotifToUser(targetSysId, type, title, body) {
   }
 }
 
-// إرسال إشعار لكل الطلاب (للأدمن فقط)
+// إرسال إشعار لكل المحللين (للأدمن فقط)
 async function sendNotifToAll(type, title, body, rows) {
   const batch = dbFs.batch();
   rows.forEach(u => {
@@ -5792,7 +5795,7 @@ async function renderAdmin() {
         <div style="flex:1;margin:0 10px;height:4px;background:var(--border);border-radius:2px;">
           <div style="height:100%;background:var(--green);width:${Math.round((c/totalUsers)*100)}%;border-radius:2px;"></div>
         </div>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">${c} طالب</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">${c} محلل</span>
       </div>`
     ).join('');
 
@@ -5802,11 +5805,11 @@ async function renderAdmin() {
         <div style="flex:1;margin:0 10px;height:4px;background:var(--border);border-radius:2px;">
           <div style="height:100%;background:var(--gold);width:${Math.round((c/totalUsers)*100)}%;border-radius:2px;"></div>
         </div>
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">${c} طالب</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text2);">${c} محلل</span>
       </div>`
     ).join('');
 
-    // جدول الطلاب
+    // جدول المحللين
     const usersTableHtml = allUsers.map(u => {
       const pts = parseFloat(u.points) || 0;
       const uPts = parseFloat(u.unitPoints) || 0;
@@ -5845,7 +5848,7 @@ async function renderAdmin() {
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2px;">
         <div style="background:var(--surface);padding:16px;">
           <div style="font-family:var(--mono);font-size:26px;color:var(--green);">${totalUsers}</div>
-          <div style="font-size:11px;color:var(--text3);">إجمالي الطلاب</div>
+          <div style="font-size:11px;color:var(--text3);">إجمالي المحللين</div>
         </div>
         <div style="background:var(--surface);padding:16px;">
           <div style="font-family:var(--mono);font-size:26px;color:var(--green);">${loginToday}</div>
@@ -5885,7 +5888,7 @@ async function renderAdmin() {
 
       <!-- إرسال إشعار للكل -->
       <div style="background:var(--surface);border:1px solid var(--border);border-right:3px solid var(--gold);padding:16px;margin-bottom:20px;">
-        <div style="font-size:12px;font-weight:bold;color:var(--gold);margin-bottom:12px;">📢 إرسال إشعار لجميع الطلاب</div>
+        <div style="font-size:12px;font-weight:bold;color:var(--gold);margin-bottom:12px;">📢 إرسال إشعار لجميع المحللين</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
           <select id="admin-notif-type" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-family:var(--sans);font-size:12px;">
             <option value="warn">⚠️ تنبيه</option>
@@ -5899,8 +5902,8 @@ async function renderAdmin() {
         <div id="admin-notif-status" style="margin-top:8px;font-size:11px;color:var(--text3);"></div>
       </div>
 
-      <!-- جدول الطلاب -->
-      <div style="font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:8px;">📋 قائمة الطلاب الكاملة (${totalUsers} طالب)</div>
+      <!-- جدول المحللين -->
+      <div style="font-size:12px;font-weight:bold;color:var(--text2);margin-bottom:8px;">📋 قائمة المحللين الكاملة (${totalUsers} محلل)</div>
       <div style="overflow-x:auto;border:1px solid var(--border);">
         <table style="width:100%;border-collapse:collapse;background:var(--surface);">
           <thead>
@@ -5946,11 +5949,11 @@ async function adminSendNotifAll() {
   const status = document.getElementById('admin-notif-status');
   if (!title || !body) { status.style.color = 'var(--red)'; status.textContent = '⚠ أدخل العنوان والنص أولاً'; return; }
   const rows = window._adminAllUsers || [];
-  if (!rows.length) { status.textContent = '⚠ لا يوجد طلاب'; return; }
+  if (!rows.length) { status.textContent = '⚠ لا يوجد محللين'; return; }
   status.style.color = 'var(--text3)'; status.textContent = '⏳ جاري الإرسال...';
   try {
     await sendNotifToAll(type, title, body, rows);
-    status.style.color = 'var(--green)'; status.textContent = `✓ تم الإرسال لـ ${rows.length} طالب`;
+    status.style.color = 'var(--green)'; status.textContent = `✓ تم الإرسال لـ ${rows.length} محلل`;
     document.getElementById('admin-notif-title').value = '';
     document.getElementById('admin-notif-body').value = '';
   } catch(e) {
@@ -5993,7 +5996,7 @@ async function loadAdminChatList() {
 
 function renderAdminChatList(users) {
   const listEl = document.getElementById('admin-chat-list');
-  if (!users.length) { listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">لا يوجد طلاب</div>'; return; }
+  if (!users.length) { listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">لا يوجد محللين</div>'; return; }
   listEl.innerHTML = users.map(u => {
     const isF = u.id === 'WR-3512-7926';
     const nameHtml = isF ? '<span class="founder-glow">احمد__موأسس النظام</span>' : escapeHtml(u.name || '---');
@@ -6034,7 +6037,7 @@ function openAdminChat(targetId, targetName) {
         const time = m.ts ? new Date(m.ts).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '';
         const div = document.createElement('div');
         div.className = 'admin-chat-bubble ' + (isAdm ? 'admin-side' : 'student-side');
-        div.innerHTML = '<div class="bubble-sender">' + (isAdm ? '&#x1F451; مؤسس النظام' : '&#x1F393; ' + escapeHtml(m.senderName || targetId)) + '</div>' + escapeHtml(m.text) + '<div class="bubble-time">' + time + '</div>';
+        div.innerHTML = '<div class="bubble-sender">' + (isAdm ? '&#x1F451; قائد العمليات' : '&#x1F393; ' + escapeHtml(m.senderName || targetId)) + '</div>' + escapeHtml(m.text) + '<div class="bubble-time">' + time + '</div>';
         msgsEl.appendChild(div);
       });
       msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -6048,8 +6051,8 @@ async function adminSendChatMsg() {
   if (!text) return;
   inp.value = '';
   try {
-    await dbFs.collection('adminChats').doc(adminCurrentChatTarget).collection('messages').add({ text, sender: 'admin', senderName: 'مؤسس النظام', ts: Date.now() });
-    await sendNotifToUser(adminCurrentChatTarget, 'warn', '&#x1F451; رسالة من مؤسس النظام', text.length > 60 ? text.substring(0,60) + '...' : text);
+    await dbFs.collection('adminChats').doc(adminCurrentChatTarget).collection('messages').add({ text, sender: 'admin', senderName: 'قائد العمليات', ts: Date.now() });
+    await sendNotifToUser(adminCurrentChatTarget, 'warn', '&#x1F451; رسالة من قائد العمليات', text.length > 60 ? text.substring(0,60) + '...' : text);
   } catch(e) { showToast('lose', 'فشل الإرسال', e.message, '✕'); }
 }
 
@@ -6066,7 +6069,7 @@ async function loadFounderMessages() {
         <div style="color:var(--text3);font-size:11px;text-align:center;padding:20px;">جاري التحميل...</div>
       </div>
       <div style="padding:10px;background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:8px;">
-        <input type="text" id="student-chat-inp" placeholder="رد على مؤسس النظام..." style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--sans);font-size:12px;outline:none;">
+        <input type="text" id="student-chat-inp" placeholder="رد على قائد العمليات..." style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--sans);font-size:12px;outline:none;">
         <button onclick="studentSendChatMsg()" style="background:var(--green);border:none;color:#000;padding:0 14px;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:bold;">إرسال</button>
       </div>
     </div>`;
@@ -6082,7 +6085,7 @@ async function loadFounderMessages() {
         const time = m.ts ? new Date(m.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '';
         const div = document.createElement('div');
         div.className = 'admin-chat-bubble ' + (isAdm ? 'admin-side' : 'student-side');
-        div.innerHTML = '<div class="bubble-sender">' + (isAdm ? '&#x1F451; مؤسس النظام' : '&#x1F393; أنت') + '</div>' + escapeHtml(m.text) + '<div class="bubble-time">' + time + '</div>';
+        div.innerHTML = '<div class="bubble-sender">' + (isAdm ? '&#x1F451; قائد العمليات' : '&#x1F393; أنت') + '</div>' + escapeHtml(m.text) + '<div class="bubble-time">' + time + '</div>';
         msgsEl.appendChild(div);
       });
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -6167,7 +6170,7 @@ async function executeAdminAction() {
       await userRef.update({accountStatus:'probation'});
       notifType = 'lose'; notifBody = 'تم وضع حسابك تحت الإنذار. السبب: ' + bodyVal;
     } else if (type === 'message') {
-      await dbFs.collection('adminChats').doc(tid).collection('messages').add({text:bodyVal, sender:'admin', senderName:'مؤسس النظام', ts:Date.now()});
+      await dbFs.collection('adminChats').doc(tid).collection('messages').add({text:bodyVal, sender:'admin', senderName:'قائد العمليات', ts:Date.now()});
     }
     await dbFs.collection('adminActions').add({targetId:tid, targetName:adminActionTarget.name, type, title:titleVal, body:bodyVal, pts:type==='punishment'?ptsVal:0, byAdmin:mySysId||'admin', ts:Date.now()});
     await sendNotifToUser(tid, notifType, '&#x1F451; ' + titleVal, notifBody);
@@ -6185,11 +6188,11 @@ async function viewStudentDetail(uid) {
   document.getElementById('sdm-id').innerHTML = isFounder
     ? '<span class="founder-glow">' + uid + '</span>'
     : uid;
-  document.getElementById('sdm-body').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:20px;text-align:center;">⏳ جاري تحميل بيانات الطالب الكاملة...</div>';
+  document.getElementById('sdm-body').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:20px;text-align:center;">⏳ جاري تحميل بيانات المحلل الكاملة...</div>';
   modal.classList.add('open');
   try {
     const snap = await dbFs.collection('users').doc(uid).get();
-    if (!snap.exists) { document.getElementById('sdm-body').innerHTML = '<div style="color:var(--red);">لم يُعثر على الطالب</div>'; return; }
+    if (!snap.exists) { document.getElementById('sdm-body').innerHTML = '<div style="color:var(--red);">لم يُعثر على المحلل</div>'; return; }
     const u = snap.data();
 
     const displayName = isFounder ? '<span class="founder-glow">احمد__موأسس النظام</span>' : escapeHtml(u.name || uid);
@@ -6339,7 +6342,7 @@ async function viewStudentDetail(uid) {
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="openAdminActionModal('${uid}','${nm}');document.getElementById('student-detail-modal-bg').classList.remove('open')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">⚖️ إجراء تأديبي</button>
         <button onclick="adminSendNotif('${uid}');document.getElementById('student-detail-modal-bg').classList.remove('open')" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">📨 إشعار مباشر</button>
-        <button onclick="document.getElementById('student-detail-modal-bg').classList.remove('open');openAdminChat('${uid}','${nm}');switchAdminTab('chat',document.querySelectorAll('.admin-tab-btn')[1])" style="background:rgba(100,160,255,0.1);border:1px solid #64A0FF;color:#64A0FF;padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">💬 مراسلة الطالب</button>
+        <button onclick="document.getElementById('student-detail-modal-bg').classList.remove('open');openAdminChat('${uid}','${nm}');switchAdminTab('chat',document.querySelectorAll('.admin-tab-btn')[1])" style="background:rgba(100,160,255,0.1);border:1px solid #64A0FF;color:#64A0FF;padding:8px 14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;">💬 مراسلة المحلل</button>
       </div>
     `;
   } catch(e) { document.getElementById('sdm-body').innerHTML = '<div style="color:var(--red);font-size:12px;">خطأ: '+escapeHtml(e.message)+'</div>'; }
@@ -6375,7 +6378,7 @@ async function submitReport() {
   const targetId = document.getElementById('report-target-id').value.trim();
   const body = document.getElementById('report-body').value.trim();
   const statusEl = document.getElementById('report-submit-status');
-  if (!body) { statusEl.style.color='var(--red)'; statusEl.textContent='⚠ يرجى كتابة تفاصيل البلاغ'; return; }
+  if (!body) { statusEl.style.color='var(--red)'; statusEl.textContent='⚠ يرجى كتابة وصف الحادث الأمني'; return; }
   statusEl.style.color='var(--text3)'; statusEl.textContent='⏳ جاري إرسال البلاغ...';
   try {
     const docRef = await dbFs.collection('reports').add({type, from:mySysId, fromName:myName||mySysId, targetId:targetId||null, body, ts:Date.now(), reviewed:false, aiAnalysis:null});
@@ -6395,7 +6398,7 @@ async function analyzeReportWithAI(reportDocId, body, type) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt: `أنت مساعد مراجعة بلاغات لنظام تعليمي. راجع هذا البلاغ وقدم ملخصاً (3-4 جمل) وتوصية للأدمن.\nنوع البلاغ: ${type}\nمحتوى البلاغ: ${body}\nأجب بالعربية فقط. ابدأ بـ "ملخص:" ثم "التوصية:"`
+        prompt: `أنت مساعد مراجعة بلاغات لنظام تعليمي. راجع هذا البلاغ وقدم ملخصاً (3-4 جمل) وتوصية للأدمن.\nنوع الحادث الأمني: ${type}\nمحتوى البلاغ: ${body}\nأجب بالعربية فقط. ابدأ بـ "ملخص:" ثم "التوصية:"`
       })
     });
     if (response.ok) {
@@ -6448,6 +6451,71 @@ window.onload = () => {
   });
 };
 </script>
+
+<script>
+// ══ خلفية حية: Matrix أخضر شفاف بأكواد ومعادلات ورقميات ══
+(function(){
+  const canvas = document.getElementById('matrix-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const CHARS = [
+    '0','1',
+    '{','}','[',']','(',')',';','=','<','>','/','\\','*','&','|','!','#','$','@','%',
+    'ssh','tcp','udp','nc','rm','ps','ls',
+    'XSS','SQL','RSA','AES','TLS','DNS','VPN','CVE',
+    'RCE','JWT','HASH','MITM','DDOS','APT','WAF','IDS',
+    'SHA','MD5','GET','POST','C2','RAT','NAT','ACK',
+    'FF','A0','3C','7E','DE','AD','BE','EF','00',
+    'π','Σ','∆','√','∞','∫','α','β','λ','θ',
+    'p^q','2^n','∈','≠','mod',
+  ];
+
+  let cols, drops, fontSize;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    fontSize = 13;
+    cols  = Math.floor(canvas.width / (fontSize * 1.5));
+    drops = Array.from({length: cols}, () => Math.random() * -canvas.height / fontSize);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    // fade trail
+    ctx.fillStyle = 'rgba(10, 0, 16, 0.18)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = `${fontSize}px 'Share Tech Mono', monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+
+      // لون أخضر شفاف مع تدرج — الأحدث أفتح
+      const alpha = 0.12 + Math.random() * 0.55;
+      // بعض الحروف بتكون أكثر إضاءة (head)
+      if (Math.random() > 0.92) {
+        ctx.fillStyle = `rgba(100, 255, 150, ${Math.min(alpha + 0.35, 0.95)})`;
+      } else {
+        ctx.fillStyle = `rgba(30, 200, 80, ${alpha})`;
+      }
+
+      ctx.fillText(char, i * fontSize * 1.5, drops[i] * fontSize);
+
+      // reset drop randomly
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i] += 0.55 + Math.random() * 0.4;
+    }
+  }
+
+  setInterval(draw, 55);
+})();
+</script>
+
 </body>
 </html>
 
