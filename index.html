@@ -132,7 +132,7 @@ body::after {
   background: rgba(13, 13, 20, 0.88);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid rgba(176, 110, 243, 0.25);
+  border-bottom: 1px solid rgba(176, 110, 243, 0.08);
   box-shadow: 0 4px 20px rgba(100, 20, 180, 0.18);
 }
 .nav-logo { font-family: var(--mono); font-size: 12px; color: #fff; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
@@ -143,7 +143,7 @@ body::after {
 .nav-tabs { display: flex; }
 .tab-btn { padding: 0 11px; height: 52px; border: none; background: transparent; color: #555; font-family: var(--sans); font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; margin-bottom: -2px; letter-spacing: 0.2px; }
 .tab-btn:hover { color: #aaa; }
-.tab-btn.active { color: #fff; border-bottom-color: var(--green); }
+.tab-btn.active { color: #fff; border-bottom-color: transparent; }
 .nav-user { font-family: var(--mono); font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 10px; }
 .nav-user-id { color: var(--green); }
 .nav-logout {
@@ -437,27 +437,27 @@ body::after {
 }
 .zaatar-bubble.typing { opacity: 0.65; }
 .cyberbot-input-row {
-  display: flex; gap: 10px; padding: 14px 18px;
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;
   border-top: 1px solid rgba(176,110,243,0.14);
   background: rgba(12,5,28,0.70);
   backdrop-filter: blur(12px);
 }
 .cyberbot-input-row textarea {
-  flex: 1;
+  width: 100%;
   background: rgba(18, 8, 40, 0.60);
   border: 1px solid rgba(176,110,243,0.20);
   border-radius: 14px;
   padding: 11px 16px; font-size: 13px;
   color: var(--text); font-family: var(--sans);
-  resize: none; outline: none; height: 46px; max-height: 120px; overflow-y: auto;
+  resize: none; outline: none; height: 60px; max-height: 120px; overflow-y: auto;
   transition: border-color .2s;
 }
 .cyberbot-input-row textarea:focus { border-color: rgba(176,110,243,0.55); box-shadow: 0 0 0 3px rgba(139,47,201,0.10); }
 .cyberbot-input-row button {
   background: linear-gradient(90deg, #8b2fc9, #f0249e);
-  color: #fff; border: none; border-radius: 14px;
-  padding: 0 20px; font-size: 18px; cursor: pointer;
-  font-weight: bold; transition: all .2s;
+  color: #fff; border: none; border-radius: 12px;
+  padding: 10px 0; font-size: 16px; cursor: pointer;
+  font-weight: bold; transition: all .2s; width: 100%;
   box-shadow: 0 4px 14px rgba(139,47,201,0.35);
 }
 .cyberbot-input-row button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(240,36,158,0.45); }
@@ -886,7 +886,7 @@ body::after {
   border-bottom: 2px solid transparent; margin-bottom: -2px;
 }
 .tab-btn:hover { color: var(--text2); background: rgba(56,189,248,0.05); }
-.tab-btn.active { color: var(--text); border-bottom-color: var(--green); background: rgba(56,189,248,0.07); }
+.tab-btn.active { color: var(--text); border-bottom-color: transparent; background: transparent; }
 
 /* eyebrow */
 .eyebrow { font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--text2); margin: 28px 0 14px; display: flex; align-items: center; gap: 10px; }
@@ -1127,10 +1127,10 @@ body::after {
     <button class="tab-btn" onclick="showPage('quiz', this)">🔍 الاختبارات</button>
     <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة المحللين</button>
     <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتفوقين</button>
-    <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">💬 قناة الاتصال الآمن</button>
+    <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">💬 قناة الاتصال</button>
     <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 التدريب العملي</button>
     <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف الطالب</button>
-    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 CyberBot</button>
+    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 زعتر</button>
     <button class="tab-btn" onclick="showPage('reports', this)">🚨 الإبلاغ عن تهديد</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
@@ -1393,14 +1393,14 @@ body::after {
     <div class="zaatar-header">
       <div class="zaatar-avatar">🤖</div>
       <div>
-        <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">🤖 CyberBot</div>
-        <div style="font-size:11px;color:var(--text3);">مساعدك الدراسي الذكي — دايماً هنا</div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green);">🤖 زعتر</div>
+        <div style="font-size:11px;color:var(--text3);">مساعدك في الأمن السيبراني — دايماً هنا</div>
       </div>
       <button class="zaatar-clear" onclick="cyberbotClear()">🗑 محادثة جديدة</button>
     </div>
     <div class="cyberbot-msgs" id="cyberbot-msgs"></div>
     <div class="cyberbot-input-row">
-      <textarea id="cyberbot-input" placeholder="اسأل CyberBot عن الأمن السيبراني..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
+      <textarea id="cyberbot-input" placeholder="اسأل زعتر أي حاجة..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
       <button id="cyberbot-send-btn" onclick="cyberbotSend()">➤</button>
     </div>
   </div>
@@ -3300,7 +3300,7 @@ function resolveFocusCheck(isFocused) {
 
 
 // ════════════════ CyberBot — مساعد AI دراسي ════════════════
-const CYBERBOT_SYSTEM = `أنت "CyberBot"، مساعد متخصص في الأمن السيبراني ذكي ومحبوب داخل منظومة CYBER DEFENSE التعليمية.
+const CYBERBOT_SYSTEM = `أنت "زعتر"، مساعد ذكي متخصص في الأمن السيبراني والاختراق الأخلاقي داخل منظومة CYBER DEFENSE.
 شخصيتك:
 - ودود ومشجع ومرح
 - بتتكلم بنفس لغة المحلل تلقائياً — عربي، إنجليزي، فرنساوي، أي لغة يكتب بيها
@@ -3311,7 +3311,7 @@ const CYBERBOT_SYSTEM = `أنت "CyberBot"، مساعد متخصص في الأم
 - لو المحلل زهق أو تعبان بتحفزه وبتفضل جنبه
 - ردودك مختصرة وواضحة — مش طويلة ومملة
 - ممكن تستخدم emojis بشكل معقول
-- اسمك CyberBot وبتفتخر بيه 🤖
+- اسمك زعتر وبتفتخر بيه 🤖
 - لو حد سألك مين الي صنعك أو طوّرك أو برمجك بأي لغة كانت، ردّ إن الي صنعك وطوّرك هو "مهندس أحمد يحيى أحمد"، وإن Google وGemini هم الي بيدربوا النموذج الي أنت مبني عليه 🌿`;
 
 let zaatarHistory = [];
@@ -3340,7 +3340,7 @@ function cyberbotClear() {
   zaatarHistory = [];
   const msgs = document.getElementById('cyberbot-msgs');
   if (msgs) msgs.innerHTML = '';
-  cyberbotAddBubble('ai', 'أهلاً! أنا CyberBot 🤖 مساعدك الدراسي. إسألني أي حاجة — شرح، حل مسائل، مراجعة، أو حتى لو محتاج تحفيز! 😄');
+  cyberbotAddBubble('ai', 'أهلاً! أنا زعتر 🤖 مساعدك في الأمن السيبراني. إسألني أي حاجة — شرح مفاهيم، تحليل ثغرات، مراجعة، أو حتى لو محتاج تحفيز! 🔐');
 }
 
 function cyberbotAddBubble(role, text) {
@@ -3349,7 +3349,7 @@ function cyberbotAddBubble(role, text) {
   const div = document.createElement('div');
   div.className = 'zaatar-bubble ' + role;
   if (role === 'ai') {
-    div.innerHTML = '<div class="zaatar-name">🤖 CyberBot</div>' + text.replace(/\n/g, '<br>');
+    div.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>' + text.replace(/\n/g, '<br>');
   } else {
     div.textContent = text;
   }
@@ -3402,7 +3402,7 @@ async function cyberbotSend() {
   const msgs = document.getElementById('cyberbot-msgs');
   const typing = document.createElement('div');
   typing.className = 'zaatar-bubble ai typing';
-  typing.innerHTML = '<div class="zaatar-name">🤖 CyberBot</div>يكتب...';
+  typing.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>يكتب...';
   msgs.appendChild(typing);
   msgs.scrollTop = msgs.scrollHeight;
 
