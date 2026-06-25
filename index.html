@@ -4346,9 +4346,15 @@ ${sourceTitles ? `المصادر: ${sourceTitles}` : ''}
   try {
     const rawText = await callAI(prompt);
     const clean = rawText.replace(/```json|```/g, '').trim();
-    const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('لم يتم إيجاد JSON في الرد');
-    const parsed = JSON.parse(jsonMatch[0]);
+    // محاولة استخراج JSON - نأخذ من أول { لآخر }
+    const firstBrace = clean.indexOf('{');
+    const lastBrace = clean.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace === -1) {
+      console.error('AI raw response:', rawText);
+      throw new Error('لم يتم إيجاد JSON في الرد — جرب مرة تانية');
+    }
+    const jsonStr = clean.slice(firstBrace, lastBrace + 1);
+    const parsed = JSON.parse(jsonStr);
 
     if (!parsed.questions || parsed.questions.length === 0) throw new Error('لم يتم توليد أسئلة');
 
