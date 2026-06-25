@@ -1847,6 +1847,20 @@ body::after {
 
 <div class="page" id="page-admin">
   <div class="eyebrow">⚙ لوحة تحكم المشرف — منظومة الأمن الكاملة</div>
+
+  <!-- ══ زرار توليد المهام اليومية — ثابت دايماً ══ -->
+  <div style="background:rgba(22,42,22,0.7);border:1px solid rgba(176,110,243,0.25);border-right:3px solid var(--green);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:12px;font-weight:bold;color:var(--green);margin-bottom:3px;">📋 المهام اليومية — توليد AI جماعي</div>
+      <div style="font-size:10px;color:var(--text3);">اضغط لتوليد مهام مخصصة لكل المحللين بالذكاء الاصطناعي وإرسال إشعار لهم</div>
+    </div>
+    <button onclick="adminGenerateAllDailyTasks()" id="admin-gen-tasks-btn"
+      style="background:linear-gradient(90deg,#1a5c1a,#2a8c2a);border:1px solid var(--green);color:#fff;padding:9px 20px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;white-space:nowrap;border-radius:8px;flex-shrink:0;">
+      🤖 توليد مهام لجميع المحللين
+    </button>
+    <div id="admin-gen-tasks-status" style="font-size:11px;color:var(--text3);min-width:120px;"></div>
+  </div>
+
   <div class="admin-tabs">
     <button class="admin-tab-btn active" onclick="switchAdminTab('stats', this)">📊 الإحصائيات والمحللين</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع المحللين</button>
@@ -4898,73 +4912,179 @@ async function startAiQuiz(subjectId) {
     prompt = `Generate 10 multiple choice questions about "${s.name}" (category: ${s.cat}). ${sourceTitles ? 'Sources: ' + sourceTitles : ''} Mix easy/medium/hard. Reply with ONLY valid JSON, no extra text: ${jsonFormat}`;
   }
 
+  // ══ بنك أسئلة fallback حسب اسم المادة ══
+  function buildFallbackQuestions(subjectName, category) {
+    const name = subjectName.toLowerCase();
+    const cat  = (category || '').toLowerCase();
+
+    // قواميس أسئلة حسب الموضوع
+    const BANKS = {
+      network: [
+        {q:'ما هو البروتوكول المستخدم لنقل صفحات الويب المشفرة؟', o:['HTTP','FTP','HTTPS','SMTP'], a:2},
+        {q:'ما هو رقم المنفذ الافتراضي لبروتوكول SSH؟', o:['21','22','23','80'], a:1},
+        {q:'ما وظيفة الـ DNS؟', o:['تشفير البيانات','ترجمة أسماء النطاقات لعناوين IP','توزيع الحزم','مراقبة الشبكة'], a:1},
+        {q:'أي من الآتي يعمل في طبقة الشبكة (Layer 3)؟', o:['Switch','Hub','Router','Bridge'], a:2},
+        {q:'ما معنى اختصار VPN؟', o:['Virtual Private Network','Virtual Public Node','Verified Private Net','Variable Protocol Node'], a:0},
+        {q:'ما هو الـ Subnet Mask الافتراضي للـ Class C؟', o:['255.0.0.0','255.255.0.0','255.255.255.0','192.168.1.1'], a:2},
+        {q:'أي بروتوكول يُستخدم لإرسال البريد الإلكتروني؟', o:['POP3','IMAP','SMTP','FTP'], a:2},
+        {q:'ما هو الـ MAC Address؟', o:['عنوان IP','عنوان فيزيائي للبطاقة الشبكية','اسم النطاق','عنوان البريد'], a:1},
+        {q:'ما وظيفة الـ Firewall؟', o:['تسريع الإنترنت','تصفية حركة مرور الشبكة','توزيع الـ IP','تشفير الملفات'], a:1},
+        {q:'أي طبقة من OSI تتعامل مع الـ TCP/UDP؟', o:['Layer 2','Layer 3','Layer 4','Layer 7'], a:2},
+      ],
+      crypto: [
+        {q:'ما هو الـ Symmetric Encryption؟', o:['مفتاحان مختلفان','نفس المفتاح للتشفير وفك التشفير','تشفير بدون مفتاح','تشفير المفتاح العام'], a:1},
+        {q:'أي خوارزمية تعتبر من Asymmetric Encryption؟', o:['AES','DES','RSA','Blowfish'], a:2},
+        {q:'ما وظيفة الـ Hash Function؟', o:['تشفير البيانات','توليد مفتاح عشوائي','تحويل البيانات لقيمة ثابتة الطول','فك تشفير الرسائل'], a:2},
+        {q:'ما هو طول مفتاح AES-256؟', o:['128 bit','192 bit','256 bit','512 bit'], a:2},
+        {q:'ما معنى PKI؟', o:['Public Key Infrastructure','Private Key Index','Protocol Key Interface','Public Knowledge Index'], a:0},
+        {q:'أي من الآتي هو Hash Algorithm؟', o:['RSA','AES','SHA-256','DH'], a:2},
+        {q:'ما هو الـ Digital Signature؟', o:['توقيع ورقي ممسوح ضوئياً','تشفير باستخدام المفتاح الخاص للتحقق من الهوية','كلمة مرور مشفرة','رمز QR'], a:1},
+        {q:'ما وظيفة الـ Certificate Authority (CA)؟', o:['تشفير البيانات','إصدار شهادات رقمية موثوقة','مراقبة الشبكة','توزيع المفاتيح'], a:1},
+        {q:'أي بروتوكول يستخدم TLS؟', o:['HTTP','FTP','HTTPS','Telnet'], a:2},
+        {q:'ما هو الـ Nonce في التشفير؟', o:['نوع من الهجمات','رقم يُستخدم مرة واحدة فقط','خوارزمية تشفير','مفتاح عام'], a:1},
+      ],
+      web: [
+        {q:'ما هو هجوم XSS؟', o:['SQL Injection','Cross-Site Scripting','Brute Force','Man in the Middle'], a:1},
+        {q:'ما هو هجوم SQL Injection؟', o:['حقن كود JavaScript','حقن أوامر SQL في المدخلات','هجوم على الشبكة','تشفير قاعدة البيانات'], a:1},
+        {q:'ما وظيفة الـ CSRF Token؟', o:['تشفير البيانات','منع هجمات Cross-Site Request Forgery','تسريع الموقع','ضغط الصور'], a:1},
+        {q:'أي HTTP Method يُستخدم لإرسال بيانات حساسة؟', o:['GET','HEAD','POST','OPTIONS'], a:2},
+        {q:'ما هو الـ Same-Origin Policy؟', o:['سياسة أمان تمنع الوصول لموارد من نطاق آخر','بروتوكول تشفير','طريقة authentication','نوع من Cookies'], a:0},
+        {q:'ما هو الـ IDOR vulnerability؟', o:['هجوم على كلمات المرور','الوصول لموارد غير مصرح بها عبر تغيير المعرفات','ثغرة في الشبكة','هجوم XSS'], a:1},
+        {q:'ما معنى الـ HTTP Status Code 403؟', o:['Not Found','Server Error','Forbidden','Redirect'], a:2},
+        {q:'ما هو الـ Cookie HttpOnly flag؟', o:['يجعل الـ Cookie تنتهي بعد ساعة','يمنع JavaScript من قراءة الـ Cookie','يشفر الـ Cookie','يحذف الـ Cookie'], a:1},
+        {q:'أي أداة تُستخدم لاختبار تطبيقات الويب؟', o:['Nmap','Wireshark','Burp Suite','Metasploit'], a:2},
+        {q:'ما هو الـ Directory Traversal attack؟', o:['الوصول لملفات خارج المجلد المسموح به','هجوم على DNS','تشفير المجلدات','حذف الملفات'], a:0},
+      ],
+      linux: [
+        {q:'ما الأمر المستخدم لعرض محتوى الملفات في Linux؟', o:['dir','ls','show','list'], a:1},
+        {q:'ما الأمر المستخدم لتغيير صلاحيات الملف؟', o:['chown','chmod','chgrp','chperm'], a:1},
+        {q:'ما معنى الـ root في Linux؟', o:['مجلد رئيسي فقط','المستخدم ذو الصلاحيات الكاملة','نوع من الملفات','أمر في Terminal'], a:1},
+        {q:'ما الأمر لعرض العمليات الجارية؟', o:['ls','pwd','ps','cd'], a:2},
+        {q:'ما الأمر لإيجاد ملف في Linux؟', o:['search','locate/find','get','fetch'], a:1},
+        {q:'ما معنى الـ 777 في chmod؟', o:['قراءة فقط','كتابة فقط','صلاحيات كاملة للجميع','لا صلاحيات'], a:2},
+        {q:'أي ملف يحتوي على كلمات مرور المستخدمين في Linux؟', o:['/etc/passwd','/etc/shadow','/var/log/auth','كلاهما'], a:1},
+        {q:'ما الأمر لعرض المجلد الحالي؟', o:['ls','cd','pwd','dir'], a:2},
+        {q:'ما وظيفة الـ crontab؟', o:['إدارة المستخدمين','جدولة المهام التلقائية','مراقبة الشبكة','تشفير الملفات'], a:1},
+        {q:'ما الفرق بين sudo و su؟', o:['لا فرق','sudo ينفذ أمراً واحداً بصلاحيات root، su يفتح shell كامل','su أكثر أماناً','sudo يحتاج كلمة مرور root'], a:1},
+      ],
+      ai: [
+        {q:'ما هي الشبكة العصبية الاصطناعية (Neural Network)؟', o:['شبكة كمبيوتر','نموذج مستوحى من دماغ الإنسان','برنامج مكافحة فيروسات','بروتوكول شبكي'], a:1},
+        {q:'ما معنى الـ Machine Learning؟', o:['برمجة الروبوتات يدوياً','تعلم الآلة من البيانات بدون برمجة صريحة','تشغيل البرامج تلقائياً','نوع من قواعد البيانات'], a:1},
+        {q:'ما هو الـ Deep Learning؟', o:['تعلم عميق باستخدام شبكات عصبية متعددة الطبقات','برمجة المستوى المنخفض','قاعدة بيانات كبيرة','خوارزمية بحث'], a:0},
+        {q:'ما وظيفة الـ Activation Function في الشبكة العصبية؟', o:['تهيئة الأوزان','إدخال البيانات','تحديد ما إذا كان العصبون يُطلق أم لا','حساب الخطأ'], a:2},
+        {q:'ما هو الـ Overfitting؟', o:['النموذج يعمل جيداً على بيانات التدريب وسيئاً على البيانات الجديدة','النموذج لا يتعلم شيئاً','بيانات غير كافية','خطأ في الكود'], a:0},
+        {q:'ما هو الـ CNN؟', o:['شبكة عصبية تكرارية','شبكة عصبية التفافية تُستخدم في معالجة الصور','خوارزمية تصنيف','نوع من قواعد البيانات'], a:1},
+        {q:'ما هو الـ NLP؟', o:['Network Layer Protocol','معالجة اللغة الطبيعية','نوع من الشبكات العصبية','بروتوكول أمان'], a:1},
+        {q:'ما معنى الـ Gradient Descent؟', o:['خوارزمية لتحسين الأوزان بتقليل الخطأ','نوع من الشبكات','طريقة تدريب يدوية','دالة تفعيل'], a:0},
+        {q:'ما هو الـ Transformer في الـ AI؟', o:['محول كهربائي','بنية معمارية تستخدم Attention لمعالجة البيانات','نوع من الروبوتات','خوارزمية بحث'], a:1},
+        {q:'ما هو الـ Reinforcement Learning؟', o:['تعلم من البيانات الموسومة','تعلم عن طريق المكافأة والعقاب','تعلم بدون بيانات','نوع من الشبكات العصبية'], a:1},
+      ],
+      robot: [
+        {q:'ما هو الـ Microcontroller الأكثر شيوعاً في مشاريع الروبوتات للمبتدئين؟', o:['Raspberry Pi','Arduino','Intel Core','ARM Cortex-A'], a:1},
+        {q:'ما وظيفة الـ Servo Motor؟', o:['توليد الكهرباء','التحكم الدقيق في الزاوية','تشغيل الشاشات','قياس درجة الحرارة'], a:1},
+        {q:'ما الفرق بين Raspberry Pi و Arduino؟', o:['لا فرق','Raspberry Pi كمبيوتر كامل، Arduino Microcontroller','Arduino أسرع','Raspberry Pi أرخص'], a:1},
+        {q:'ما هو الـ PWM في الروبوتات؟', o:['نوع من المحركات','Pulse Width Modulation للتحكم في سرعة المحركات','بروتوكول اتصال','نوع من المستشعرات'], a:1},
+        {q:'ما وظيفة الـ Ultrasonic Sensor في الروبوت؟', o:['قياس الضوء','قياس المسافة','قياس الحرارة','التحكم في المحركات'], a:1},
+        {q:'ما هو الـ I2C بروتوكول؟', o:['بروتوكول اتصال لاسلكي','بروتوكول اتصال سلكي بسلكين بين الأجهزة','نوع من المستشعرات','طريقة برمجة'], a:1},
+        {q:'ما هي لغة البرمجة الرسمية للـ Arduino؟', o:['Python','Java','C/C++','Rust'], a:2},
+        {q:'ما وظيفة الـ PID Controller في الروبوتات؟', o:['برمجة الذاكرة','نظام تحكم يقلل الخطأ تلقائياً','قياس الجهد','إدارة الطاقة'], a:1},
+        {q:'ما هو الـ ROS؟', o:['نظام تشغيل للروبوتات','لغة برمجة','نوع من المستشعرات','بروتوكول شبكي'], a:0},
+        {q:'ما وظيفة الـ LIDAR في الروبوتات؟', o:['التصوير','رسم خرائط ثلاثية الأبعاد باستخدام الليزر','قياس الصوت','التحكم في المحركات'], a:1},
+      ],
+      default: [
+        {q:`ما هو أهم مبدأ في مجال "${subjectName}"؟`, o:['السرعة','الدقة والأمان','التكلفة المنخفضة','السهولة'], a:1},
+        {q:'ما هو هجوم Man-in-the-Middle؟', o:['هجوم مباشر على الخادم','اعتراض الاتصال بين طرفين','هجوم بكلمة مرور','هجوم DDoS'], a:1},
+        {q:'ما هو الـ Phishing؟', o:['هجوم شبكي','خداع المستخدمين للحصول على بياناتهم','اختراق قاعدة البيانات','تشفير الملفات'], a:1},
+        {q:'ما وظيفة الـ IDS؟', o:['تشفير البيانات','اكتشاف محاولات الاختراق','توزيع عناوين IP','إدارة المستخدمين'], a:1},
+        {q:'ما هو الـ Zero-Day Vulnerability؟', o:['ثغرة قديمة معروفة','ثغرة غير معروفة للمصنّع بعد','برنامج مكافحة فيروسات','نوع من التشفير'], a:1},
+        {q:'ما هو الـ Penetration Testing؟', o:['اختبار شبكي عادي','محاكاة هجمات لاكتشاف الثغرات','تحديث البرامج','مراقبة الشبكة'], a:1},
+        {q:'ما هو الـ Social Engineering؟', o:['هندسة اجتماعية','استغلال الثقة البشرية للحصول على معلومات','هجوم تقني','نوع من البرمجيات'], a:1},
+        {q:'ما هو الـ Brute Force Attack؟', o:['هجوم فيزيائي','تجربة جميع كلمات المرور الممكنة','هجوم XSS','هجوم DDoS'], a:1},
+        {q:'ما هو الـ Ransomware؟', o:['برنامج مفيد','برنامج خبيث يشفر الملفات ويطلب فدية','نوع من الـ VPN','أداة أمان'], a:1},
+        {q:'ما الفرق بين White Hat و Black Hat Hacker؟', o:['لا فرق','White Hat يعمل بإذن قانوني، Black Hat بدون إذن','Black Hat أمهر','White Hat أسرع'], a:1},
+      ]
+    };
+
+    // اختيار البنك المناسب
+    let bank = BANKS.default;
+    if (name.includes('شبك') || name.includes('network') || cat.includes('شبك')) bank = BANKS.network;
+    else if (name.includes('تشفير') || name.includes('crypto') || name.includes('cipher')) bank = BANKS.crypto;
+    else if (name.includes('ويب') || name.includes('web') || name.includes('xss') || name.includes('sql')) bank = BANKS.web;
+    else if (name.includes('linux') || name.includes('لينكس') || name.includes('kali')) bank = BANKS.linux;
+    else if (name.includes('ai') || name.includes('ذكاء') || name.includes('neural') || name.includes('شبكات عصبية')) bank = BANKS.ai;
+    else if (name.includes('روبوت') || name.includes('robot') || name.includes('arduino') || name.includes('raspberry')) bank = BANKS.robot;
+
+    // خلط وأخذ 10 أسئلة
+    const shuffled = [...bank].sort(() => Math.random() - 0.5);
+    return { questions: shuffled.slice(0, Math.min(10, shuffled.length)) };
+  }
+
   // دالة مساعدة لمحاولة توليد الأسئلة مع إعادة المحاولة تلقائياً
-  async function attemptAIGeneration(prompt, maxAttempts = 3) {
+  async function attemptAIGeneration(p, maxAttempts = 2) {
     let lastErr = null;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const rawText = await callAI(prompt);
-        console.log(`AI attempt ${attempt} RAW:`, rawText.substring(0, 300));
+        const rawText = await callAI(p);
         let clean = rawText.replace(/```json[\s\S]*?```|```/g, '').trim();
         const firstBrace = clean.indexOf('{');
         const lastBrace = clean.lastIndexOf('}');
-        if (firstBrace === -1 || lastBrace === -1) throw new Error('لم يتم إيجاد JSON في الرد');
+        if (firstBrace === -1 || lastBrace === -1) throw new Error('no JSON');
         const jsonStr = clean.slice(firstBrace, lastBrace + 1);
         let parsed;
         try { parsed = JSON.parse(jsonStr); }
         catch(jsonErr) {
-          const fixed = jsonStr
-            .replace(/,\s*([}\]])/g, '$1')
-            .replace(/([{,])\s*,/g, '$1')
-            .replace(/:\s*undefined/g, ':null')
-            .replace(/(['"])?([a-zA-Z_][a-zA-Z0-9_]*)(['"])?\s*:/g, '"$2":');
+          const fixed = jsonStr.replace(/,\s*([}\]])/g, '$1').replace(/([{,])\s*,/g, '$1');
           parsed = JSON.parse(fixed);
         }
-        if (!parsed.questions || parsed.questions.length === 0) throw new Error('لم يتم توليد أسئلة');
+        if (!parsed.questions || parsed.questions.length === 0) throw new Error('empty');
         return parsed;
       } catch(err) {
         lastErr = err;
-        console.warn(`AI attempt ${attempt} failed:`, err.message);
-        if (attempt < maxAttempts) await new Promise(r => setTimeout(r, 2000 * attempt));
+        if (attempt < maxAttempts) await new Promise(r => setTimeout(r, 3000));
       }
     }
     throw lastErr;
   }
 
   try {
-    const parsed = await attemptAIGeneration(prompt);
+    let parsed;
+    let usedFallback = false;
+    try {
+      parsed = await attemptAIGeneration(prompt);
+    } catch(aiErr) {
+      // الـ AI فشل — نستخدم البنك المحلي فوراً
+      parsed = buildFallbackQuestions(s.name, s.cat);
+      usedFallback = true;
+    }
 
-    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a) ونحطها في صفحة 🔍 اختبار الاختراق
+    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a)
     currentQuizSessionQuestions = parsed.questions.map(q => ({
-      q: q.q,
-      o: q.options,
-      a: q.answer
-    }));
+      q: q.q || q.question || '',
+      o: q.options || q.o || [],
+      a: typeof q.answer !== 'undefined' ? q.answer : (q.a || 0)
+    })).filter(q => q.q && q.o.length >= 2);
+
     quizIndex = 0;
     quizScore = 0;
-    // حفظ ID المادة عشان نربط نتيجة الاختبار بنقاط الوحدة لاحقاً
     aiQuizState.subjectId   = subjectId;
     aiQuizState.subjectName = s.name;
 
-    // نعيد رسم صفحة التقييم مع الأسئلة الجديدة
     const container2 = document.getElementById('quiz-container');
     container2.innerHTML = `
       <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
         <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">🤖 اختبار AI — ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
-        <div style="font-size:12px; color:var(--text2); line-height:1.6">تم توليد <strong style="color:var(--green)">${currentQuizSessionQuestions.length} أسئلة</strong> مخصصة بالذكاء الاصطناعي على مادة <strong style="color:var(--green)">${escapeHtml(s.name)}</strong>. كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
+        <div style="font-size:12px; color:var(--text2); line-height:1.6">تم توليد <strong style="color:var(--green)">${currentQuizSessionQuestions.length} أسئلة</strong> ${usedFallback ? 'من بنك الأسئلة المحلي' : 'بالذكاء الاصطناعي'} على مادة <strong style="color:var(--green)">${escapeHtml(s.name)}</strong>. كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
       </div>
       <div id="quiz-workspace"></div>
     `;
     showQuestion();
   } catch (e) {
+    // هذا لن يحدث بسبب الـ fallback، لكن احتياطاً
     const container3 = document.getElementById('quiz-container');
     container3.innerHTML = `
       <div class="profile-card" style="border-right:4px solid var(--red); margin-bottom:14px;">
-        <div style="font-size:14px; font-weight:bold; color:var(--red); margin-bottom:6px;">⚠️ تعذّر توليد الأسئلة</div>
+        <div style="font-size:14px; font-weight:bold; color:var(--red); margin-bottom:6px;">⚠️ خطأ غير متوقع</div>
         <div style="font-size:12px; color:var(--text2); margin-bottom:8px;">${escapeHtml(e.message)}</div>
-        <div style="font-size:12px; color:var(--gold); background:rgba(200,160,0,0.08); border:1px solid rgba(200,160,0,0.2); border-radius:6px; padding:10px 14px; margin-top:4px;">
-          ⏳ لا تقلق — هذا الخطأ مؤقت بسبب الضغط على الخادم.<br>استنى <b>5 دقائق</b> ثم اضغط على إعادة المحاولة.
-        </div>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="startAiQuiz(${subjectId})">🔄 إعادة المحاولة</button>
@@ -5406,7 +5526,7 @@ function chessRenderBoard() {
   } else {
     humanColor = chessHumanColor();
   }
-  const rowsOrd = humanColor === 'w' ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  const rowsOrd = humanColor === 'w' ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
   const colsOrd = humanColor === 'w' ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
 
   for (const r of rowsOrd) {
@@ -5418,7 +5538,7 @@ function chessRenderBoard() {
       // إضافة تسمية الصف (1-8) في أول عمود
       if (c === colsOrd[0]) {
         const rankLabel = document.createElement('span');
-        rankLabel.textContent = humanColor === 'w' ? (8-r) : (r+1);
+        rankLabel.textContent = humanColor === 'w' ? (r+1) : (8-r);
         rankLabel.style.cssText = 'position:absolute;top:2px;right:3px;font-family:var(--mono);font-size:9px;color:rgba(200,190,160,0.75);line-height:1;pointer-events:none;';
         sq.appendChild(rankLabel);
       }
@@ -6503,16 +6623,6 @@ async function renderAdmin() {
         </div>
       </div>
 
-      <!-- توليد مهام يومية للكل -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-right:3px solid var(--green);padding:16px;margin-bottom:20px;">
-        <div style="font-size:12px;font-weight:bold;color:var(--green);margin-bottom:10px;">📋 مهام يومية الذكاء الاصطناعي — توليد جماعي</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.7;">توليد مهام يومية مخصصة لكل محلل بواسطة AI — يتم حفظها في Firestore ويجد كل محلل مهامه عند فتح صفحة المهام اليومية.</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          <button onclick="adminGenerateAllDailyTasks()" id="admin-gen-tasks-btn" style="background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:8px 18px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:bold;white-space:nowrap;">🤖 توليد مهام لجميع المحللين</button>
-          <div id="admin-gen-tasks-status" style="font-size:11px;color:var(--text3);"></div>
-        </div>
-      </div>
-
       <!-- إرسال إشعار للكل -->
       <div style="background:var(--surface);border:1px solid var(--border);border-right:3px solid var(--gold);padding:16px;margin-bottom:20px;">
         <div style="font-size:12px;font-weight:bold;color:var(--gold);margin-bottom:12px;">📢 إرسال إشعار لجميع المحللين</div>
@@ -6574,8 +6684,27 @@ async function adminGenerateAllDailyTasks() {
   const btn = document.getElementById('admin-gen-tasks-btn');
   const status = document.getElementById('admin-gen-tasks-status');
   const today = todayStr();
-  const rows = window._adminAllUsers || [];
-  if (!rows.length) { if(status) { status.style.color='var(--red)'; status.textContent='⚠ حمّل قائمة المحللين أولاً من تبويب الإحصائيات'; } return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري تحميل المحللين...'; }
+  if (status) { status.style.color = 'var(--text3)'; status.textContent = 'جاري تحميل قائمة المحللين...'; }
+
+  let rows = window._adminAllUsers || [];
+  if (!rows.length) {
+    try {
+      const snap = await dbFs.collection('users').orderBy('name').limit(500).get();
+      rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => u.accountStatus !== 'deleted');
+      window._adminAllUsers = rows;
+    } catch(e) {
+      if (btn) { btn.disabled = false; btn.textContent = '🤖 توليد مهام لجميع المحللين'; }
+      if (status) { status.style.color='var(--red)'; status.textContent='⚠ تعذر تحميل المحللين: ' + e.message; }
+      return;
+    }
+  }
+  if (!rows.length) {
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 توليد مهام لجميع المحللين'; }
+    if (status) { status.style.color='var(--red)'; status.textContent='⚠ لا يوجد محللين مسجلين'; }
+    return;
+  }
 
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التوليد...'; }
   if (status) { status.style.color = 'var(--text3)'; status.textContent = `جاري توليد المهام لـ ${rows.length} محلل...`; }
