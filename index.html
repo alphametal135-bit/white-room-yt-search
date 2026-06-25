@@ -406,6 +406,7 @@ body::after {
   flex: 1; overflow-y: auto; padding: 16px 20px;
   display: flex; flex-direction: column; gap: 14px;
   scroll-behavior: smooth;
+  direction: ltr;
 }
 .zaatar-msgs::-webkit-scrollbar { width: 5px; }
 .zaatar-msgs::-webkit-scrollbar-track { background: rgba(176,110,243,0.05); border-radius: 10px; }
@@ -415,6 +416,7 @@ body::after {
   max-width: 78%; padding: 13px 18px;
   border-radius: 18px; font-size: 13.5px; line-height: 1.75;
   word-break: break-word; animation: bubblePop .25s ease;
+  direction: rtl;
 }
 @keyframes bubblePop { from { opacity:0; transform: scale(0.94) translateY(6px); } to { opacity:1; transform: scale(1) translateY(0); } }
 .zaatar-bubble.user {
