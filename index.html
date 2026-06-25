@@ -1137,18 +1137,18 @@ body::after {
     <span class="wr-logo-frame" style="width:30px; height:30px;">
       <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    CYBER DEFENSE SYSTEM v3.2
+    CYBER DEFENSE SYSTEM v3.9
   </div>
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="showPage('subjects', this)">🛡 المسارات</button>
     <button class="tab-btn" onclick="showPage('tracker', this)">📡 الحضور والالتزام</button>
     <button class="tab-btn" onclick="showPage('quiz', this)">🔍 الاختبارات</button>
-    <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة المحللين</button>
+    <button class="tab-btn" onclick="showPage('friends', this)">🌐 شبكة التواصل</button>
     <button class="tab-btn" onclick="showPage('leaderboard', this)">🏆 لوحة المتفوقين</button>
     <button class="tab-btn" onclick="showPage('chat', this)" id="nav-tab-chat">💬 قناة الاتصال</button>
     <button class="tab-btn" onclick="showPage('mindgames', this)">🧠 التدريب العملي</button>
     <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف الطالب</button>
-    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖 زعتر</button>
+    <button class="tab-btn" onclick="showPage('zaatar', this)">🤖المعلم زعتر</button>
     <button class="tab-btn" onclick="showPage('reports', this)">🚨 الإبلاغ عن تهديد</button>
     <button class="tab-btn" id="admin-tab-btn" onclick="showPage('admin', this)" style="display:none; color:var(--gold);">⚙ الأدمن</button>
   </div>
@@ -1300,12 +1300,12 @@ body::after {
 </div>
 
 <div class="page" id="page-leaderboard">
-  <div class="eyebrow">🏆 لوحة المحللين — ترتيب المحللين وفق نقاط الخبرة في الأمن السيبراني</div>
+  <div class="eyebrow">🏆 لوحة المتفوقين — ترتيب المحللين وفق نقاط الخبرة في الأمن السيبراني</div>
   <div id="leaderboard-list-container"></div>
 </div>
 
 <div class="page" id="page-chat">
-  <div class="eyebrow">غرف التواصل والدردشة الداخلية المشتركة للأنظمة السيبرانية</div>
+  <div class="eyebrow">غرف التواصل والدردشة الداخلية المشتركة السيبرانية</div>
   <div class="chat-container">
     <div class="chat-sidebar">
       <div class="chat-tabs" id="chat-tabs-list"></div>
@@ -1313,8 +1313,8 @@ body::after {
     <div class="chat-main">
       <div class="chat-messages" id="chat-messages-area"></div>
       <div class="chat-input-area">
-        <input type="text" id="chat-msg-input" class="chat-input" placeholder="اكتب رسالتك الآمنة هنا... // ENCRYPTED CHANNEL" onkeydown="if(event.key==='Enter')sendChatMessage()">
-        <button class="chat-send-btn" onclick="sendChatMessage()">إرسال بنية التشفير ◢</button>
+        <input type="text" id="chat-msg-input" class="chat-input" placeholder="اكتب رسالتك هنا... // ENCRYPTED CHANNEL" onkeydown="if(event.key==='Enter')sendChatMessage()">
+        <button class="chat-send-btn" onclick="sendChatMessage()"> إرسال بنية ◢</button>
       </div>
     </div>
   </div>
@@ -1418,7 +1418,7 @@ body::after {
     </div>
     <div class="cyberbot-msgs" id="cyberbot-msgs"></div>
     <div class="cyberbot-input-row">
-      <textarea id="cyberbot-input" placeholder="اسأل زعتر أي حاجة..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
+      <textarea id="cyberbot-input" placeholder=" اسأل زعتر أي حاجة بس مش تسألو حجات وحشة🙃😅..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cyberbotSend();}"></textarea>
       <button id="cyberbot-send-btn" onclick="cyberbotSend()">➤</button>
     </div>
   </div>
@@ -1428,7 +1428,7 @@ body::after {
   <div class="eyebrow">⚙ لوحة تحكم المشرف — منظومة الأمن الكاملة</div>
   <div class="admin-tabs">
     <button class="admin-tab-btn active" onclick="switchAdminTab('stats', this)">📊 الإحصائيات والمحللين</button>
-    <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع المحللين</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع الطالب</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('actions', this)">⚖️ العقوبات والإنذارات</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('reports', this)">🚨 البلاغات <span id="admin-reports-badge" style="background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:10px;display:none;margin-right:4px;">0</span></button>
   </div>
@@ -1436,18 +1436,18 @@ body::after {
     <div id="admin-content"><div style="color:var(--text3);font-size:12px;padding:20px;">جاري تحميل البيانات...</div></div>
   </div>
   <div class="admin-section" id="admin-sec-chat">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">يمكنك فتح محادثة خاصة مع أي محلل — ستظهر له كـ "قائد العمليات"</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">يمكنك فتح محادثة خاصة مع أي طالب — ستظهر له كـ "قائد العمليات"</div>
     <div class="admin-chat-wrap">
       <div class="admin-chat-sidebar">
         <div class="admin-chat-search">
-          <input type="text" id="admin-chat-search-inp" placeholder="🔍 ابحث عن محلل..." oninput="filterAdminChatList()">
+          <input type="text" id="admin-chat-search-inp" placeholder="🔍 ابحث عن طالب..." oninput="filterAdminChatList()">
         </div>
         <div class="admin-chat-list" id="admin-chat-list">
-          <div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">جاري تحميل المحللين...</div>
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:11px;">جاري تحميل...</div>
         </div>
       </div>
       <div class="admin-chat-main" id="admin-chat-main">
-        <div class="admin-no-chat-sel" id="admin-no-chat-sel">اختر محللاً من القائمة لبدء المحادثة</div>
+        <div class="admin-no-chat-sel" id="admin-no-chat-sel">اختر طالب من القائمة لبدء المحادثة</div>
         <div id="admin-chat-active-wrap" style="display:none;flex-direction:column;height:100%;">
           <div class="admin-chat-header" id="admin-chat-active-header">
             <div>
@@ -1469,7 +1469,7 @@ body::after {
     <div id="admin-actions-users-list"></div>
   </div>
   <div class="admin-section" id="admin-sec-reports">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">بلاغات المحللين — يراجعها الذكاء الاصطناعي أولاً ثم يُقدَّم لك ملخص مع توصية</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">بلاغات الطالب — يراجعها الذكاء الاصطناعي أولاً ثم يُقدَّم لك ملخص مع توصية</div>
     <div id="admin-reports-list"><div style="color:var(--text3);font-size:12px;">جاري تحميل البلاغات...</div></div>
   </div>
 </div>
@@ -1478,7 +1478,7 @@ body::after {
 <div class="admin-action-modal-bg" id="admin-action-modal-bg">
   <div class="admin-action-modal">
     <button class="admin-action-close" onclick="closeAdminActionModal()">✕</button>
-    <div class="admin-action-modal-title" id="admin-action-modal-title">⚖️ إجراء تأديبي للمحلل</div>
+    <div class="admin-action-modal-title" id="admin-action-modal-title">⚖️ إجراء تأديبي للطالب</div>
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px;">المحلل: <span id="admin-action-target-name" style="color:var(--green);"></span> (<span id="admin-action-target-id"></span>)</div>
     <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;">نوع الإجراء</label>
     <select id="admin-action-type" class="admin-action-select" onchange="onAdminActionTypeChange()">
@@ -1506,7 +1506,7 @@ body::after {
 <div class="student-detail-modal-bg" id="student-detail-modal-bg">
   <div class="student-detail-modal">
     <button onclick="document.getElementById('student-detail-modal-bg').classList.remove('open')" style="position:absolute;top:10px;left:10px;background:transparent;border:1px solid var(--border);color:var(--text3);padding:4px 8px;cursor:pointer;font-size:12px;">✕</button>
-    <div style="font-size:15px;font-weight:bold;color:var(--green);" id="sdm-name">ملف المحلل</div>
+    <div style="font-size:15px;font-weight:bold;color:var(--green);" id="sdm-name">ملف الطالب</div>
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;" id="sdm-id"></div>
     <div id="sdm-body"></div>
   </div>
@@ -1638,7 +1638,7 @@ body::after {
     <span class="wr-logo-frame" style="width:96px; height:96px; margin:0 auto 14px;">
       <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">تسجيل محلل جديد في منظومة الأمن السيبراني</div>
+    <div style="font-size:11px; color:var(--text3); margin-bottom:18px;">تسجيل طالب جديد في منظومة الأمن السيبراني</div>
     <div class="auth-error" id="reg-err"></div>
     
     <div id="reg-s1">
@@ -1647,7 +1647,7 @@ body::after {
         <input type="text" id="reg-name" class="auth-input" placeholder="أدخل اسمك هنا" oninput="this.value=this.value.replace(/[^A-Za-z0-90600-06FFs]/g,'')" onkeydown="if(event.key==='Enter') document.getElementById('reg-email').focus()">
       </div>
       <div class="auth-field">
-        <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">البريد الإلكتروني الحامي</label>
+        <label style="font-size:12px; color:var(--text2); display:block; margin-bottom:4px;">البريد الإلكتروني</label>
         <input type="email" id="reg-email" class="auth-input" placeholder="username@gmail.com" onkeydown="if(event.key==='Enter') document.getElementById('reg-pass').focus()">
       </div>
       <div class="auth-field">
@@ -1906,14 +1906,14 @@ let mindgamesUnitPts = 0;    // نقاط وحدة الترقي من ألعاب �
 
 // ── رتب الترقي (بنقاط الوحدة) ──
 const TIER_LADDER = [
-  { id: 'iron',        label: 'Iron',        emoji: '🪨', cls: 'tier-iron',        minPts: 0    },
-  { id: 'bronze',      label: 'Bronze',      emoji: '🥉', cls: 'tier-bronze',      minPts: 1000 },
-  { id: 'silver',      label: 'Silver',      emoji: '🥈', cls: 'tier-silver',      minPts: 2500 },
-  { id: 'gold',        label: 'Gold',        emoji: '🥇', cls: 'tier-gold',        minPts: 5000 },
+  { id: 'iron',        label: 'Iron',        emoji: '🔳', cls: 'tier-iron',        minPts: 0    },
+  { id: 'bronze',      label: 'Bronze',      emoji: '❇️', cls: 'tier-bronze',      minPts: 1000 },
+  { id: 'silver',      label: 'Silver',      emoji: '✳️', cls: 'tier-silver',      minPts: 2500 },
+  { id: 'gold',        label: 'Gold',        emoji: '✴️', cls: 'tier-gold',        minPts: 5000 },
   { id: 'platinum',    label: 'Platinum',    emoji: '💠', cls: 'tier-platinum',    minPts: 9000 },
-  { id: 'diamond',     label: 'Diamond',     emoji: '💎', cls: 'tier-diamond',     minPts: 14000},
-  { id: 'grandmaster', label: 'Grandmaster', emoji: '👑', cls: 'tier-grandmaster', minPts: 21000},
-  { id: 'challenger',  label: 'Challenger',  emoji: '⚡', cls: 'tier-challenger',  minPts: 30000}
+  { id: 'diamond',     label: 'Diamond',     emoji: '✴️🔸️', cls: 'tier-diamond',     minPts: 14000},
+  { id: 'grandmaster', label: 'Grandmaster', emoji: '🔰🔹️🔹️', cls: 'tier-grandmaster', minPts: 21000},
+  { id: 'challenger',  label: 'Challenger',  emoji: '⚛️', cls: 'tier-challenger',  minPts: 30000}
 ];
 
 // ── رتب المادة حسب نتيجة الاختبار والنقاط المضافة ──
