@@ -4331,25 +4331,29 @@ async function startAiQuiz(subjectId) {
 رابط المصدر: ${url}
 ${sourceTitles ? `عنوان المحتوى: ${sourceTitles}` : ''}
 قم بتوليد 10 أسئلة اختيار من متعدد مناسبة لموضوع هذا الفيديو أو القناة. كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
+أجب بـ JSON فقط بدون أي نص قبله أو بعده: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},{"q":"سؤال2","options":["أ","ب","ج","د"],"answer":2}]}`;
   } else if (linkType2 === 'website') {
     prompt = `أنت نظام اختبار تعليمي. المادة اسمها "${s.name}" والمصدر موقع ويب: ${url}
 بناءً على موضوع هذا الموقع ومحتواه، قم بتوليد 10 أسئلة اختيار من متعدد. كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
+أجب بـ JSON فقط بدون أي نص قبله أو بعده: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},{"q":"سؤال2","options":["أ","ب","ج","د"],"answer":2}]}`;
   } else {
     prompt = `أنت نظام اختبار تعليمي متخصص. قم بتوليد 10 أسئلة اختيار من متعدد متنوعة عن مادة "${s.name}" (تصنيف: ${s.cat}).
 ${sourceTitles ? `المصادر: ${sourceTitles}` : ''}
 كل سؤال له 4 خيارات. تنوع الصعوبة 3 سهل و4 متوسط و3 صعب. الأسئلة باللغة المناسبة للمادة.
-أجب بـ JSON فقط: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},...]}`;
+أجب بـ JSON فقط بدون أي نص قبله أو بعده: {"questions":[{"q":"السؤال","options":["أ","ب","ج","د"],"answer":0},{"q":"سؤال2","options":["أ","ب","ج","د"],"answer":2}]}`;
   }
 
   try {
     const rawText = await callAI(prompt);
-    console.log('AI RAW RESPONSE:', rawText);
-    const clean = rawText.replace(/```json|```/g, '').trim();
-    const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('لم يتم إيجاد JSON في الرد');
-    const parsed = JSON.parse(jsonMatch[0]);
+    console.log('AI RAW:', rawText.substring(0, 500));
+    let clean = rawText.replace(/```json|```/g, '').trim();
+    // شيل أي ... من الـ JSON
+    clean = clean.replace(/,?\s*\.\.\.\s*/g, '');
+    const firstBrace = clean.indexOf('{');
+    const lastBrace = clean.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace === -1) throw new Error('لم يتم إيجاد JSON في الرد');
+    const jsonStr = clean.slice(firstBrace, lastBrace + 1);
+    const parsed = JSON.parse(jsonStr);
 
     if (!parsed.questions || parsed.questions.length === 0) throw new Error('لم يتم توليد أسئلة');
 
