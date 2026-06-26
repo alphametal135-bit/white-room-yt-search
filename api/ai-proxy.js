@@ -1,61 +1,58 @@
 // api/ai-proxy.js
 // ════════════════════════════════════════════════════════
-// AI Proxy (نسخة Vercel) — بيجرب الـ providers بالترتيب:
-//   1. Anthropic (Claude)
+// AI Proxy (نسخة Vercel) — يجرب الـ providers بالترتيب:
+//   1. Anthropic (Claude Haiku)
 //   2. Gemini
 //   3. Cloudflare Workers AI
-//
-// Environment Variables المطلوبة في Vercel Dashboard
-// (Project Settings → Environment Variables):
-//   ANTHROPIC_API_KEY    ← مفتاح Claude (اختياري)
-//   GEMINI_API_KEY       ← مفتاح Gemini
-//   CLOUDFLARE_AI_TOKEN  ← توكن Cloudflare
-//   CLOUDFLARE_ACCOUNT_ID← Account ID بتاعك في Cloudflare
-//   ALLOWED_ORIGIN       ← رابط دومينك (مثال: https://thewhiteroom-26.xyz)
 // ════════════════════════════════════════════════════════
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-
-function setHeaders(res) {
+function setHeaders(res, origin) {
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // قبول أي origin — مهم عشان الموقع يشتغل
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
-function fetchWithTimeout(url, options, timeoutMs = 15000) {
+function fetchWithTimeout(url, options, timeoutMs = 20000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-// ── 1) Anthropic (Claude) ──────────────────────────────
+// ── 1) Anthropic (Claude Haiku) ───────────────────────
 async function tryAnthropic(prompt) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return null;
 
-  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
+  try {
+    const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
 
-  const data = await res.json();
-  if (!res.ok) {
-    console.warn('Anthropic error:', data?.error?.message);
+    const data = await res.json();
+    if (!res.ok) {
+      console.warn('Anthropic error:', data?.error?.message);
+      return null;
+    }
+
+    const text = data?.content?.[0]?.text || '';
+    return text ? { text, model: 'claude-haiku' } : null;
+  } catch(e) {
+    console.warn('Anthropic fetch error:', e.message);
     return null;
   }
-
-  const text = data?.content?.[0]?.text || '';
-  return text ? { text, model: 'claude-haiku' } : null;
 }
 
 // ── 2) Gemini ──────────────────────────────────────────
@@ -67,9 +64,8 @@ async function tryGemini(prompt) {
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-    let res, data;
     try {
-      res = await fetchWithTimeout(url, {
+      const res = await fetchWithTimeout(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -77,26 +73,22 @@ async function tryGemini(prompt) {
           generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
         }),
       });
-      data = await res.json();
-    } catch (e) {
-      console.warn(`Gemini ${model} fetch error:`, e.message);
+      const data = await res.json();
+
+      if (res.ok) {
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return text ? { text, model } : null;
+      }
+
+      const errMsg = data?.error?.message || '';
+      const isQuota = errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('429');
+      if (!isQuota) break;
+      console.warn(`Gemini ${model} quota exceeded, trying next...`);
+    } catch(e) {
+      console.warn(`Gemini ${model} error:`, e.message);
       continue;
     }
-
-    if (res.ok) {
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      return text ? { text, model } : null;
-    }
-
-    const errMsg = data?.error?.message || '';
-    const isQuota = errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('429');
-    if (!isQuota) {
-      console.warn(`Gemini ${model} failed (non-quota):`, errMsg);
-      break;
-    }
-    console.warn(`Gemini ${model} quota exceeded, trying next...`);
   }
-
   return null;
 }
 
@@ -106,10 +98,9 @@ async function tryCloudflare(prompt) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   if (!token || !accountId) return null;
 
-  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
-  let res, data;
   try {
-    res = await fetchWithTimeout(url, {
+    const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct`;
+    const res = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -120,23 +111,23 @@ async function tryCloudflare(prompt) {
         max_tokens: 2048,
       }),
     });
-    data = await res.json();
-  } catch (e) {
+    const data = await res.json();
+
+    if (!res.ok || !data?.result?.response) {
+      console.warn('Cloudflare AI failed:', data?.errors);
+      return null;
+    }
+    return { text: data.result.response, model: 'llama-3.1-8b' };
+  } catch(e) {
     console.warn('Cloudflare fetch error:', e.message);
     return null;
   }
-
-  if (!res.ok || !data?.result?.response) {
-    console.warn('Cloudflare AI failed:', data?.errors);
-    return null;
-  }
-
-  return { text: data.result.response, model: 'llama-3.1-8b' };
 }
 
-// ── Handler الرئيسي (صيغة Vercel: req, res) ────────────
+// ── Handler الرئيسي ────────────────────────────────────
 module.exports = async (req, res) => {
-  setHeaders(res);
+  const origin = req.headers.origin || '*';
+  setHeaders(res, origin);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -168,9 +159,9 @@ module.exports = async (req, res) => {
       return res.status(200).json(result);
     }
 
-    return res.status(503).json({ error: 'كل الـ AI providers مش متاحة دلوقتي، جرب تاني بعد شوية' });
+    return res.status(503).json({ error: 'كل الـ AI providers مش متاحة' });
   } catch (err) {
-    console.error('Proxy unexpected error:', err.message);
-    return res.status(500).json({ error: 'خطأ داخلي في السيرفر' });
+    console.error('Proxy error:', err.message);
+    return res.status(500).json({ error: 'خطأ داخلي: ' + err.message });
   }
 };
