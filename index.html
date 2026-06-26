@@ -1994,16 +1994,54 @@ body::after {
 <div class="page" id="page-admin">
   <div class="eyebrow">⚙ لوحة تحكم المشرف — منظومة الأمن الكاملة</div>
 
-  <!-- ══ إعداد مفتاح Anthropic API ══ -->
-  <div id="admin-api-key-panel" style="background:rgba(30,10,50,0.7);border:1px solid rgba(176,110,243,0.30);border-right:3px solid #b06ef3;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
-    <div style="font-size:12px;font-weight:bold;color:#b06ef3;margin-bottom:8px;">&#x1F511; Anthropic API Key — تشغيل زعتر وكل وظائف AI</div>
-    <div style="font-size:10px;color:#5a4a7a;margin-bottom:10px;">احفظ المفتاح مرة واحدة في Firestore — يستخدمه كل المحللين تلقائياً</div>
+  <!-- ══ إعداد مفاتيح API ══ -->
+  <div id="admin-api-key-panel" style="background:rgba(30,10,50,0.7);border:1px solid rgba(176,110,243,0.30);border-right:3px solid #b06ef3;border-radius:12px;padding:16px 18px;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:bold;color:#b06ef3;margin-bottom:4px;">🔑 إدارة مفاتيح API</div>
+    <div style="font-size:10px;color:#5a4a7a;margin-bottom:14px;">أضف أي مفتاح API وحفظه في Firestore — يُستخدم تلقائياً من قِبل المنظومة</div>
+
+    <!-- نوع المفتاح -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <button onclick="adminSelectKeyType('anthropic',this)" id="admin-keytype-anthropic"
+        style="padding:7px 14px;border-radius:8px;border:2px solid #b06ef3;background:rgba(176,110,243,0.18);color:#b06ef3;font-size:11px;font-weight:bold;cursor:pointer;">
+        🤖 Anthropic (زعتر)
+      </button>
+      <button onclick="adminSelectKeyType('vercel',this)" id="admin-keytype-vercel"
+        style="padding:7px 14px;border-radius:8px;border:1px solid rgba(176,110,243,0.25);background:transparent;color:#5a4a7a;font-size:11px;font-weight:bold;cursor:pointer;">
+        ▲ Vercel
+      </button>
+      <button onclick="adminSelectKeyType('custom',this)" id="admin-keytype-custom"
+        style="padding:7px 14px;border-radius:8px;border:1px solid rgba(176,110,243,0.25);background:transparent;color:#5a4a7a;font-size:11px;font-weight:bold;cursor:pointer;">
+        ➕ مفتاح مخصص
+      </button>
+    </div>
+
+    <!-- حقل اسم مخصص (يظهر فقط عند اختيار "مخصص") -->
+    <div id="admin-custom-key-name-wrap" style="display:none;margin-bottom:10px;">
+      <input id="admin-custom-key-name" type="text" placeholder="اسم المفتاح (مثال: openai، stripe، ...)"
+        style="width:100%;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
+    </div>
+
+    <!-- وصف المفتاح الحالي -->
+    <div id="admin-keytype-desc" style="font-size:10px;color:#5a4a7a;margin-bottom:10px;">
+      🤖 مفتاح Anthropic — يشغّل زعتر وكل وظائف الذكاء الاصطناعي في المنظومة
+    </div>
+
+    <!-- الإدخال والأزرار -->
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <input id="admin-api-key-input" type="password" placeholder="sk-ant-api03-..." style="flex:1;min-width:220px;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
-      <button onclick="adminSaveApiKey()" style="background:#b06ef3;color:#000;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-weight:bold;font-size:12px;white-space:nowrap;">&#x1F4BE; حفظ المفتاح</button>
-      <button onclick="adminCheckApiKey()" style="background:transparent;color:#b06ef3;border:1px solid #b06ef3;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:11px;">&#x2714; اختبار</button>
+      <input id="admin-api-key-input" type="password" placeholder="sk-ant-api03-..."
+        style="flex:1;min-width:220px;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
+      <button onclick="adminSaveApiKey()" style="background:#b06ef3;color:#000;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-weight:bold;font-size:12px;white-space:nowrap;">💾 حفظ المفتاح</button>
+      <button onclick="adminCheckApiKey()" style="background:transparent;color:#b06ef3;border:1px solid #b06ef3;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:11px;">✔ اختبار</button>
     </div>
     <div id="admin-api-key-status" style="font-size:11px;color:#5a4a7a;margin-top:8px;"></div>
+
+    <!-- المفاتيح المحفوظة -->
+    <div style="margin-top:14px;border-top:1px solid rgba(176,110,243,0.15);padding-top:12px;">
+      <div style="font-size:10px;color:#5a4a7a;margin-bottom:8px;font-family:monospace;letter-spacing:1px;">المفاتيح المحفوظة حالياً</div>
+      <div id="admin-saved-keys-list" style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:10px;color:#3a2a5a;">⏳ جاري التحميل...</div>
+      </div>
+    </div>
   </div>
 
   <!-- ══ زرار توليد المهام اليومية — ثابت دايماً ══ -->
@@ -4220,6 +4258,13 @@ function daysBetween(d1, d2) {
 // تشغّل تلقائياً عند كل دخول: تتحقق من الغياب (نقاط عادية أو إنذار)، تنقل الحساب
 // لحالة probation عند الصفر، تطبّق إعادة الـ500 بعد 10 أيام، والمكافأة الشهرية، والحذف النهائي.
 async function applyDailyCheck() {
+  // ── مؤسس النظام: معفى تماماً من أي عقوبات أو خصومات ──
+  if (mySysId === 'WR-3512-7926') {
+    const ref = dbFs.collection('users').doc(mySysId);
+    // نحدث تاريخ الدخول فقط، بدون أي عقوبة أو تغيير حالة
+    await ref.update({ lastLoginDate: todayStr() });
+    return null;
+  }
   const ref = dbFs.collection('users').doc(mySysId);
   return dbFs.runTransaction(async (tx) => {
     const doc = await tx.get(ref);
@@ -4315,9 +4360,17 @@ function checkAuth() {
       const me = doc.data();
 
       // لو الحساب اتعلّم محذوف من جلسة سابقة، اتأكد إنه اتمسح فعلياً وسجّل خروج
+      // مؤسس النظام لا يُحذف أبداً — يُستعاد حسابه تلقائياً إذا وصل لهذه الحالة
       if (me.accountStatus === 'deleted') {
-        await permanentlyDeleteAccount(mySysId, user.uid);
-        return;
+        if (mySysId === 'WR-3512-7926') {
+          await dbFs.collection('users').doc(mySysId).update({
+            accountStatus: 'active', points: me.points || 0,
+            zeroDate: null, probationPoints: null, probationStartDate: null
+          });
+        } else {
+          await permanentlyDeleteAccount(mySysId, user.uid);
+          return;
+        }
       }
 
       myName = me.name;
@@ -4392,8 +4445,11 @@ function checkAuth() {
       const dailyResult = await applyDailyCheck();
       if (dailyResult) {
         if (dailyResult.kind === 'account_deleted') {
-          await permanentlyDeleteAccount(mySysId, user.uid);
-          return;
+          // مؤسس النظام لا يُحذف أبداً
+          if (mySysId !== 'WR-3512-7926') {
+            await permanentlyDeleteAccount(mySysId, user.uid);
+            return;
+          }
         }
 
         const fresh = await dbFs.collection('users').doc(mySysId).get();
@@ -5260,7 +5316,7 @@ function showPage(name, btn) {
   if (name === 'profile') renderProfile();
   if (name === 'friends') renderFriends();
   if (name === 'leaderboard') renderLeaderboard();
-  if (name === 'admin') renderAdmin();
+  if (name === 'admin') { renderAdmin(); if(typeof adminLoadSavedKeys==='function') adminLoadSavedKeys(); }
   if (name === 'chat') { renderChat(); startChatPolling(); }
   if (name === 'quiz') renderQuiz();
   if (name === 'chess') chessOnPageShown();
@@ -7771,33 +7827,147 @@ async function sendNotifToAll(type, title, body, rows) {
 
 
 // ── إدارة مفتاح Anthropic API ──
+// ── نوع المفتاح المحدد حالياً ──
+let _adminCurrentKeyType = 'anthropic';
+
+function adminSelectKeyType(type, btn) {
+  _adminCurrentKeyType = type;
+  // إعادة تنسيق الأزرار
+  ['anthropic','vercel','custom'].forEach(t => {
+    const b = document.getElementById('admin-keytype-' + t);
+    if (!b) return;
+    b.style.border = '1px solid rgba(176,110,243,0.25)';
+    b.style.background = 'transparent';
+    b.style.color = '#5a4a7a';
+  });
+  if (btn) {
+    btn.style.border = '2px solid #b06ef3';
+    btn.style.background = 'rgba(176,110,243,0.18)';
+    btn.style.color = '#b06ef3';
+  }
+  // حقل الاسم المخصص
+  const customWrap = document.getElementById('admin-custom-key-name-wrap');
+  if (customWrap) customWrap.style.display = type === 'custom' ? 'block' : 'none';
+  // placeholder + وصف
+  const inp = document.getElementById('admin-api-key-input');
+  const desc = document.getElementById('admin-keytype-desc');
+  if (type === 'anthropic') {
+    if (inp) inp.placeholder = 'sk-ant-api03-...';
+    if (desc) desc.textContent = '🤖 مفتاح Anthropic — يشغّل زعتر وكل وظائف الذكاء الاصطناعي في المنظومة';
+  } else if (type === 'vercel') {
+    if (inp) inp.placeholder = 'vercel_...  أو  Bearer token';
+    if (desc) desc.textContent = '▲ مفتاح Vercel — يُستخدم لنشر المشاريع وإدارة البيئات عبر Vercel API';
+  } else {
+    if (inp) inp.placeholder = 'أدخل المفتاح...';
+    if (desc) desc.textContent = '➕ مفتاح مخصص — يُحفظ باسم تحدده ويمكن استدعاؤه لاحقاً من الكود';
+  }
+}
+
 async function adminSaveApiKey() {
   if (!isAdmin()) return;
   const inp = document.getElementById('admin-api-key-input');
   const statusEl = document.getElementById('admin-api-key-status');
   const key = (inp ? inp.value : '').trim();
-  if (!key || !key.startsWith('sk-ant')) {
+  if (!key) {
     statusEl.style.color = '#f87171';
-    statusEl.textContent = '⚠ المفتاح غير صحيح — يجب أن يبدأ بـ sk-ant-';
+    statusEl.textContent = '⚠ أدخل المفتاح أولاً';
+    return;
+  }
+  // تحديد اسم الوثيقة في Firestore
+  let docName = _adminCurrentKeyType;
+  if (_adminCurrentKeyType === 'custom') {
+    const nameInp = document.getElementById('admin-custom-key-name');
+    const customName = (nameInp ? nameInp.value : '').trim().replace(/\s+/g,'_').toLowerCase();
+    if (!customName) {
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ أدخل اسماً للمفتاح المخصص';
+      return;
+    }
+    docName = customName;
+  }
+  // التحقق من صحة مفتاح Anthropic فقط
+  if (_adminCurrentKeyType === 'anthropic' && !key.startsWith('sk-ant')) {
+    statusEl.style.color = '#f87171';
+    statusEl.textContent = '⚠ مفتاح Anthropic يجب أن يبدأ بـ sk-ant-';
     return;
   }
   statusEl.style.color = '#5a4a7a';
   statusEl.textContent = '⏳ جاري الحفظ...';
   try {
-    await dbFs.collection('config').doc('anthropic').set({ key, updatedAt: Date.now() });
-    _anthropicKey = key;
+    await dbFs.collection('config').doc(docName).set({
+      key,
+      type: _adminCurrentKeyType,
+      label: _adminCurrentKeyType === 'anthropic' ? 'Anthropic' : _adminCurrentKeyType === 'vercel' ? 'Vercel' : docName,
+      updatedAt: Date.now()
+    });
+    if (_adminCurrentKeyType === 'anthropic') _anthropicKey = key;
     statusEl.style.color = '#b06ef3';
-    statusEl.textContent = '✓ تم حفظ المفتاح بنجاح — زعتر وكل وظائف AI جاهزة الآن!';
+    statusEl.textContent = `✓ تم حفظ مفتاح "${docName}" بنجاح!`;
     inp.value = '';
+    const nameInp = document.getElementById('admin-custom-key-name');
+    if (nameInp) nameInp.value = '';
+    // تحديث قائمة المفاتيح
+    adminLoadSavedKeys();
   } catch(e) {
     statusEl.style.color = '#f87171';
     statusEl.textContent = 'فشل الحفظ: ' + e.message;
   }
 }
 
+async function adminDeleteKey(docName) {
+  if (!isAdmin()) return;
+  if (!confirm(`هل تريد حذف مفتاح "${docName}"؟`)) return;
+  try {
+    await dbFs.collection('config').doc(docName).delete();
+    if (docName === 'anthropic') _anthropicKey = null;
+    adminLoadSavedKeys();
+  } catch(e) { alert('فشل الحذف: ' + e.message); }
+}
+
+async function adminLoadSavedKeys() {
+  const listEl = document.getElementById('admin-saved-keys-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="font-size:10px;color:#3a2a5a;">⏳ جاري التحميل...</div>';
+  try {
+    const snap = await dbFs.collection('config').get();
+    const keys = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => d.key);
+    if (!keys.length) {
+      listEl.innerHTML = '<div style="font-size:10px;color:#3a2a5a;">لا توجد مفاتيح محفوظة بعد</div>';
+      return;
+    }
+    listEl.innerHTML = keys.map(k => {
+      const masked = k.key ? (k.key.slice(0,8) + '••••••••' + k.key.slice(-4)) : '---';
+      const label = k.label || k.id;
+      const icon = k.id === 'anthropic' ? '🤖' : k.id === 'vercel' ? '▲' : '🔑';
+      const date = k.updatedAt ? new Date(k.updatedAt).toLocaleDateString('ar-SA') : '';
+      return `<div style="display:flex;align-items:center;gap:8px;background:rgba(10,10,20,0.6);border:1px solid rgba(176,110,243,0.18);border-radius:8px;padding:8px 12px;">
+        <span style="font-size:13px;">${icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;font-weight:bold;color:#b06ef3;">${label}</div>
+          <div style="font-size:10px;font-family:monospace;color:#5a4a7a;">${masked} ${date ? '· ' + date : ''}</div>
+        </div>
+        <button onclick="adminDeleteKey('${k.id}')"
+          style="background:transparent;border:1px solid rgba(248,113,113,0.4);color:#f87171;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:10px;flex-shrink:0;">
+          🗑 حذف
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="font-size:10px;color:#f87171;">فشل التحميل: ' + e.message + '</div>';
+  }
+}
+
 async function adminCheckApiKey() {
   const statusEl = document.getElementById('admin-api-key-status');
   statusEl.style.color = '#5a4a7a';
+  if (_adminCurrentKeyType === 'vercel') {
+    statusEl.textContent = 'ℹ مفتاح Vercel — لا يوجد اختبار تلقائي، تأكد من صحته من لوحة تحكم Vercel';
+    return;
+  }
+  if (_adminCurrentKeyType === 'custom') {
+    statusEl.textContent = 'ℹ مفتاح مخصص — لا يوجد اختبار تلقائي';
+    return;
+  }
   statusEl.textContent = '⏳ جاري الاختبار...';
   try {
     const reply = await callAI('قل "زعتر جاهز" بالعربية فقط');
@@ -8309,6 +8479,14 @@ async function executeAdminAction() {
   const bodyVal = document.getElementById('admin-action-body-inp').value.trim();
   const ptsVal = parseInt(document.getElementById('admin-action-pts').value) || 50;
   if (!titleVal || !bodyVal) { alert('أدخل العنوان والنص أولاً'); return; }
+
+  // ── مؤسس النظام: محمي من العقوبات والإجراءات التأديبية ──
+  if (adminActionTarget.id === 'WR-3512-7926' && (type === 'punishment' || type === 'probation')) {
+    showToast('warn', '⛔ محمي', 'مؤسس النظام معفى من أي إجراءات تأديبية', '!');
+    closeAdminActionModal();
+    return;
+  }
+
   try {
     const tid = adminActionTarget.id;
     const userRef = dbFs.collection('users').doc(tid);
