@@ -5240,7 +5240,25 @@ function showPage(name, btn) {
   if (name === 'chat') { renderChat(); startChatPolling(); }
   if (name === 'quiz') renderQuiz();
   if (name === 'chess') chessOnPageShown();
-  if (name === 'rubik') setTimeout(()=>{ if(typeof rubikInit==='function'){ rubikInit(); rubikUpdateUnitPanel(); } }, 50);
+  if (name === 'rubik') setTimeout(()=>{
+    if(typeof rubikInit==='function'){
+      rubikInit();
+      rubikUpdateUnitPanel();
+      // بعد ما الصفحة تبان، اجبر إعادة الحجم
+      setTimeout(()=>{
+        const c=document.getElementById('rubik-canvas');
+        if(c&&window.rubikRendererObj){
+          const wrap=c.parentElement;
+          const w=wrap?wrap.clientWidth:c.clientWidth||680;
+          const h=wrap?wrap.clientHeight:c.clientHeight||480;
+          if(w&&h){
+            window.rubikRendererObj.setSize(w,h,false);
+            if(window.rubikCamera){window.rubikCamera.aspect=w/h;window.rubikCamera.updateProjectionMatrix();}
+          }
+        }
+      },150);
+    }
+  }, 50);
   if (name === "daily-tasks") loadDailyTasks();
   if (name === "achievements") { loadAchievements().then(() => renderAchievements()); }
   if (name === "cyber-labs") renderCyberLabsHub();
@@ -10205,7 +10223,9 @@ function rubikInit(){
   rubikScene=new THREE.Scene();
   rubikScene.background=new THREE.Color(0x0a0a0f);
   rubikCamera=new THREE.PerspectiveCamera(42,1,.1,100);
+  window.rubikCamera=rubikCamera;
   rubikRendererObj=new THREE.WebGLRenderer({canvas,antialias:true});
+  window.rubikRendererObj=rubikRendererObj;
   rubikRendererObj.setPixelRatio(Math.min(window.devicePixelRatio,2));
   rubikRendererObj.shadowMap.enabled=true;
 
@@ -10217,17 +10237,23 @@ function rubikInit(){
   rubikBuildCube();
   rubikControls_=new RubikCam(rubikCamera,canvas);
 
+  let lastW=0,lastH=0;
   function resize(){
-    const w=canvas.clientWidth,h=canvas.clientHeight;
-    if(!w||!h)return;
+    const wrap=canvas.parentElement;
+    let w=canvas.clientWidth||canvas.offsetWidth||(wrap?wrap.clientWidth:0);
+    let h=canvas.clientHeight||canvas.offsetHeight||(wrap?wrap.clientHeight:0);
+    if(!w||!h){w=680;h=480;}
+    if(w===lastW&&h===lastH)return;
+    lastW=w;lastH=h;
     rubikRendererObj.setSize(w,h,false);
     rubikCamera.aspect=w/h; rubikCamera.updateProjectionMatrix();
   }
   window.addEventListener('resize',resize);
+  resize();
   function loop(){requestAnimationFrame(loop);resize();rubikRendererObj.render(rubikScene,rubikCamera);}
   loop();
   rubikUpdateUnitPanel();
-  setTimeout(()=>{const h=document.getElementById('rubik-drag-hint');if(h)h.style.opacity='0';},4000);
+  setTimeout(()=>{const hint=document.getElementById('rubik-drag-hint');if(hint)hint.style.opacity='0';},4000);
 }
 </script>
 
