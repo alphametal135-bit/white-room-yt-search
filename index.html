@@ -6145,7 +6145,7 @@ async function getAnthropicKey() {
   return null;
 }
 
-// رابط الـ AI Proxy على Vercel — غيّره لرابط مشروعك
+// رابط الـ AI Proxy على Vercel
 const AI_PROXY_URL = 'https://white-room-yt-search.vercel.app/api/ai-proxy';
 
 async function callAI(prompt) {
@@ -6159,15 +6159,18 @@ async function callAI(prompt) {
     if (res.ok) {
       const data = await res.json();
       if (data?.text) return data.text;
+      if (data?.error) console.warn('Proxy error:', data.error);
+    } else {
+      console.warn('Proxy HTTP error:', res.status);
     }
   } catch(e) {
-    console.warn('Proxy غير متاح، جاري التحويل للاتصال المباشر:', e.message);
+    console.warn('Proxy غير متاح:', e.message);
   }
 
   // ── ثانياً: fallback — اتصال مباشر بـ Anthropic ──
   const key = await getAnthropicKey();
   if (!key) throw new Error('مفتاح API غير متاح — تواصل مع المشرف');
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res2 = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -6176,14 +6179,17 @@ async function callAI(prompt) {
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }]
     })
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  return data.content?.[0]?.text ?? '';
+  if (!res2.ok) {
+    const errData = await res2.json().catch(() => ({}));
+    throw new Error('HTTP ' + res2.status + ': ' + (errData?.error?.message || ''));
+  }
+  const data2 = await res2.json();
+  return data2.content?.[0]?.text ?? '';
 }
 // ════ تحديد نوع الرابط ════
 function detectLinkType(url) {
