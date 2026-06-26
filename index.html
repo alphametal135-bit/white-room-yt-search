@@ -2144,7 +2144,7 @@ body::after {
   </div>
 </div>
 
-<div class="page" id="page-cyber-chem" style="padding:0;margin:0;position:fixed;inset:0;top:82px;z-index:100;">
+<div class="page" id="page-cyber-chem" style="padding:0;margin:0;position:fixed;inset:0;top:82px;z-index:100;width:100vw;left:0;">
   <iframe srcdoc="<!DOCTYPE html>
 <html lang=&quot;ar&quot; dir=&quot;rtl&quot;>
 <head>
@@ -5058,6 +5058,19 @@ async function cyberbotSend() {
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  // الكيمياء السيبرانية — تملا الشاشة كاملة
+  const matrixCanvas = document.getElementById('matrix-canvas');
+  const statusBar = document.querySelector('.status-bar');
+  if (name === 'cyber-chem') {
+    if (matrixCanvas) matrixCanvas.style.display = 'none';
+    if (statusBar) statusBar.style.display = 'none';
+    document.body.style.overflow = 'hidden';
+  } else {
+    if (matrixCanvas) matrixCanvas.style.display = '';
+    if (statusBar) statusBar.style.display = '';
+    document.body.style.overflow = '';
+  }
   if (name === 'reports') setTimeout(loadFounderMessages, 300);
   if (name === 'admin') setTimeout(() => { if(isAdmin()) startAdminNotifListener(); }, 600);
   if (name === 'zaatar' && document.getElementById('cyberbot-msgs') && document.getElementById('cyberbot-msgs').children.length === 0) {
