@@ -6145,7 +6145,26 @@ async function getAnthropicKey() {
   return null;
 }
 
+// رابط الـ AI Proxy على Vercel — غيّره لرابط مشروعك
+const AI_PROXY_URL = 'https://your-project.vercel.app/api/ai-proxy';
+
 async function callAI(prompt) {
+  // ── أولاً: نجرب الـ Proxy على Vercel ──
+  try {
+    const res = await fetch(AI_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.text) return data.text;
+    }
+  } catch(e) {
+    console.warn('Proxy غير متاح، جاري التحويل للاتصال المباشر:', e.message);
+  }
+
+  // ── ثانياً: fallback — اتصال مباشر بـ Anthropic ──
   const key = await getAnthropicKey();
   if (!key) throw new Error('مفتاح API غير متاح — تواصل مع المشرف');
   const res = await fetch('https://api.anthropic.com/v1/messages', {
