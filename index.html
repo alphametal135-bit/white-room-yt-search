@@ -1911,7 +1911,7 @@ body::after {
       <div id="rubik-drag-hint" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);background:rgba(0,0,0,.5);padding:3px 10px;border-radius:20px;pointer-events:none;transition:opacity .5s;">🖱 اسحب للتدوير | عجلة الماوس للتكبير</div>
 
       <!-- زعتر يحل overlay -->
-      <div id="rubik-zaatar-overlay" style="display:none;position:absolute;inset:0;background:rgba(10,10,15,0.88);z-index:50;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+      <div id="rubik-zaatar-overlay" style="display:none;position:absolute;inset:0;background:rgba(10,10,15,0.88);z-index:50;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
         <div style="font-size:48px;animation:rubikZaatarPulse 1.2s infinite;">🤖</div>
         <div style="font-family:var(--mono);color:rgba(176,110,243,1);font-size:16px;font-weight:900;letter-spacing:2px;" id="rubik-zaatar-msg">زعتر يحل المكعب...</div>
         <div style="font-size:11px;color:var(--text3);" id="rubik-zaatar-sub">جاري تحليل حالة المكعب</div>
@@ -9724,7 +9724,39 @@ function closeMusicPlayer() {
 </script>
 
 <!-- ══ THREE.JS + RUBIK ENGINE + ZAATAR SOLVER ══ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// تحميل Three.js مع fallback لعدة CDNs
+(function() {
+  function loadScript(url, callback) {
+    var s = document.createElement('script');
+    s.src = url;
+    s.onload = callback;
+    s.onerror = function() {
+      // جرب CDN ثاني
+      var s2 = document.createElement('script');
+      s2.src = 'https://unpkg.com/three@0.128.0/build/three.min.js';
+      s2.onload = callback;
+      s2.onerror = function() {
+        // جرب CDN ثالث
+        var s3 = document.createElement('script');
+        s3.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+        s3.onload = callback;
+        s3.onerror = function() {
+          console.error('فشل تحميل Three.js من جميع المصادر');
+        };
+        document.head.appendChild(s3);
+      };
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  }
+  window._threeLoaded = false;
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', function() {
+    window._threeLoaded = true;
+  });
+})();
+</script>
+<script>/* three.js placeholder — loaded above */</script>
 <style>
 @keyframes rubikZaatarPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
 @keyframes rubikDot { 0%,100%{opacity:.2;transform:scale(.8);} 50%{opacity:1;transform:scale(1.2);} }
@@ -10153,7 +10185,21 @@ class RubikCam {
 // ── تهيئة ──
 function rubikInit(){
   const canvas=document.getElementById('rubik-canvas');
-  if(!canvas||!window.THREE||rubikInitialized) return;
+  if(!canvas||rubikInitialized) return;
+  // انتظر Three.js لو لم تُحمَّل بعد
+  if(!window.THREE){
+    const maxWait=8000, interval=100; let waited=0;
+    const waiter=setInterval(()=>{
+      waited+=interval;
+      if(window.THREE){ clearInterval(waiter); rubikInit(); }
+      else if(waited>=maxWait){
+        clearInterval(waiter);
+        const c=document.getElementById('rubik-canvas');
+        if(c){ const ctx=c.getContext('2d'); if(ctx){ c.width=c.offsetWidth||400; c.height=c.offsetHeight||400; ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,c.width,c.height); ctx.fillStyle='rgba(176,110,243,0.7)'; ctx.font='16px Cairo,sans-serif'; ctx.textAlign='center'; ctx.fillText('⚠ تعذّر تحميل المحرك ثلاثي الأبعاد', c.width/2, c.height/2-10); ctx.font='12px Cairo,sans-serif'; ctx.fillStyle='rgba(200,180,255,0.5)'; ctx.fillText('تحقق من اتصال الإنترنت وأعد التحميل', c.width/2, c.height/2+18); } }
+      }
+    },interval);
+    return;
+  }
   rubikInitialized=true;
 
   rubikScene=new THREE.Scene();
