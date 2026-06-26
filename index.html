@@ -49,6 +49,21 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* إخفاء كل العناصر الخلفية لما صفحة الكيمياء السيبرانية تكون مفتوحة */
+body.cyber-chem-active::before,
+body.cyber-chem-active::after { display: none !important; }
+body.cyber-chem-active #matrix-canvas { display: none !important; }
+body.cyber-chem-active .status-bar { display: none !important; }
+body.cyber-chem-active #page-cyber-chem {
+  position: fixed !important;
+  top: 82px !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  width: 100vw !important; height: calc(100vh - 82px) !important;
+  z-index: 500 !important; background: #060a0c !important;
+}
+body.cyber-chem-active #page-cyber-chem iframe {
+  width: 100% !important; height: 100% !important;
+}
+
 body {
   font-family: var(--sans);
   background: var(--bg);
@@ -5060,15 +5075,11 @@ function showPage(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
   // الكيمياء السيبرانية — تملا الشاشة كاملة
-  const matrixCanvas = document.getElementById('matrix-canvas');
-  const statusBar = document.querySelector('.status-bar');
   if (name === 'cyber-chem') {
-    if (matrixCanvas) matrixCanvas.style.display = 'none';
-    if (statusBar) statusBar.style.display = 'none';
+    document.body.classList.add('cyber-chem-active');
     document.body.style.overflow = 'hidden';
   } else {
-    if (matrixCanvas) matrixCanvas.style.display = '';
-    if (statusBar) statusBar.style.display = '';
+    document.body.classList.remove('cyber-chem-active');
     document.body.style.overflow = '';
   }
   if (name === 'reports') setTimeout(loadFounderMessages, 300);
