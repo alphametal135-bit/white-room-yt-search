@@ -1935,7 +1935,7 @@ body::after {
         <span style="font-size:10px;color:var(--text3);">سرعة الدوران</span>
         <span style="font-size:11px;color:var(--green);font-weight:bold;" id="rubik-speed-val">5</span>
       </div>
-      <input type="range" id="rubik-speed-slider" min="1" max="10" value="5" style="accent-color:var(--green);" oninput="rubikAnimSpeed=+this.value;document.getElementById('rubik-speed-val').textContent=this.value;">
+      <input type="range" id="rubik-speed-slider" min="1" max="10" value="5" style="accent-color:var(--green);" oninput="rk.animSpeed=+this.value;document.getElementById('rubik-speed-val').textContent=this.value;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:10px;color:var(--text3);">مسافة الكاميرا</span>
         <span style="font-size:11px;color:var(--green);font-weight:bold;" id="rubik-zoom-val">5</span>
@@ -4173,7 +4173,7 @@ async function login() {
   err.style.color = '';
 
   if (!id || !id.startsWith('WR-')) {
-    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: CS-XXXX-XXXX";
+    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: WR-XXXX-XXXX";
     err.classList.add('show');
     return;
   }
@@ -4210,7 +4210,7 @@ async function forgotPassword() {
     return;
   }
   if (!id.startsWith('WR-') || id.length < 12) {
-    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: CS-XXXX-XXXX';
+    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: WR-XXXX-XXXX';
     err.classList.add('show');
     document.getElementById('login-id').focus();
     return;
@@ -4641,6 +4641,10 @@ function renderSubjectsList() {
     const sTierData = getTier(sUnit.pts);
     const nextGradeRule = SUBJECT_GRADE_RULES[SUBJECT_GRADE_RULES.findIndex(r=>r.grade===sUnit.grade)+1];
     const ptsToNextGrade = nextGradeRule ? (nextGradeRule.minScore + '% للحصول على ' + nextGradeRule.grade) : '🏆 S حاصل';
+    // نقاط الوحدة المتراكمة اللازمة للرتبة التالية (مجموع unitPts حتى تلك الرتبة)
+    const unitPtsForNextGrade = nextGradeRule
+      ? SUBJECT_GRADE_RULES.filter(r => r.unitPts > 0 && SUBJECT_GRADE_RULES.indexOf(r) <= SUBJECT_GRADE_RULES.indexOf(nextGradeRule)).reduce((a,r) => a + r.unitPts, 0)
+      : null;
 
     card.innerHTML = `
       <div style="font-size:20px; text-align:center;">${escapeHtml(s.emoji)}</div>
@@ -4654,7 +4658,7 @@ function renderSubjectsList() {
           ${sUnit.grade === 'S' ? `<span style="font-size:10px; color:#FFC800;">⭐×${sUnit.sCount}</span>` : ''}
         </div>
         <div class="unit-pts-bar" style="width:80%; margin-top:3px;">
-          <div class="unit-pts-fill" style="width:${nextGradeRule ? Math.min(100,Math.round((sUnit.pts/nextGradeRule.minScore)*100)) : 100}%;"></div>
+          <div class="unit-pts-fill" style="width:${unitPtsForNextGrade ? Math.min(100,Math.round((sUnit.pts/unitPtsForNextGrade)*100)) : 100}%;"></div>
         </div>
       </div>
       <div class="num-col"><input type="number" class="num-input" value="${s.minsPerDay}" onchange="updateMins(${s.id}, this.value)"></div>
@@ -5008,6 +5012,8 @@ function setVideoVolume(value) {
 }
 
 function startStudyTimer() {
+  // وقّف أي تايمر شغال قبل ما نبدأ جديد — يمنع تشغيل تايمرين في نفس الوقت
+  if (studyTimer) { clearInterval(studyTimer); studyTimer = null; }
   // نقاط الروابط تتضاعف حسب رتبة المادة النشطة
   const activeSubj = subjects.find(x => x.id === activeTrackId);
   const activeGrade = activeSubj ? (subjectUnitData[activeSubj.id]?.grade || 'F') : 'F';
@@ -5179,7 +5185,16 @@ function cyberbotAddBubble(role, text) {
   const div = document.createElement('div');
   div.className = 'zaatar-bubble ' + role;
   if (role === 'ai') {
-    div.innerHTML = '<div class="zaatar-name">🤖 زعتر</div>' + text.replace(/\n/g, '<br>');
+    // نبني الـ DOM يدوياً بدون innerHTML عشان نمنع أي XSS من ردود الـ API
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'zaatar-name';
+    nameDiv.textContent = '🤖 زعتر';
+    div.appendChild(nameDiv);
+    // نحوّل \n لـ <br> بأمان عبر textNode + br
+    text.split('\n').forEach((line, i, arr) => {
+      div.appendChild(document.createTextNode(line));
+      if (i < arr.length - 1) div.appendChild(document.createElement('br'));
+    });
   } else {
     div.textContent = text;
   }
@@ -5257,6 +5272,7 @@ async function cyberbotSend() {
     });
 
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     const reply = data.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
 
     typing.remove();
@@ -6403,17 +6419,23 @@ async function startAiQuiz(subjectId) {
       usedFallback = true;
     }
 
-    // نحوّل صيغة الـ AI (options/answer) لصيغة النظام (o/a)
-    currentQuizSessionQuestions = parsed.questions.map(q => ({
-      q: q.q || q.question || '',
-      o: q.options || q.o || [],
-      a: typeof q.answer !== 'undefined' ? q.answer : (q.a || 0)
-    })).filter(q => q.q && q.o.length >= 2);
+    // نحوّل صيغة الـ AI لصيغة موحدة (options + answer) ونملأ aiQuizState كامل
+    const mappedQuestions = parsed.questions.map(q => ({
+      q:       q.q || q.question || '',
+      options: q.options || q.o || [],
+      answer:  typeof q.answer !== 'undefined' ? q.answer : (typeof q.a !== 'undefined' ? q.a : 0)
+    })).filter(q => q.q && q.options.length >= 2);
 
+    // نملأ aiQuizState وكمان currentQuizSessionQuestions للتوافق مع showQuestion()
+    currentQuizSessionQuestions = mappedQuestions.map(q => ({ q: q.q, o: q.options, a: q.answer }));
+    aiQuizState.questions    = mappedQuestions;
+    aiQuizState.index        = 0;
+    aiQuizState.score        = 0;
+    aiQuizState.answered     = false;
+    aiQuizState.subjectId    = subjectId;
+    aiQuizState.subjectName  = s.name;
     quizIndex = 0;
     quizScore = 0;
-    aiQuizState.subjectId   = subjectId;
-    aiQuizState.subjectName = s.name;
 
     const container2 = document.getElementById('quiz-container');
     container2.innerHTML = `
@@ -9884,6 +9906,8 @@ function initMusicCtx() {
 function startMusicTrack(idx) {
   stopMusicNodes();
   initMusicCtx();
+  // لو الـ context كان متعلق (suspended) نحييه قبل ما نبدأ
+  if (musicCtx.state === 'suspended') musicCtx.resume();
   const track = MUSIC_TRACKS[idx % MUSIC_TRACKS.length];
   document.getElementById('music-track-name').textContent = track.name;
 
@@ -10108,9 +10132,9 @@ const MOVES_DEF = {
   'B':  { face:'B', cw:true,  cyc:[['U',2,1,0],['L',0,3,6],['D',6,7,8],['R',8,5,2]] },
   "B'": { face:'B', cw:false, cyc:[['U',2,1,0],['R',8,5,2],['D',6,7,8],['L',0,3,6]] },
 };
-// إضافة حركات x2
+// إضافة حركات x2 (deep copy للـ cyc عشان ما نشاركش reference)
 ['U','D','R','L','F','B'].forEach(f => {
-  MOVES_DEF[f+'2'] = { face:f, cw:true, cyc: MOVES_DEF[f].cyc, times:2 };
+  MOVES_DEF[f+'2'] = { face:f, cw:true, cyc: MOVES_DEF[f].cyc.map(e => [...e]), times:2 };
 });
 
 const MOVE_INV = {};
@@ -10420,20 +10444,18 @@ function rkAnimateLayer(axis, layer, angle, onDone) {
         axis==='z' ? angle : 0
       );
       // حدّث مواضع الـ cubies
+      // updateMatrixWorld أولاً عشان الـ world transforms تكون محدودة
+      pivot.updateMatrixWorld(true);
       affected.forEach(c => {
-        pivot.remove(c);
-        // احسب الموضع الجديد
-        const worldPos = new THREE.Vector3();
-        c.getWorldPosition(worldPos);
-        c.position.copy(worldPos);
-        // نظّف الدوران (قرّب لأقرب عدد صحيح)
-        const mat = new THREE.Matrix4();
-        mat.extractRotation(pivot.matrixWorld.clone().multiply(c.matrix));
-        // الموضع الجديد
-        worldPos.round();
-        c.userData.pos.copy(worldPos);
-        c.position.copy(worldPos);
-        rk.scene.add(c);
+        // scene.attach بتحفظ الـ world transform (position + rotation) تلقائياً
+        rk.scene.attach(c);
+        // نظّف الـ position لأقرب عدد صحيح وحدّث userData.pos
+        c.position.round();
+        c.userData.pos.copy(c.position);
+        // نظّف الـ rotation (اقرب 90°) عشان ما يتراكمش floating point error
+        c.rotation.x = Math.round(c.rotation.x / (Math.PI/2)) * (Math.PI/2);
+        c.rotation.y = Math.round(c.rotation.y / (Math.PI/2)) * (Math.PI/2);
+        c.rotation.z = Math.round(c.rotation.z / (Math.PI/2)) * (Math.PI/2);
       });
       rk.scene.remove(pivot);
       onDone();
@@ -10526,7 +10548,7 @@ async function rubikShuffle4() {
   }
   rk.shuffleSeq = [...moves];
   for (const m of moves) await rkEnqueue(m, false);
-  rkTimerStart();
+  // لا نستدعي rkTimerStart هنا — التايمر يبدأ بعد أول حركة من المستخدم في rkProcessQueue
 }
 
 // ══ زعتر يحل ══
@@ -10539,8 +10561,12 @@ async function rubikZaatarSolve4() {
   if (ov) ov.style.display = 'flex';
   await new Promise(r => setTimeout(r, 400));
   const solution = [...rk.shuffleSeq].reverse().map(m => MOVE_INV[m] || m);
-  for (const m of solution) await rkEnqueue(m, false);
-  if (ov) ov.style.display = 'none';
+  try {
+    for (const m of solution) await rkEnqueue(m, false);
+  } finally {
+    // أخفي الـ overlay بعد ما كل الأنيميشن يخلص فعلاً
+    if (ov) ov.style.display = 'none';
+  }
   rkOnSolved(false);
 }
 function rubikAISolve() { rubikZaatarSolve4(); }
@@ -10633,8 +10659,6 @@ function rubikSetZoom(v) {
   document.getElementById('rubik-zoom-val').textContent = v;
   rk.orbitDist = 3 + ((v - 1) / 9) * 9; // 3..12
 }
-let rubikAnimSpeed = 5;
-
 // ══ تايمر ══
 function rkTimerStart() { if (rk.timerRunning) return; rk.timerRunning = true; rk.timerInt = setInterval(() => { rk.timerSec++; rkUpdateTimer(); }, 1000); }
 function rkTimerStop()  { clearInterval(rk.timerInt); rk.timerRunning = false; }
