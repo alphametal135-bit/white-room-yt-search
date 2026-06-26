@@ -54,14 +54,17 @@ body.cyber-chem-active::before,
 body.cyber-chem-active::after { display: none !important; }
 body.cyber-chem-active #matrix-canvas { display: none !important; }
 body.cyber-chem-active .status-bar { display: none !important; }
-body.cyber-chem-active #page-cyber-chem {
+body.cyber-chem-active { background: #060a0c !important; }
+#page-cyber-chem {
   position: fixed !important;
   top: 82px !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-  width: 100vw !important; height: calc(100vh - 82px) !important;
+  width: 100vw !important; max-width: 100vw !important;
+  height: calc(100vh - 82px) !important;
   z-index: 500 !important; background: #060a0c !important;
+  padding: 0 !important; margin: 0 !important;
 }
-body.cyber-chem-active #page-cyber-chem iframe {
-  width: 100% !important; height: 100% !important;
+#page-cyber-chem iframe {
+  width: 100% !important; height: 100% !important; display: block !important;
 }
 
 body {
@@ -2159,7 +2162,7 @@ body::after {
   </div>
 </div>
 
-<div class="page" id="page-cyber-chem" style="padding:0;margin:0;position:fixed;inset:0;top:82px;z-index:100;width:100vw;left:0;">
+<div id="page-cyber-chem" style="display:none;">
   <iframe srcdoc="<!DOCTYPE html>
 <html lang=&quot;ar&quot; dir=&quot;rtl&quot;>
 <head>
@@ -5095,7 +5098,12 @@ function showPage(name, btn) {
     }, 50);
   }
 
-  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'cyber-chem') {
+    document.getElementById('page-cyber-chem').style.display = 'block';
+  } else {
+    document.getElementById('page-cyber-chem').style.display = 'none';
+    document.getElementById('page-' + name).classList.add('active');
+  }
   if (btn) btn.classList.add('active');
 
   if (name === 'tracker') renderTracker();
