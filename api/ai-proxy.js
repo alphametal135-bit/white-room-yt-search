@@ -12,10 +12,11 @@ function setHeaders(res, origin) {
   res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // ❌ حذفنا Allow-Credentials: true — كانت invalid مع Allow-Origin: *
 }
 
-function fetchWithTimeout(url, options, timeoutMs = 20000) {
+// timeout = 8s عشان Vercel Hobby plan الحد الأقصى 10s
+function fetchWithTimeout(url, options, timeoutMs = 8000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
