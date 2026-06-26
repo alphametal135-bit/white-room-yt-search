@@ -5242,7 +5242,13 @@ async function cyberbotSend() {
       content: m.content
     }));
 
-    const fullPrompt = CYBERBOT_SYSTEM + '\n\n' + messages.map(m => (m.role === 'user' ? 'المستخدم: ' : 'زعتر: ') + m.content).join('\n') + '\nزعتر:';
+    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    const langHint = /[\u0600-\u06FF]/.test(lastUserMsg)
+      ? 'IMPORTANT: The user wrote in Arabic. Reply in Arabic only.'
+      : /[a-zA-Z]/.test(lastUserMsg)
+      ? 'IMPORTANT: The user wrote in English. Reply in English only.'
+      : 'Reply in the same language the user used.';
+    const fullPrompt = CYBERBOT_SYSTEM + '\n\n' + langHint + '\n\n' + messages.map(m => (m.role === 'user' ? 'User: ' : 'Zaatar: ') + m.content).join('\n') + '\nZaatar:';
 
     const res = await fetch('https://white-room-yt-search.vercel.app/api/ai-proxy', {
       method: 'POST',
