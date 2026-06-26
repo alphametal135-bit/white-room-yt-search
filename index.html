@@ -10341,7 +10341,7 @@ function rubikProcessQueue4() {
   rubikAnimDir = def.dir;
   rubikAnimProgress = 0;
   rubikAnimDur = Math.max(60, 500 / rubikAnimSpeed);
-  rubikAnimStartTime = null;
+  rubikAnimStartTime = performance.now();
   if (item.addHist) {
     rubikHistory = rubikHistory.slice(0, rubikHistIdx + 1);
     rubikHistory.push(item.move);
@@ -10355,11 +10355,12 @@ function rubikProcessQueue4() {
   const times = def2.times || 1;
   for (let t = 0; t < times; t++) {
     rubikState = rubikApply4(rubikState, item.move);
-    if (t < times - 1) break; // نطبق مرة واحدة ونعرض الأنيميشن
   }
-  // بعد الأنيميشن
+  // انتظر انتهاء الأنيميشن
   setTimeout(() => {
     rubikAnimating = false;
+    rubikAnimProgress = 0;
+    rubikAnimStartTime = null;
     item.resolve();
     if (rubikIsSolved4() && rubikShuffled) {
       rubikTimerStop();
@@ -10389,28 +10390,76 @@ function rubikProject4(x, y, z, cx, cy, scale) {
 }
 
 function rubikDrawFace4(face, ox, oy, oz, dx1, dy1, dz1, dx2, dy2, dz2, cx, cy, scale) {
-  const colors = rubikState[face];
+  const isAnimating = rubikAnimating && rubikAnimState && rubikAnimAxis && rubikAnimLayer;
+  const animAngle = isAnimating ? (rubikAnimProgress * Math.PI / 2) * rubikAnimDir : 0;
+
+  const colors = isAnimating ? rubikAnimState[face] : rubikState[face];
   const gap = 0.04;
   const size = (1 - gap) / N;
+
+  // تحديد ما إذا كانت هذه الوجه تحتاج تدوير
+  function getAxisVec(axisName) {
+    switch(axisName) {
+      case 'R': case 'L': return [1,0,0];
+      case 'U': case 'D': return [0,1,0];
+      case 'F': case 'B': return [0,0,1];
+      default: return [0,1,0];
+    }
+  }
+  function rotatePoint(x, y, z, axis, angle) {
+    const [ax, ay, az] = getAxisVec(axis);
+    const c = Math.cos(angle), s = Math.sin(angle);
+    const dir = (['L','D','B'].includes(axis)) ? -1 : 1;
+    const a = angle * dir;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    if (ax === 1) return [x, y*ca - z*sa, y*sa + z*ca];
+    if (ay === 1) return [x*ca + z*sa, y, -x*sa + z*ca];
+    if (az === 1) return [x*ca - y*sa, x*sa + y*ca, z];
+    return [x,y,z];
+  }
+
+  // هل هذا الوجه كله في الطبقة المتحركة؟
+  let faceInAnim = false;
+  if (isAnimating) {
+    const axis = rubikAnimAxis;
+    const layers = rubikAnimLayer;
+    // الوجه نفسه يتحرك لو هو وجه المحور
+    if (face === axis) {
+      faceInAnim = layers.includes(0);
+    }
+    // فحص الوجوه الجانبية - هل هي في الطبقة؟
+    const oppositeFace = {R:'L',L:'R',U:'D',D:'U',F:'B',B:'F'}[axis];
+    if (face === oppositeFace && layers.includes(N-1)) faceInAnim = true;
+  }
+
   for (let row = 0; row < N; row++) {
     for (let col = 0; col < N; col++) {
-      const color = colors[row * N + col];
+      // في الأنيميشن استخدم ألوان animState، وتحقق من الطبقة للخلايا الجانبية
+      let color;
+      if (isAnimating) {
+        color = rubikAnimState[face][row * N + col];
+      } else {
+        color = rubikState[face][row * N + col];
+      }
+
       const u = col / N + gap / 2;
       const v = row / N + gap / 2;
-      // 4 زوايا الخلية
       const corners = [
-        [u,          v],
-        [u + size,   v],
-        [u + size,   v + size],
-        [u,          v + size],
+        [u,        v],
+        [u + size, v],
+        [u + size, v + size],
+        [u,        v + size],
       ];
       const pts = corners.map(([cu, cv]) => {
-        const px = ox + cu * dx1 + cv * dx2;
-        const py = oy + cu * dy1 + cv * dy2;
-        const pz = oz + cu * dz1 + cv * dz2;
+        let px = ox + cu * dx1 + cv * dx2;
+        let py = oy + cu * dy1 + cv * dy2;
+        let pz = oz + cu * dz1 + cv * dz2;
+        // تطبيق الدوران لو الوجه في الطبقة المتحركة
+        if (isAnimating && faceInAnim) {
+          [px, py, pz] = rotatePoint(px, py, pz, rubikAnimAxis, animAngle);
+        }
         return rubikProject4(px, py, pz, cx, cy, scale);
       });
-      // فحص الرؤية
       const ax = pts[1].x - pts[0].x, ay = pts[1].y - pts[0].y;
       const bx = pts[2].x - pts[0].x, by = pts[2].y - pts[0].y;
       if (ax * by - ay * bx > 0) continue;
@@ -10436,23 +10485,23 @@ function rubikDrawCube4() {
   const cx = canvas.width / 2, cy = canvas.height / 2;
   const scale = Math.min(canvas.width, canvas.height) * 0.22;
   rubikCtx.clearRect(0, 0, canvas.width, canvas.height);
-  // خلفية داكنة
   rubikCtx.fillStyle = 'rgba(13,13,20,0.0)';
   rubikCtx.fillRect(0, 0, canvas.width, canvas.height);
-  // رسم 6 وجوه
-  // U: y=+S, من (-S,-S) لـ (+S,-S) و(-S,+S)
-  rubikDrawFace4('U',  -S, S, -S,  2*S,0,0,  0,0,2*S,  cx,cy,scale);
-  // D: y=-S
-  rubikDrawFace4('D',  -S,-S, S,   2*S,0,0,  0,0,-2*S, cx,cy,scale);
-  // F: z=+S
-  rubikDrawFace4('F',  -S, S, S,   2*S,0,0,  0,-2*S,0, cx,cy,scale);
-  // B: z=-S
-  rubikDrawFace4('B',   S, S,-S,  -2*S,0,0,  0,-2*S,0, cx,cy,scale);
-  // R: x=+S
-  rubikDrawFace4('R',   S, S, S,   0,0,-2*S, 0,-2*S,0, cx,cy,scale);
-  // L: x=-S
-  rubikDrawFace4('L',  -S, S,-S,   0,0,2*S,  0,-2*S,0, cx,cy,scale);
-  // رسم الأرضية
+
+  // المكعب من -S لـ +S على كل المحاور
+  // U: الوجه العلوي y=+S، يمتد على x وz
+  rubikDrawFace4('U',  -S, S, -S,   2*S,0,0,   0,0,2*S,   cx,cy,scale);
+  // D: الوجه السفلي y=-S، يمتد على x وz (معكوس z لتصحيح الاتجاه)
+  rubikDrawFace4('D',  -S,-S,  S,   2*S,0,0,   0,0,-2*S,  cx,cy,scale);
+  // F: الوجه الأمامي z=+S، يمتد على x وy
+  rubikDrawFace4('F',  -S, S,  S,   2*S,0,0,   0,-2*S,0,  cx,cy,scale);
+  // B: الوجه الخلفي z=-S، يمتد على x وy (معكوس x)
+  rubikDrawFace4('B',   S, S, -S,  -2*S,0,0,   0,-2*S,0,  cx,cy,scale);
+  // R: الوجه الأيمن x=+S، يمتد على z وy
+  rubikDrawFace4('R',   S, S,  S,   0,0,-2*S,  0,-2*S,0,  cx,cy,scale);
+  // L: الوجه الأيسر x=-S، يمتد على z وy (معكوس z)
+  rubikDrawFace4('L',  -S, S, -S,   0,0,2*S,   0,-2*S,0,  cx,cy,scale);
+
   drawFloor4(cx, cy, scale);
 }
 
@@ -10471,6 +10520,11 @@ function drawFloor4(cx, cy, scale) {
 }
 
 function rubikRenderLoop4() {
+  // تحديث progress الأنيميشن
+  if (rubikAnimating && rubikAnimStartTime !== null) {
+    const elapsed = performance.now() - rubikAnimStartTime;
+    rubikAnimProgress = Math.min(1, elapsed / rubikAnimDur);
+  }
   rubikDrawCube4();
   rubikRafId = requestAnimationFrame(rubikRenderLoop4);
 }
@@ -10530,7 +10584,7 @@ function rubikApplyColors() {
 // ── zoom ──
 function rubikSetZoom(v) {
   document.getElementById('rubik-zoom-val').textContent = v;
-  rubikCamDist = 6 + ((v - 1) / 9) * 16;
+  rubikCamDist = 2 + ((v - 1) / 9) * 38;
 }
 
 // ── تايمر ──
@@ -10578,9 +10632,9 @@ function rubikSetupControls4(canvas) {
   canvas.addEventListener('mouseleave', onUp);
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
-    rubikCamDist = Math.max(4, Math.min(22, rubikCamDist + e.deltaY * 0.02));
+    rubikCamDist = Math.max(2, Math.min(40, rubikCamDist + e.deltaY * 0.03));
     const sl = document.getElementById('rubik-zoom-slider');
-    if (sl) { const v = Math.round(1 + ((rubikCamDist - 6) / 16) * 9); sl.value = Math.max(1, Math.min(10, v)); document.getElementById('rubik-zoom-val').textContent = sl.value; }
+    if (sl) { const v = Math.round(1 + ((rubikCamDist - 2) / 38) * 9); sl.value = Math.max(1, Math.min(10, v)); document.getElementById('rubik-zoom-val').textContent = sl.value; }
   }, { passive: false });
   let rubikLastPinchDist = null;
   canvas.addEventListener('touchstart', e => {
@@ -10595,7 +10649,7 @@ function rubikSetupControls4(canvas) {
     if (e.touches.length === 2) {
       const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
-      if (rubikLastPinchDist) { rubikCamDist = Math.max(4, Math.min(22, rubikCamDist + (rubikLastPinchDist - dist) * 0.05)); }
+      if (rubikLastPinchDist) { rubikCamDist = Math.max(2, Math.min(40, rubikCamDist + (rubikLastPinchDist - dist) * 0.07)); }
       rubikLastPinchDist = dist;
     } else { rubikLastPinchDist = null; const t = e.touches[0]; onMove(t.clientX, t.clientY); }
   }, { passive: false });
