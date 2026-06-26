@@ -8,11 +8,10 @@
 
 function setHeaders(res, origin) {
   res.setHeader('Content-Type', 'application/json');
-  // قبول أي origin — مهم عشان الموقع يشتغل
   res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  // ❌ حذفنا Allow-Credentials: true — كانت invalid مع Allow-Origin: *
+  // ❌ حذفنا Allow-Credentials — كانت invalid مع Allow-Origin: *
 }
 
 // timeout = 8s عشان Vercel Hobby plan الحد الأقصى 10s
@@ -22,38 +21,73 @@ function fetchWithTimeout(url, options, timeoutMs = 8000) {
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-// ── 1) Anthropic (Claude Haiku) ───────────────────────
+// ── 1) Anthropic — بيجرب كل المفاتيح بالترتيب ────────
+// الأولوية:
+//   1. ANTHROPIC_API_KEY  (الرئيسي)
+//   2. zaatar             (الثاني)
+//   3. ANTHROPIC_KEY_1, ANTHROPIC_KEY_2, ... (أي مفتاح تضيفه على Vercel باسم ANTHROPIC_KEY_*)
+// عشان تضيف مفتاح جديد: روح Vercel Dashboard وضيف env var اسمه ANTHROPIC_KEY_3 مثلاً — بيتلاقى تلقائياً
 async function tryAnthropic(prompt) {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return null;
+  const extraKeys = Object.entries(process.env)
+    .filter(([k]) => k.startsWith('ANTHROPIC_KEY_'))
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, v]) => v);
 
-  try {
-    const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+  const keys = [
+    process.env.ANTHROPIC_API_KEY,
+    process.env.zaatar,
+    ...extraKeys,
+  ].filter(Boolean);
 
-    const data = await res.json();
-    if (!res.ok) {
-      console.warn('Anthropic error:', data?.error?.message);
+  if (!keys.length) return null;
+
+  for (const key of keys) {
+    try {
+      const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const text = data?.content?.[0]?.text || '';
+        return text ? { text, model: 'claude-haiku' } : null;
+      }
+
+      // لو quota أو rate limit → جرب المفتاح الجاي
+      const errMsg = data?.error?.message || '';
+      const isQuota = res.status === 429
+        || errMsg.includes('quota')
+        || errMsg.includes('rate')
+        || errMsg.includes('overloaded');
+
+      if (isQuota) {
+        console.warn('Anthropic key quota exceeded, trying next key...');
+        continue;
+      }
+
+      // أي error تاني (مفتاح غلط، etc.) → وقف
+      console.warn('Anthropic error:', res.status, errMsg);
       return null;
-    }
 
-    const text = data?.content?.[0]?.text || '';
-    return text ? { text, model: 'claude-haiku' } : null;
-  } catch(e) {
-    console.warn('Anthropic fetch error:', e.message);
-    return null;
+    } catch(e) {
+      console.warn('Anthropic fetch error:', e.message);
+      // timeout أو network error → جرب المفتاح الجاي
+      continue;
+    }
   }
+
+  return null;
 }
 
 // ── 2) Gemini ──────────────────────────────────────────
