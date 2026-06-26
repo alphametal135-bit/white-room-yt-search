@@ -1542,7 +1542,7 @@ body::after {
     <span class="wr-logo-frame" style="width:28px;height:28px;flex-shrink:0;">
       <img src="logo.webp" alt="The Cyber Defense">
     </span>
-    <div class="nav-logo">CYBER DEFENSE v3.2</div>
+    <div class="nav-logo">CYBER DEFENSE v4.5</div>
 
     <!-- أدوات اليمين -->
     <div class="nav-tools">
@@ -5237,32 +5237,21 @@ async function cyberbotSend() {
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
-    const key = await getAnthropicKey();
-    if (!key) throw new Error('مفتاح API غير متاح');
-
     const messages = zaatarHistory.slice(-20).map(m => ({
       role: m.role === 'user' ? 'user' : 'assistant',
       content: m.content
     }));
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const fullPrompt = CYBERBOT_SYSTEM + '\n\n' + messages.map(m => (m.role === 'user' ? 'المستخدم: ' : 'زعتر: ') + m.content).join('\n') + '\nزعتر:';
+
+    const res = await fetch('https://white-room-yt-search.vercel.app/api/ai-proxy', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: CYBERBOT_SYSTEM,
-        messages: messages
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: fullPrompt })
     });
 
     const data = await res.json();
-    const reply = data.content?.[0]?.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
+    const reply = data.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
 
     typing.remove();
     cyberbotAddBubble('ai', reply);
