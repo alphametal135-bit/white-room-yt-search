@@ -1851,7 +1851,7 @@ body::after {
     <div>
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;">🎲 نقاط مكعب روبيك</div>
       <div style="font-size:20px;font-family:var(--mono);color:var(--green);font-weight:bold;" id="rubik-pts-display">0</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px;">حل بنفسك = +150 | زعتر يحل = لا نقاط</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">حل بنفسك = +150 | زعتر يحل = مافيش نقاط</div>
     </div>
     <div>
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;">⏱ الوقت</div>
@@ -1872,7 +1872,7 @@ body::after {
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:5px;">التحكم</div>
       <button class="chess-btn" style="width:100%;background:var(--green);color:#000;border-color:var(--green);font-weight:bold;" onclick="rubikShuffle4()">🎲 خلط المكعب</button>
       <button class="chess-btn" style="width:100%;background:var(--bg2);" onclick="rubikSolveManual()">✨ حل بنفسي (+150)</button>
-      <button class="chess-btn" style="width:100%;background:rgba(176,110,243,0.15);border-color:rgba(176,110,243,0.5);color:rgba(176,110,243,1);" onclick="rubikAISolve()">🤖 زعتر يحل (لا نقاط)</button>
+      <button class="chess-btn" style="width:100%;background:rgba(176,110,243,0.15);border-color:rgba(176,110,243,0.5);color:rgba(176,110,243,1);" onclick="rubikAISolve()">🤖 زعتر يحل (مافيش نقاط)</button>
       <button class="chess-btn" style="width:100%;" onclick="rubikReset4()">↺ إعادة تعيين</button>
       <div style="display:flex;gap:5px;">
         <button class="chess-btn" style="flex:1;" onclick="rubikUndo()">↩</button>
@@ -1900,35 +1900,14 @@ body::after {
         <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;" onclick="rubikMove(\"B'\")">B'</button>
         <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;" onclick="rubikMove('B2')">B2</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:5px;margin-top:6px;">طبقات داخلية (4x4)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Rw')">Rw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Rw'\")">Rw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Rw2')">Rw2</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Lw')">Lw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Lw'\")">Lw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Lw2')">Lw2</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Uw')">Uw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Uw'\")">Uw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Uw2')">Uw2</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Dw')">Dw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Dw'\")">Dw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Dw2')">Dw2</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Fw')">Fw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Fw'\")">Fw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Fw2')">Fw2</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Bw')">Bw</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove(\"Bw'\")">Bw'</button>
-        <button class="chess-btn" style="padding:4px;font-size:10px;font-weight:bold;background:rgba(176,110,243,0.15);" onclick="rubikMove('Bw2')">Bw2</button>
-      </div>
 
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:5px;margin-top:4px;">سجل الحركات</div>
       <div id="rubik-move-list" style="font-size:9px;font-family:var(--mono);color:var(--text3);max-height:100px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);padding:4px;display:flex;flex-wrap:wrap;gap:2px;"></div>
     </div>
 
-    <!-- وسط: Canvas -->
-    <div style="position:relative;background:var(--bg);border:1px solid var(--border);overflow:hidden;">
-      <canvas id="rubik-canvas" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
+    <!-- وسط: Three.js -->
+    <div style="position:relative;background:var(--bg);border:1px solid var(--border);overflow:hidden;" id="rubik-threejs-wrap">
+      <div id="rubik-threejs-container" style="width:100%;height:100%;"></div>
       <div id="rubik-drag-hint" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);background:rgba(0,0,0,.5);padding:3px 10px;border-radius:20px;pointer-events:none;transition:opacity .5s;">🖱 اسحب للتدوير | عجلة الماوس للتكبير</div>
 
       <!-- زعتر يحل overlay -->
@@ -5337,17 +5316,9 @@ function showPage(name, btn) {
   if (name === 'quiz') renderQuiz();
   if (name === 'chess') chessOnPageShown();
   if (name === 'rubik') {
-    [0,80,300,700].forEach(delay=>setTimeout(()=>{
-      if(typeof rubikInit==='function') rubikInit();
-      if(typeof rubikUpdateUnitPanel==='function') rubikUpdateUnitPanel();
-      const c=document.getElementById('rubik-canvas');
-      if(c&&typeof rubikCtx!=='undefined'&&rubikCtx){
-        const wrap=c.parentElement;
-        const w=(wrap&&wrap.clientWidth>10)?wrap.clientWidth:680;
-        const h=(wrap&&wrap.clientHeight>10)?wrap.clientHeight:480;
-        if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
-      }
-    },delay));
+    [0, 100, 400].forEach(delay => setTimeout(() => {
+      if (typeof rubikInit === 'function') rubikInit();
+    }, delay));
   }
   if (name === "daily-tasks") loadDailyTasks();
   if (name === "achievements") { loadAchievements().then(() => renderAchievements()); }
@@ -10051,635 +10022,658 @@ function closeMusicPlayer() {
 @keyframes rubikZaatarPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
 @keyframes rubikDot { 0%,100%{opacity:.2;transform:scale(.8);} 50%{opacity:1;transform:scale(1.2);} }
 </style>
+
+<!-- Three.js من CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script>
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
-   🎲 RUBIK 4x4 ENGINE v3 — محرك مكعب روبيك 4×4 بـ Rotation Matrices
+   🎲 RUBIK 3×3 ENGINE — Three.js | Kociemba-style Solver
    ═══════════════════════════════════════════════════════════════ */
 
 const RUBIK_WIN_PTS = 150;
-const N = 4;
 
-const RUBIK_FC = { U:'#FFFFFF', D:'#FFD700', R:'#FF4422', L:'#FF8C00', F:'#00AA44', B:'#1155FF' };
+// ══ ثوابت الألوان ══
+const FACE_COLORS = {
+  U: 0xffffff, // أبيض
+  D: 0xffd700, // أصفر
+  R: 0xff2200, // أحمر
+  L: 0xff8c00, // برتقالي
+  F: 0x00aa44, // أخضر
+  B: 0x1155ff, // أزرق
+  X: 0x111111, // داخلي
+};
 
-// ══ الحالة ══
-let rubikState = null;
-let rubikAnimSpeed = 5, rubikAnimating = false, rubikAnimQueue = [];
-let rubikHistory = [], rubikHistIdx = -1, rubikMoveCount = 0;
-let rubikShuffled = false, rubikShuffleHistory = [];
-let rubikRafId = null, rubikCanvas = null, rubikCtx = null;
-let rubikInitialized = false;
-let rubikTimerSec = 0, rubikTimerRunning = false, rubikTimerInt = null;
+// ══ حالة المحرك ══
+let rk = {
+  scene: null, camera: null, renderer: null, rafId: null,
+  cubies: [],       // 26 cubie (بدون المركزي)
+  pivotGroup: null, // المجموعة المتحركة أثناء الأنيميشن
+  animating: false,
+  animQueue: [],
+  history: [], histIdx: -1, moveCount: 0,
+  shuffled: false, shuffleSeq: [],
+  timerSec: 0, timerRunning: false, timerInt: null,
+  animSpeed: 5,
+  state: null,      // مصفوفة 6×9 للألوان
+  initialized: false,
+  container: null,
+  orbitTheta: 0.5, orbitPhi: 0.4, orbitDist: 5.5,
+  dragging: false, lastX: 0, lastY: 0,
+  currentAnim: null,
+};
 
-// ══ الكاميرا ══
-let rubikCamTheta = 0.6;   // زاوية أفقية
-let rubikCamPhi   = 0.55;  // زاوية رأسية
-let rubikCamDist  = 14;
-
-// ══ الأنيميشن ══
-let rubikAnim = null;
-/*
-rubikAnim = {
-  axis: 'x'|'y'|'z',
-  dir:  +1 | -1,
-  layers: [0,1,...],     // طبقات تتحرك (0=قريبة من وجه المحرك)
-  face: 'R'|'L'|...,
-  progress: 0..1,
-  startTime: DOMHighResTimeStamp,
-  dur: ms,
-  stateBefore: {...},
-  resolve: fn
-}
-*/
-
-// ══ إنشاء الحالة ══
-function rubikMakeState() {
+// ══ تمثيل الحالة المنطقية ══
+// كل وجه: مصفوفة 9 = [صف0_عمود0 .. صف2_عمود2]
+// ترتيب الوجوه: U D F B R L
+function rkMakeState() {
   return {
-    U: Array(16).fill(RUBIK_FC.U),
-    D: Array(16).fill(RUBIK_FC.D),
-    F: Array(16).fill(RUBIK_FC.F),
-    B: Array(16).fill(RUBIK_FC.B),
-    R: Array(16).fill(RUBIK_FC.R),
-    L: Array(16).fill(RUBIK_FC.L),
+    U: Array(9).fill('U'),
+    D: Array(9).fill('D'),
+    F: Array(9).fill('F'),
+    B: Array(9).fill('B'),
+    R: Array(9).fill('R'),
+    L: Array(9).fill('L'),
   };
 }
-function rubikCloneState(s) {
+function rkClone(s) {
   const c = {};
   for (const k in s) c[k] = [...s[k]];
   return c;
 }
 
-// ══ تدوير وجه 4×4 ══
-function rubikRotateFace4(face, dir) {
-  const f = [...face], r = Array(16);
-  for (let row = 0; row < 4; row++)
-    for (let col = 0; col < 4; col++)
-      if (dir === 1) r[col*4+(3-row)] = f[row*4+col];
-      else           r[(3-col)*4+row] = f[row*4+col];
-  return r;
-}
-
-// ══ تعريف الحركات ══
-const RUBIK4_MOVES = {
-  'R':{'face':'R','axis':'x','axisDir':+1,'layers':[0],'dir':+1,'times':1},
-  "R'":{'face':'R','axis':'x','axisDir':+1,'layers':[0],'dir':-1,'times':1},
-  'R2':{'face':'R','axis':'x','axisDir':+1,'layers':[0],'dir':+1,'times':2},
-  'L':{'face':'L','axis':'x','axisDir':-1,'layers':[0],'dir':+1,'times':1},
-  "L'":{'face':'L','axis':'x','axisDir':-1,'layers':[0],'dir':-1,'times':1},
-  'L2':{'face':'L','axis':'x','axisDir':-1,'layers':[0],'dir':+1,'times':2},
-  'U':{'face':'U','axis':'y','axisDir':+1,'layers':[0],'dir':+1,'times':1},
-  "U'":{'face':'U','axis':'y','axisDir':+1,'layers':[0],'dir':-1,'times':1},
-  'U2':{'face':'U','axis':'y','axisDir':+1,'layers':[0],'dir':+1,'times':2},
-  'D':{'face':'D','axis':'y','axisDir':-1,'layers':[0],'dir':+1,'times':1},
-  "D'":{'face':'D','axis':'y','axisDir':-1,'layers':[0],'dir':-1,'times':1},
-  'D2':{'face':'D','axis':'y','axisDir':-1,'layers':[0],'dir':+1,'times':2},
-  'F':{'face':'F','axis':'z','axisDir':+1,'layers':[0],'dir':+1,'times':1},
-  "F'":{'face':'F','axis':'z','axisDir':+1,'layers':[0],'dir':-1,'times':1},
-  'F2':{'face':'F','axis':'z','axisDir':+1,'layers':[0],'dir':+1,'times':2},
-  'B':{'face':'B','axis':'z','axisDir':-1,'layers':[0],'dir':+1,'times':1},
-  "B'":{'face':'B','axis':'z','axisDir':-1,'layers':[0],'dir':-1,'times':1},
-  'B2':{'face':'B','axis':'z','axisDir':-1,'layers':[0],'dir':+1,'times':2},
-  'Rw':{'face':'R','axis':'x','axisDir':+1,'layers':[0,1],'dir':+1,'times':1},
-  "Rw'":{'face':'R','axis':'x','axisDir':+1,'layers':[0,1],'dir':-1,'times':1},
-  'Rw2':{'face':'R','axis':'x','axisDir':+1,'layers':[0,1],'dir':+1,'times':2},
-  'Lw':{'face':'L','axis':'x','axisDir':-1,'layers':[0,1],'dir':+1,'times':1},
-  "Lw'":{'face':'L','axis':'x','axisDir':-1,'layers':[0,1],'dir':-1,'times':1},
-  'Lw2':{'face':'L','axis':'x','axisDir':-1,'layers':[0,1],'dir':+1,'times':2},
-  'Uw':{'face':'U','axis':'y','axisDir':+1,'layers':[0,1],'dir':+1,'times':1},
-  "Uw'":{'face':'U','axis':'y','axisDir':+1,'layers':[0,1],'dir':-1,'times':1},
-  'Uw2':{'face':'U','axis':'y','axisDir':+1,'layers':[0,1],'dir':+1,'times':2},
-  'Dw':{'face':'D','axis':'y','axisDir':-1,'layers':[0,1],'dir':+1,'times':1},
-  "Dw'":{'face':'D','axis':'y','axisDir':-1,'layers':[0,1],'dir':-1,'times':1},
-  'Dw2':{'face':'D','axis':'y','axisDir':-1,'layers':[0,1],'dir':+1,'times':2},
-  'Fw':{'face':'F','axis':'z','axisDir':+1,'layers':[0,1],'dir':+1,'times':1},
-  "Fw'":{'face':'F','axis':'z','axisDir':+1,'layers':[0,1],'dir':-1,'times':1},
-  'Fw2':{'face':'F','axis':'z','axisDir':+1,'layers':[0,1],'dir':+1,'times':2},
-  'Bw':{'face':'B','axis':'z','axisDir':-1,'layers':[0,1],'dir':+1,'times':1},
-  "Bw'":{'face':'B','axis':'z','axisDir':-1,'layers':[0,1],'dir':-1,'times':1},
-  'Bw2':{'face':'B','axis':'z','axisDir':-1,'layers':[0,1],'dir':+1,'times':2},
-};
-
-const RUBIK4_INV = {};
-for (const m of Object.keys(RUBIK4_MOVES)) {
-  if (m.endsWith("'")) RUBIK4_INV[m] = m.slice(0,-1);
-  else if (m.endsWith('2')) RUBIK4_INV[m] = m;
-  else RUBIK4_INV[m] = m + "'";
-}
-
-// ══ دوران نقطة بـ Rotation Matrix ══
-// Rx(φ): [ [1,0,0],[0,cosφ,-sinφ],[0,sinφ,cosφ] ]
-// Ry(θ): [ [cosθ,0,sinθ],[0,1,0],[-sinθ,0,cosθ] ]
-// Rz(ψ): [ [cosψ,-sinψ,0],[sinψ,cosψ,0],[0,0,1] ]
-function rotateX(x,y,z,a){ const c=Math.cos(a),s=Math.sin(a); return [x, y*c-z*s, y*s+z*c]; }
-function rotateY(x,y,z,a){ const c=Math.cos(a),s=Math.sin(a); return [x*c+z*s, y, -x*s+z*c]; }
-function rotateZ(x,y,z,a){ const c=Math.cos(a),s=Math.sin(a); return [x*c-y*s, x*s+y*c, z]; }
-
-// ══ إسقاط ثلاثي الأبعاد ══
-function rubikProject4(x,y,z,cx,cy,scale){
-  // دوران الكاميرا: أولاً حول Y ثم حول X
-  [x,y,z] = rotateY(x,y,z,-rubikCamTheta);
-  [x,y,z] = rotateX(x,y,z,-rubikCamPhi);
-  // إسقاط منظوري
-  const fov = rubikCamDist;
-  const d = fov/(fov+z+0.001);
-  return { x: cx+x*d*scale, y: cy-y*d*scale, z: z };
+// ══ دوران وجه 90° ══
+function rkRotFace(arr, cw) {
+  // cw=true: CW, cw=false: CCW
+  const a = [...arr];
+  if (cw) return [a[6],a[3],a[0], a[7],a[4],a[1], a[8],a[5],a[2]];
+  return   [a[2],a[5],a[8], a[1],a[4],a[7], a[0],a[3],a[6]];
 }
 
 // ══ تطبيق حركة على الحالة ══
-function rubikApply4(state, move){
-  const s = rubikCloneState(state);
-  const def = RUBIK4_MOVES[move];
-  if(!def) return s;
-  for(let t=0;t<def.times;t++) rubikApplyOnce4(s, def);
+const MOVES_DEF = {
+  // [وجه يتدور, الحلقة cw/ccw, [تسلسلات الخلايا من 4 وجوه]]
+  // كل تسلسل: [وجه, فهرس0, فهرس1, فهرس2]
+  'U':  { face:'U', cw:true,  cyc:[['F',0,1,2],['R',0,1,2],['B',0,1,2],['L',0,1,2]] },
+  "U'": { face:'U', cw:false, cyc:[['F',0,1,2],['L',0,1,2],['B',0,1,2],['R',0,1,2]] },
+  'D':  { face:'D', cw:true,  cyc:[['F',6,7,8],['L',6,7,8],['B',6,7,8],['R',6,7,8]] },
+  "D'": { face:'D', cw:false, cyc:[['F',6,7,8],['R',6,7,8],['B',6,7,8],['L',6,7,8]] },
+  'R':  { face:'R', cw:true,  cyc:[['U',2,5,8],['B',6,3,0],['D',2,5,8],['F',2,5,8]] },
+  "R'": { face:'R', cw:false, cyc:[['U',2,5,8],['F',2,5,8],['D',2,5,8],['B',6,3,0]] },
+  'L':  { face:'L', cw:true,  cyc:[['U',0,3,6],['F',0,3,6],['D',0,3,6],['B',8,5,2]] },
+  "L'": { face:'L', cw:false, cyc:[['U',0,3,6],['B',8,5,2],['D',0,3,6],['F',0,3,6]] },
+  'F':  { face:'F', cw:true,  cyc:[['U',6,7,8],['R',0,3,6],['D',2,1,0],['L',8,5,2]] },
+  "F'": { face:'F', cw:false, cyc:[['U',6,7,8],['L',8,5,2],['D',2,1,0],['R',0,3,6]] },
+  'B':  { face:'B', cw:true,  cyc:[['U',2,1,0],['L',0,3,6],['D',6,7,8],['R',8,5,2]] },
+  "B'": { face:'B', cw:false, cyc:[['U',2,1,0],['R',8,5,2],['D',6,7,8],['L',0,3,6]] },
+};
+// إضافة حركات x2
+['U','D','R','L','F','B'].forEach(f => {
+  MOVES_DEF[f+'2'] = { face:f, cw:true, cyc: MOVES_DEF[f].cyc, times:2 };
+});
+
+const MOVE_INV = {};
+['U','D','R','L','F','B'].forEach(f => {
+  MOVE_INV[f]    = f+"'";
+  MOVE_INV[f+"'"] = f;
+  MOVE_INV[f+'2'] = f+'2';
+});
+
+function rkApply(state, move) {
+  const def = MOVES_DEF[move];
+  if (!def) return state;
+  const s = rkClone(state);
+  const times = def.times || 1;
+  for (let t = 0; t < times; t++) rkApplyOnce(s, def);
   return s;
 }
 
-function rubikApplyOnce4(s, def){
-  const {face, layers, dir} = def;
-  const opp = {U:'D',D:'U',R:'L',L:'R',F:'B',B:'F'};
-  if(layers.includes(0))  s[face]     = rubikRotateFace4(s[face], dir);
-  if(layers.includes(3))  s[opp[face]]= rubikRotateFace4(s[opp[face]], -dir);
-  for(const layer of layers) rubikCycleLayer4(s, face, layer, dir);
-}
-
-function rubikCycleLayer4(s, face, layer, dir){
-  const seqs = getLayerSeq4(face, layer);
-  if(!seqs) return;
-  const vals = seqs.map(seq => seq.map(([f,i])=>s[f][i]));
-  if(dir===1){
-    for(let i=0;i<4;i++){
-      s[seqs[0][i][0]][seqs[0][i][1]]=vals[3][i];
-      s[seqs[1][i][0]][seqs[1][i][1]]=vals[0][i];
-      s[seqs[2][i][0]][seqs[2][i][1]]=vals[1][i];
-      s[seqs[3][i][0]][seqs[3][i][1]]=vals[2][i];
-    }
-  }else{
-    for(let i=0;i<4;i++){
-      s[seqs[0][i][0]][seqs[0][i][1]]=vals[1][i];
-      s[seqs[1][i][0]][seqs[1][i][1]]=vals[2][i];
-      s[seqs[2][i][0]][seqs[2][i][1]]=vals[3][i];
-      s[seqs[3][i][0]][seqs[3][i][1]]=vals[0][i];
-    }
+function rkApplyOnce(s, def) {
+  s[def.face] = rkRotFace(s[def.face], def.cw);
+  // دوران الحلقة
+  const cyc = def.cyc; // 4 وجوه
+  const tmp = [s[cyc[0][0]][cyc[0][1]], s[cyc[0][0]][cyc[0][2]], s[cyc[0][0]][cyc[0][3]]];
+  for (let i = 0; i < 3; i++) {
+    s[cyc[i][0]][cyc[i][1]] = s[cyc[i+1][0]][cyc[i+1][1]];
+    s[cyc[i][0]][cyc[i][2]] = s[cyc[i+1][0]][cyc[i+1][2]];
+    s[cyc[i][0]][cyc[i][3]] = s[cyc[i+1][0]][cyc[i+1][3]];
   }
-}
-
-function getLayerSeq4(face, l){
-  const k = 3-l;
-  switch(face){
-    case 'U': return [
-      [['F',l*4+0],['F',l*4+1],['F',l*4+2],['F',l*4+3]],
-      [['R',l*4+0],['R',l*4+1],['R',l*4+2],['R',l*4+3]],
-      [['B',k*4+3],['B',k*4+2],['B',k*4+1],['B',k*4+0]],
-      [['L',k*4+3],['L',k*4+2],['L',k*4+1],['L',k*4+0]],
-    ];
-    case 'D': return [
-      [['F',k*4+0],['F',k*4+1],['F',k*4+2],['F',k*4+3]],
-      [['L',l*4+0],['L',l*4+1],['L',l*4+2],['L',l*4+3]],
-      [['B',l*4+3],['B',l*4+2],['B',l*4+1],['B',l*4+0]],
-      [['R',k*4+3],['R',k*4+2],['R',k*4+1],['R',k*4+0]],
-    ];
-    case 'R': return [
-      [['U',0*4+k],['U',1*4+k],['U',2*4+k],['U',3*4+k]],
-      [['B',0*4+l],['B',1*4+l],['B',2*4+l],['B',3*4+l]],
-      [['D',0*4+k],['D',1*4+k],['D',2*4+k],['D',3*4+k]],
-      [['F',0*4+k],['F',1*4+k],['F',2*4+k],['F',3*4+k]],
-    ];
-    case 'L': return [
-      [['U',0*4+l],['U',1*4+l],['U',2*4+l],['U',3*4+l]],
-      [['F',0*4+l],['F',1*4+l],['F',2*4+l],['F',3*4+l]],
-      [['D',0*4+l],['D',1*4+l],['D',2*4+l],['D',3*4+l]],
-      [['B',0*4+k],['B',1*4+k],['B',2*4+k],['B',3*4+k]],
-    ];
-    case 'F': return [
-      [['U',(3-l)*4+0],['U',(3-l)*4+1],['U',(3-l)*4+2],['U',(3-l)*4+3]],
-      [['R',0*4+l],    ['R',1*4+l],    ['R',2*4+l],    ['R',3*4+l]],
-      [['D',l*4+3],    ['D',l*4+2],    ['D',l*4+1],    ['D',l*4+0]],
-      [['L',3*4+k],    ['L',2*4+k],    ['L',1*4+k],    ['L',0*4+k]],
-    ];
-    case 'B': return [
-      [['U',l*4+3],    ['U',l*4+2],    ['U',l*4+1],    ['U',l*4+0]],
-      [['L',0*4+l],    ['L',1*4+l],    ['L',2*4+l],    ['L',3*4+l]],
-      [['D',(3-l)*4+0],['D',(3-l)*4+1],['D',(3-l)*4+2],['D',(3-l)*4+3]],
-      [['R',3*4+k],    ['R',2*4+k],    ['R',1*4+k],    ['R',0*4+k]],
-    ];
-    default: return null;
-  }
+  s[cyc[3][0]][cyc[3][1]] = tmp[0];
+  s[cyc[3][0]][cyc[3][2]] = tmp[1];
+  s[cyc[3][0]][cyc[3][3]] = tmp[2];
 }
 
 // ══ فحص الحل ══
-function rubikIsSolved4(){
-  if(!rubikState) return false;
-  for(const f of ['U','D','F','B','R','L']){
-    const arr=rubikState[f];
-    if(!arr.every(x=>x===arr[0])) return false;
+function rkIsSolved(s) {
+  for (const f of ['U','D','F','B','R','L']) {
+    if (!s[f].every(x => x === f)) return false;
   }
   return true;
 }
 
-// ══ Queue الحركات ══
-function rubikEnqueue4(move, addHist=true){
-  return new Promise(resolve => {
-    rubikAnimQueue.push({move, addHist, resolve});
-    if(!rubikAnimating) rubikProcessQueue4();
+// ══ بناء الـ Cubie في Three.js ══
+function rkMakeCubie(cx, cy, cz) {
+  const size = 0.95;
+  const group = new THREE.Group();
+  group.userData.home = new THREE.Vector3(cx, cy, cz);
+  group.userData.pos  = new THREE.Vector3(cx, cy, cz);
+  group.position.set(cx, cy, cz);
+
+  // كل وجه من 6
+  const faceData = [
+    { dir: new THREE.Vector3( 1, 0, 0), face: 'R', color: cz >= 0 && cy >= 0 ? null : null },
+    { dir: new THREE.Vector3(-1, 0, 0), face: 'L' },
+    { dir: new THREE.Vector3( 0, 1, 0), face: 'U' },
+    { dir: new THREE.Vector3( 0,-1, 0), face: 'D' },
+    { dir: new THREE.Vector3( 0, 0, 1), face: 'F' },
+    { dir: new THREE.Vector3( 0, 0,-1), face: 'B' },
+  ];
+
+  // الهيكل الأسود
+  const boxGeo = new THREE.BoxGeometry(size, size, size);
+  const boxMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
+  const box = new THREE.Mesh(boxGeo, boxMat);
+  group.add(box);
+
+  // الملصقات الملونة
+  faceData.forEach(({ dir, face }) => {
+    // هل هذا الوجه ظاهر؟
+    const vis = (
+      (face === 'R' && cx > 0) ||
+      (face === 'L' && cx < 0) ||
+      (face === 'U' && cy > 0) ||
+      (face === 'D' && cy < 0) ||
+      (face === 'F' && cz > 0) ||
+      (face === 'B' && cz < 0)
+    );
+    const color = vis ? FACE_COLORS[face] : FACE_COLORS.X;
+    const geo = new THREE.PlaneGeometry(size * 0.85, size * 0.85);
+    const mat = new THREE.MeshPhongMaterial({
+      color, side: THREE.FrontSide,
+      shininess: 60,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    // ضع الملصق على السطح
+    mesh.position.copy(dir.clone().multiplyScalar(size / 2 + 0.001));
+    mesh.lookAt(dir.clone().multiplyScalar(10));
+    mesh.userData.face = face;
+    mesh.userData.visible = vis;
+    group.add(mesh);
+  });
+
+  return group;
+}
+
+// ══ بناء المكعب كامل ══
+function rkBuildCube() {
+  // احذف الـ cubies القديمة
+  rk.cubies.forEach(c => rk.scene.remove(c));
+  rk.cubies = [];
+
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let z = -1; z <= 1; z++) {
+        if (x === 0 && y === 0 && z === 0) continue; // مركز
+        const cubie = rkMakeCubie(x, y, z);
+        rk.scene.add(cubie);
+        rk.cubies.push(cubie);
+      }
+    }
+  }
+}
+
+// ══ تحديث ألوان الـ cubies من الحالة ══
+function rkSyncColors() {
+  if (!rk.state) return;
+  // خريطة الخلايا: [وجه, صف, عمود] → لون
+  // ترتيب الخلايا في كل وجه: صف0..صف2، عمود0..عمود2
+  // نربط كل Cubie بموقعه
+  rk.cubies.forEach(cubie => {
+    const {x, y, z} = cubie.userData.pos;
+    cubie.children.forEach(child => {
+      if (!child.userData.face) return;
+      const f = child.userData.face;
+      // هل هذا الوجه ظاهر في هذا الـ cubie؟
+      const isExt = (
+        (f==='R' && x > 0) || (f==='L' && x < 0) ||
+        (f==='U' && y > 0) || (f==='D' && y < 0) ||
+        (f==='F' && z > 0) || (f==='B' && z < 0)
+      );
+      if (!isExt) { child.material.color.setHex(FACE_COLORS.X); return; }
+
+      // احسب فهرس الخلية
+      let row, col;
+      if (f === 'U') { row = -z + 1; col = x + 1; }
+      else if (f === 'D') { row = z + 1; col = x + 1; }
+      else if (f === 'F') { row = -y + 1; col = x + 1; }
+      else if (f === 'B') { row = -y + 1; col = -x + 1; }
+      else if (f === 'R') { row = -y + 1; col = -z + 1; }
+      else if (f === 'L') { row = -y + 1; col = z + 1; }
+      const idx = row * 3 + col;
+      const faceChar = rk.state[f][idx];
+      child.material.color.setHex(FACE_COLORS[faceChar] || FACE_COLORS.X);
+    });
   });
 }
 
-function rubikProcessQueue4(){
-  if(!rubikAnimQueue.length){ rubikAnimating=false; return; }
-  const item = rubikAnimQueue.shift();
-  const def = RUBIK4_MOVES[item.move];
-  if(!def){ item.resolve(); rubikProcessQueue4(); return; }
+// ══ تهيئة Three.js ══
+function rkInitThree(container) {
+  const w = container.clientWidth || 700;
+  const h = container.clientHeight || 500;
 
-  rubikAnimating = true;
-  const dur = Math.max(50, 400/rubikAnimSpeed);
+  // Scene
+  rk.scene = new THREE.Scene();
+  rk.scene.background = new THREE.Color(0x0d0d14);
 
-  if(item.addHist){
-    rubikHistory = rubikHistory.slice(0, rubikHistIdx+1);
-    rubikHistory.push(item.move);
-    rubikHistIdx++;
-    rubikMoveCount++;
-    rubikUpdateMoveUI4();
-    if(!rubikShuffled) rubikTimerStart();
+  // Camera
+  rk.camera = new THREE.PerspectiveCamera(50, w/h, 0.1, 100);
+  rkUpdateCamera();
+
+  // Renderer
+  rk.renderer = new THREE.WebGLRenderer({ antialias: true });
+  rk.renderer.setSize(w, h);
+  rk.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(rk.renderer.domElement);
+
+  // إضاءة
+  const amb = new THREE.AmbientLight(0xffffff, 0.6);
+  rk.scene.add(amb);
+  const dir1 = new THREE.DirectionalLight(0xffffff, 0.8);
+  dir1.position.set(5, 10, 7);
+  rk.scene.add(dir1);
+  const dir2 = new THREE.DirectionalLight(0xb06ef3, 0.3);
+  dir2.position.set(-5, -3, -5);
+  rk.scene.add(dir2);
+
+  // شبكة الأرضية
+  const grid = new THREE.GridHelper(8, 8, 0x2a1a4a, 0x1a0a2a);
+  grid.position.y = -2.2;
+  rk.scene.add(grid);
+
+  // Resize
+  const resizeObs = new ResizeObserver(() => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    rk.camera.aspect = nw/nh;
+    rk.camera.updateProjectionMatrix();
+    rk.renderer.setSize(nw, nh);
+  });
+  resizeObs.observe(container);
+
+  // تحكم الماوس
+  rkSetupControls(container);
+
+  // Loop
+  function loop() {
+    rk.rafId = requestAnimationFrame(loop);
+    rkUpdateCamera();
+    rk.renderer.render(rk.scene, rk.camera);
   }
-
-  // احفظ الحالة قبل الحركة للرسم
-  const stateBefore = rubikCloneState(rubikState);
-  // طبّق الحركة على الحالة النهائية
-  const times = def.times||1;
-  for(let t=0;t<times;t++) rubikState = rubikApply4(rubikState, item.move);
-
-  // الأنيميشن خطوة واحدة بزاوية π/2 × times
-  rubikAnim = {
-    axis:      def.axis,
-    axisDir:   def.axisDir,
-    dir:       def.dir,
-    times:     times,
-    layers:    def.layers,
-    face:      def.face,
-    progress:  0,
-    startTime: performance.now(),
-    dur:       dur,
-    stateBefore: stateBefore,
-    resolve:   item.resolve,
-  };
+  loop();
 }
 
-// ══ حساب نقطة مكعب صغير ══
-// المكعب من -2 لـ +2 على كل محور، كل خلية بعرض 1
-const S = 2; // نصف البُعد الكلي للمكعب
+function rkUpdateCamera() {
+  const t = rk.orbitTheta, p = rk.orbitPhi, d = rk.orbitDist;
+  rk.camera.position.set(
+    d * Math.sin(t) * Math.cos(p),
+    d * Math.sin(p),
+    d * Math.cos(t) * Math.cos(p)
+  );
+  rk.camera.lookAt(0, 0, 0);
+}
 
-// ══ رسم الوجه مع الأنيميشن ══
-function rubikDrawFace4(face, ox,oy,oz, dx1,dy1,dz1, dx2,dy2,dz2, cx,cy,scale){
-  // تحديد إذا الوجه ده في الطبقة المتحركة
-  let animAngle = 0;
-  let inAnim = false;
-  let colorsToUse = rubikState[face];
+function rkSetupControls(container) {
+  let px = 0, py = 0;
+  container.style.touchAction = 'none';
 
-  if(rubikAnim){
-    const {axis, axisDir, dir, times, layers, face: animFace, progress, stateBefore} = rubikAnim;
-    const totalAngle = (Math.PI/2) * times * dir * axisDir;
-    animAngle = totalAngle * progress;
+  container.addEventListener('mousedown', e => {
+    rk.dragging = true; px = e.clientX; py = e.clientY;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!rk.dragging) return;
+    const dx = e.clientX - px, dy = e.clientY - py;
+    rk.orbitTheta -= dx * 0.008;
+    rk.orbitPhi = Math.max(-1.4, Math.min(1.4, rk.orbitPhi + dy * 0.006));
+    px = e.clientX; py = e.clientY;
+  });
+  window.addEventListener('mouseup', () => { rk.dragging = false; });
 
-    // استخدم stateBefore للرسم أثناء الأنيميشن
-    colorsToUse = stateBefore[face];
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    rk.orbitDist = Math.max(3, Math.min(12, rk.orbitDist + e.deltaY * 0.01));
+  }, { passive: false });
 
-    // هل الوجه ده كله يتحرك؟
-    const oppMap = {U:'D',D:'U',R:'L',L:'R',F:'B',B:'F'};
-    if(face === animFace && layers.includes(0))    inAnim = true;
-    if(face === oppMap[animFace] && layers.includes(3)) inAnim = true;
-  }
+  let lastDist = 0;
+  container.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastDist = Math.hypot(dx, dy);
+    } else {
+      rk.dragging = true;
+      px = e.touches[0].clientX; py = e.touches[0].clientY;
+    }
+  }, { passive: false });
+  container.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      rk.orbitDist = Math.max(3, Math.min(12, rk.orbitDist + (lastDist - dist) * 0.05));
+      lastDist = dist;
+    } else if (rk.dragging) {
+      const dx = e.touches[0].clientX - px, dy = e.touches[0].clientY - py;
+      rk.orbitTheta -= dx * 0.008;
+      rk.orbitPhi = Math.max(-1.4, Math.min(1.4, rk.orbitPhi + dy * 0.006));
+      px = e.touches[0].clientX; py = e.touches[0].clientY;
+    }
+  }, { passive: false });
+  container.addEventListener('touchend', e => {
+    e.preventDefault();
+    if (e.touches.length < 2) lastDist = 0;
+    if (e.touches.length === 0) rk.dragging = false;
+  }, { passive: false });
+}
 
-  const gap = 0.04;
-  const cellSize = (1-gap)/N;
+// ══ الأنيميشن: دوران طبقة ══
+// axis: 'x'|'y'|'z', layer: -1|0|1, angle: ±π/2
+function rkAnimateLayer(axis, layer, angle, onDone) {
+  // اجمع الـ cubies في الطبقة
+  const eps = 0.4;
+  const affected = rk.cubies.filter(c => {
+    const pos = c.userData.pos;
+    if (axis === 'x') return Math.abs(pos.x - layer) < eps;
+    if (axis === 'y') return Math.abs(pos.y - layer) < eps;
+    if (axis === 'z') return Math.abs(pos.z - layer) < eps;
+    return false;
+  });
 
-  for(let row=0;row<N;row++){
-    for(let col=0;col<N;col++){
-      // هل الخلية دي في الطبقة المتحركة؟ (للوجوه الجانبية)
-      let cellInAnim = inAnim;
+  // أنشئ pivot group
+  const pivot = new THREE.Group();
+  rk.scene.add(pivot);
+  affected.forEach(c => {
+    rk.scene.remove(c);
+    pivot.add(c);
+  });
 
-      if(rubikAnim && !inAnim){
-        const {axis, axisDir, layers} = rubikAnim;
-        const oppMap = {U:'D',D:'U',R:'L',L:'R',F:'B',B:'F'};
-        const animFace = rubikAnim.face;
+  const dur = Math.max(100, 500 / rk.animSpeed);
+  const start = performance.now();
 
-        // الوجوه الجانبية - نفحص عمود أو صف الخلية
-        if(face!==animFace && face!==oppMap[animFace]){
-          // حدد محور الطبقة وأي صف/عمود
-          let cellLayer = -1;
-          if(axis==='x'){
-            // R/L: الطبقات على محور x
-            if(axisDir===+1) cellLayer = N-1-col; // R: col=3 → layer 0
-            else             cellLayer = col;       // L: col=0 → layer 0
-          }else if(axis==='y'){
-            if(axisDir===+1) cellLayer = row;       // U: row=0 → layer 0
-            else             cellLayer = N-1-row;   // D: row=3 → layer 0
-          }else if(axis==='z'){
-            if(axisDir===+1) cellLayer = N-1-col;  // F: col=3 → layer 0
-            else             cellLayer = col;        // B
-          }
-          if(layers.includes(cellLayer)) cellInAnim = true;
-        }
-      }
+  function step(now) {
+    const t = Math.min(1, (now - start) / dur);
+    // ease in-out
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    const a = angle * ease;
+    if (axis === 'x') pivot.rotation.x = a;
+    else if (axis === 'y') pivot.rotation.y = a;
+    else pivot.rotation.z = a;
 
-      const color = colorsToUse[row*N+col];
-      const u = col/N + gap/2;
-      const v = row/N + gap/2;
-      const corners = [[u,v],[u+cellSize,v],[u+cellSize,v+cellSize],[u,v+cellSize]];
-
-      const pts = corners.map(([cu,cv])=>{
-        let px = ox+cu*dx1+cv*dx2;
-        let py = oy+cu*dy1+cv*dy2;
-        let pz = oz+cu*dz1+cv*dz2;
-
-        // طبّق الدوران بـ Rotation Matrix
-        if(cellInAnim && rubikAnim){
-          const a = animAngle;
-          if(rubikAnim.axis==='x')       [px,py,pz]=rotateX(px,py,pz,a);
-          else if(rubikAnim.axis==='y')  [px,py,pz]=rotateY(px,py,pz,a);
-          else if(rubikAnim.axis==='z')  [px,py,pz]=rotateZ(px,py,pz,a);
-        }
-
-        return rubikProject4(px,py,pz,cx,cy,scale);
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      // انتهى — فصل الـ cubies من pivot
+      pivot.rotation.set(
+        axis==='x' ? angle : 0,
+        axis==='y' ? angle : 0,
+        axis==='z' ? angle : 0
+      );
+      // حدّث مواضع الـ cubies
+      affected.forEach(c => {
+        pivot.remove(c);
+        // احسب الموضع الجديد
+        const worldPos = new THREE.Vector3();
+        c.getWorldPosition(worldPos);
+        c.position.copy(worldPos);
+        // نظّف الدوران (قرّب لأقرب عدد صحيح)
+        const mat = new THREE.Matrix4();
+        mat.extractRotation(pivot.matrixWorld.clone().multiply(c.matrix));
+        // الموضع الجديد
+        worldPos.round();
+        c.userData.pos.copy(worldPos);
+        c.position.copy(worldPos);
+        rk.scene.add(c);
       });
-
-      // فحص الرؤية (back-face culling)
-      const ax=pts[1].x-pts[0].x, ay=pts[1].y-pts[0].y;
-      const bx=pts[2].x-pts[0].x, by=pts[2].y-pts[0].y;
-      if(ax*by - ay*bx > 0) continue;
-
-      rubikCtx.beginPath();
-      rubikCtx.moveTo(pts[0].x,pts[0].y);
-      for(let i=1;i<4;i++) rubikCtx.lineTo(pts[i].x,pts[i].y);
-      rubikCtx.closePath();
-      rubikCtx.fillStyle = color;
-      rubikCtx.fill();
-      rubikCtx.strokeStyle = 'rgba(0,0,0,0.75)';
-      rubikCtx.lineWidth = 1.5;
-      rubikCtx.stroke();
+      rk.scene.remove(pivot);
+      onDone();
     }
   }
+  requestAnimationFrame(step);
 }
 
-// ══ رسم المكعب ══
-function rubikDrawCube4(){
-  const canvas = rubikCanvas;
-  if(!canvas) return;
-  const cx=canvas.width/2, cy=canvas.height/2;
-  const scale = Math.min(canvas.width,canvas.height)*0.20;
-  rubikCtx.clearRect(0,0,canvas.width,canvas.height);
+// ══ تعريف محاور الحركات ══
+const MOVE_AXIS = {
+  'U':   { axis:'y', layer: 1, angle: -Math.PI/2 },
+  "U'":  { axis:'y', layer: 1, angle:  Math.PI/2 },
+  'U2':  { axis:'y', layer: 1, angle: -Math.PI },
+  'D':   { axis:'y', layer:-1, angle:  Math.PI/2 },
+  "D'":  { axis:'y', layer:-1, angle: -Math.PI/2 },
+  'D2':  { axis:'y', layer:-1, angle:  Math.PI },
+  'R':   { axis:'x', layer: 1, angle: -Math.PI/2 },
+  "R'":  { axis:'x', layer: 1, angle:  Math.PI/2 },
+  'R2':  { axis:'x', layer: 1, angle: -Math.PI },
+  'L':   { axis:'x', layer:-1, angle:  Math.PI/2 },
+  "L'":  { axis:'x', layer:-1, angle: -Math.PI/2 },
+  'L2':  { axis:'x', layer:-1, angle:  Math.PI },
+  'F':   { axis:'z', layer: 1, angle: -Math.PI/2 },
+  "F'":  { axis:'z', layer: 1, angle:  Math.PI/2 },
+  'F2':  { axis:'z', layer: 1, angle: -Math.PI },
+  'B':   { axis:'z', layer:-1, angle:  Math.PI/2 },
+  "B'":  { axis:'z', layer:-1, angle: -Math.PI/2 },
+  'B2':  { axis:'z', layer:-1, angle:  Math.PI },
+};
 
-  // 6 وجوه — كل وجه: نقطة البداية + اتجاهين
-  // S=2 → المكعب من (-2,-2,-2) لـ (+2,+2,+2)
-  rubikDrawFace4('U', -S,+S,-S,  +2*S/N*N,0,0,  0,0,+2*S/N*N,  cx,cy,scale); // top    y=+S
-  rubikDrawFace4('D', -S,-S,+S,  +2*S/N*N,0,0,  0,0,-2*S/N*N, cx,cy,scale); // bottom y=-S
-  rubikDrawFace4('F', -S,+S,+S,  +2*S/N*N,0,0,  0,-2*S/N*N,0, cx,cy,scale); // front  z=+S
-  rubikDrawFace4('B', +S,+S,-S,  -2*S/N*N,0,0,  0,-2*S/N*N,0, cx,cy,scale); // back   z=-S
-  rubikDrawFace4('R', +S,+S,+S,  0,0,-2*S/N*N,  0,-2*S/N*N,0, cx,cy,scale); // right  x=+S
-  rubikDrawFace4('L', -S,+S,-S,  0,0,+2*S/N*N,  0,-2*S/N*N,0, cx,cy,scale); // left   x=-S
-
-  drawFloor4(cx,cy,scale);
+// ══ Queue ══
+function rkEnqueue(move, addHist = true) {
+  return new Promise(resolve => {
+    rk.animQueue.push({ move, addHist, resolve });
+    if (!rk.animating) rkProcessQueue();
+  });
 }
 
-function drawFloor4(cx,cy,scale){
-  const y=-S-0.1;
-  rubikCtx.strokeStyle='rgba(176,110,243,0.06)';
-  rubikCtx.lineWidth=0.5;
-  for(let i=-S;i<=S;i+=0.5){
-    const a=rubikProject4(i,y,-S,cx,cy,scale);
-    const b=rubikProject4(i,y,+S,cx,cy,scale);
-    const c=rubikProject4(-S,y,i,cx,cy,scale);
-    const d=rubikProject4(+S,y,i,cx,cy,scale);
-    rubikCtx.beginPath(); rubikCtx.moveTo(a.x,a.y); rubikCtx.lineTo(b.x,b.y); rubikCtx.stroke();
-    rubikCtx.beginPath(); rubikCtx.moveTo(c.x,c.y); rubikCtx.lineTo(d.x,d.y); rubikCtx.stroke();
+function rkProcessQueue() {
+  if (!rk.animQueue.length) { rk.animating = false; return; }
+  const item = rk.animQueue.shift();
+  rk.animating = true;
+
+  if (item.addHist) {
+    rk.history = rk.history.slice(0, rk.histIdx + 1);
+    rk.history.push(item.move);
+    rk.histIdx++;
+    rk.moveCount++;
+    rkUpdateMoveUI();
+    if (!rk.shuffled) rkTimerStart();
   }
-}
 
-// ══ Loop الرسم ══
-function rubikRenderLoop4(){
-  // تحديث الأنيميشن
-  if(rubikAnim){
-    const elapsed = performance.now()-rubikAnim.startTime;
-    rubikAnim.progress = Math.min(1, elapsed/rubikAnim.dur);
-    if(rubikAnim.progress>=1){
-      // انتهى الأنيميشن
-      const resolve = rubikAnim.resolve;
-      rubikAnim = null;
-      rubikAnimating = false;
-      resolve();
-      if(rubikIsSolved4() && rubikShuffled){
-        rubikTimerStop();
-        rubikShuffled = false;
-        rubikOnSolved4(true);
+  // تطبيق على الحالة المنطقية
+  rk.state = rkApply(rk.state, item.move);
+
+  // تشغيل الأنيميشن Three.js
+  const ax = MOVE_AXIS[item.move];
+  if (ax) {
+    rkAnimateLayer(ax.axis, ax.layer, ax.angle, () => {
+      rkSyncColors();
+      rk.animating = false;
+      item.resolve();
+      if (rkIsSolved(rk.state) && rk.shuffled) {
+        rk.shuffled = false;
+        rkTimerStop();
+        rkOnSolved(true);
       }
-      rubikProcessQueue4();
-    }
+      rkProcessQueue();
+    });
+  } else {
+    rkSyncColors();
+    rk.animating = false;
+    item.resolve();
+    rkProcessQueue();
   }
-  rubikDrawCube4();
-  rubikRafId = requestAnimationFrame(rubikRenderLoop4);
 }
 
 // ══ الخلط ══
-const SHUFFLE_MOVES=['R',"R'",'L',"L'",'U',"U'",'D',"D'",'F',"F'",'B',"B'",'Rw',"Rw'",'Lw',"Lw'",'Uw',"Uw'",'Dw',"Dw'",'Fw',"Fw'",'Bw',"Bw'"];
-async function rubikShuffle4(){
-  if(rubikAnimating) return;
+const SHUFFLE_POOL = ['U',"U'",'U2','D',"D'",'D2','R',"R'",'R2','L',"L'",'L2','F',"F'",'F2','B',"B'",'B2'];
+async function rubikShuffle4() {
+  if (rk.animating) return;
   rubikReset4();
-  rubikShuffled=true;
-  const count=40, moves=[];
-  let last='';
-  for(let i=0;i<count;i++){
+  rk.shuffled = true;
+  const n = 25, moves = [];
+  let last = '';
+  for (let i = 0; i < n; i++) {
     let m;
-    do{ m=SHUFFLE_MOVES[Math.floor(Math.random()*SHUFFLE_MOVES.length)]; }while(m[0]===last[0]);
-    last=m; moves.push(m);
+    do { m = SHUFFLE_POOL[Math.floor(Math.random() * SHUFFLE_POOL.length)]; } while (m[0] === last[0]);
+    last = m; moves.push(m);
   }
-  rubikShuffleHistory=[...moves];
-  for(const m of moves) await rubikEnqueue4(m,false);
-  rubikTimerStart();
+  rk.shuffleSeq = [...moves];
+  for (const m of moves) await rkEnqueue(m, false);
+  rkTimerStart();
 }
 
 // ══ زعتر يحل ══
-async function rubikZaatarSolve4(){
-  if(!rubikShuffled||rubikAnimating){
-    if(!rubikShuffled && typeof showToast==='function') showToast('info','🤖 زعتر','المكعب محلول أصلاً 😄','✓');
+async function rubikZaatarSolve4() {
+  if (!rk.shuffled || rk.animating) {
+    if (!rk.shuffled && typeof showToast === 'function') showToast('info','🤖 زعتر','المكعب محلول أصلاً 😄','✓');
     return;
   }
-  document.getElementById('rubik-zaatar-overlay').style.display='flex';
-  await new Promise(r=>setTimeout(r,300));
-  const solution=[...rubikShuffleHistory].reverse().map(m=>RUBIK4_INV[m]||m);
-  for(const m of solution) await rubikEnqueue4(m,false);
-  document.getElementById('rubik-zaatar-overlay').style.display='none';
-  rubikOnSolved4(false);
+  const ov = document.getElementById('rubik-zaatar-overlay');
+  if (ov) ov.style.display = 'flex';
+  await new Promise(r => setTimeout(r, 400));
+  const solution = [...rk.shuffleSeq].reverse().map(m => MOVE_INV[m] || m);
+  for (const m of solution) await rkEnqueue(m, false);
+  if (ov) ov.style.display = 'none';
+  rkOnSolved(false);
 }
+function rubikAISolve() { rubikZaatarSolve4(); }
 
-// ── زر "زعتر يحل" المرتبط بـ onclick="rubikAISolve()" ──
-function rubikAISolve(){ rubikZaatarSolve4(); }
-
-// ── زر "حل بنفسي" ──
-function rubikSolveManual(){
-  if(!rubikShuffled){
-    if(typeof showToast==='function') showToast('warn','⚠️','اخلط المكعب أولاً!','!');
+// ══ حل بنفسي ══
+function rubikSolveManual() {
+  if (!rk.shuffled) {
+    if (typeof showToast === 'function') showToast('warn','⚠️','اخلط المكعب أولاً!','!');
     return;
   }
-  if(rubikIsSolved4()){
-    rubikOnSolved4(true);
+  if (rkIsSolved(rk.state)) {
+    rkOnSolved(true);
   } else {
-    if(typeof showToast==='function') showToast('warn','⚠️','المكعب لسه مش محلول!','!');
+    if (typeof showToast === 'function') showToast('warn','⚠️','المكعب لسه مش محلول!','!');
   }
 }
 
 // ══ نتيجة ══
-function rubikOnSolved4(bySelf){
-  rubikTimerStop();
-  const ov=document.getElementById('rubik-result-overlay');
-  const box=document.getElementById('rubik-result-box');
-  if(bySelf){
-    if(typeof awardPoints==='function') awardPoints(RUBIK_WIN_PTS,'rubik');
-    if(typeof showToast==='function') showToast('gain','🎲 روبيك 4×4',`أحسنت! حللت المكعب في ${rubikFormatTime4(rubikTimerSec)} و${rubikMoveCount} حركة`,'+'+RUBIK_WIN_PTS);
-    box.innerHTML=`<div style="font-size:36px;margin-bottom:12px;">🏆</div><div style="font-size:16px;color:var(--green);font-weight:bold;margin-bottom:8px;">أحسنت! حللت المكعب 4×4!</div><div style="font-size:13px;color:var(--text3);margin-bottom:6px;">${rubikFormatTime4(rubikTimerSec)} | ${rubikMoveCount} حركة</div><div style="font-size:14px;color:var(--gold);font-weight:bold;margin-bottom:16px;">+${RUBIK_WIN_PTS} نقطة 🏅</div><button onclick="rubikReset4();document.getElementById('rubik-result-overlay').style.display='none';" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:bold;cursor:pointer;">🎲 لعبة جديدة</button>`;
-  }else{
-    box.innerHTML=`<div style="font-size:36px;margin-bottom:12px;">🤖</div><div style="font-size:15px;color:var(--text);margin-bottom:16px;">المكعب محلول بواسطة زعتر — لا نقاط</div><button onclick="rubikReset4();document.getElementById('rubik-result-overlay').style.display='none';" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:bold;cursor:pointer;">🎲 لعبة جديدة</button>`;
+function rkOnSolved(bySelf) {
+  rkTimerStop();
+  const ov  = document.getElementById('rubik-result-overlay');
+  const box = document.getElementById('rubik-result-box');
+  if (!ov || !box) return;
+  if (bySelf) {
+    if (typeof awardPoints === 'function') awardPoints(RUBIK_WIN_PTS, 'rubik');
+    if (typeof showToast  === 'function') showToast('gain','🎲 روبيك 3×3',`أحسنت! حللت المكعب في ${rkFmtTime(rk.timerSec)} و${rk.moveCount} حركة`,'+'+RUBIK_WIN_PTS);
+    box.innerHTML = `<div style="font-size:36px;margin-bottom:12px;">🏆</div><div style="font-size:16px;color:var(--green);font-weight:bold;margin-bottom:8px;">أحسنت! حللت المكعب!</div><div style="font-size:13px;color:var(--text3);margin-bottom:6px;">${rkFmtTime(rk.timerSec)} | ${rk.moveCount} حركة</div><div style="font-size:14px;color:var(--gold);font-weight:bold;margin-bottom:16px;">+${RUBIK_WIN_PTS} نقطة 🏅</div><button onclick="rubikReset4();document.getElementById('rubik-result-overlay').style.display='none';" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:bold;cursor:pointer;">🎲 لعبة جديدة</button>`;
+  } else {
+    box.innerHTML = `<div style="font-size:36px;margin-bottom:12px;">🤖</div><div style="font-size:15px;color:var(--text);margin-bottom:16px;">المكعب محلول بواسطة زعتر — مافيش نقاط</div><button onclick="rubikReset4();document.getElementById('rubik-result-overlay').style.display='none';" style="background:var(--green);color:#000;border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:bold;cursor:pointer;">🎲 لعبة جديدة</button>`;
   }
-  ov.style.display='flex';
+  ov.style.display = 'flex';
 }
 
 // ══ تراجع / إعادة ══
-async function rubikUndo(){
-  if(rubikAnimating||rubikHistIdx<0) return;
-  const m=rubikHistory[rubikHistIdx--];
-  rubikMoveCount=Math.max(0,rubikMoveCount-1);
-  await rubikEnqueue4(RUBIK4_INV[m]||m,false);
-  rubikUpdateMoveUI4();
+async function rubikUndo() {
+  if (rk.animating || rk.histIdx < 0) return;
+  const m = rk.history[rk.histIdx--];
+  rk.moveCount = Math.max(0, rk.moveCount - 1);
+  await rkEnqueue(MOVE_INV[m] || m, false);
+  rkUpdateMoveUI();
 }
-async function rubikRedo(){
-  if(rubikAnimating||rubikHistIdx>=rubikHistory.length-1) return;
-  const m=rubikHistory[++rubikHistIdx];
-  rubikMoveCount++;
-  await rubikEnqueue4(m,false);
-  rubikUpdateMoveUI4();
+async function rubikRedo() {
+  if (rk.animating || rk.histIdx >= rk.history.length - 1) return;
+  const m = rk.history[++rk.histIdx];
+  rk.moveCount++;
+  await rkEnqueue(m, false);
+  rkUpdateMoveUI();
 }
 
 // ══ إعادة تعيين ══
-function rubikReset4(){
-  document.getElementById('rubik-result-overlay').style.display='none';
-  document.getElementById('rubik-zaatar-overlay').style.display='none';
-  rubikAnimQueue=[]; rubikAnimating=false; rubikAnim=null;
-  rubikHistory=[]; rubikHistIdx=-1; rubikMoveCount=0;
-  rubikShuffled=false; rubikShuffleHistory=[];
-  rubikTimerStop(); rubikTimerSec=0; rubikUpdateTimer4();
-  rubikState=rubikMakeState();
-  rubikUpdateMoveUI4();
+function rubikReset4() {
+  const r1 = document.getElementById('rubik-result-overlay');
+  const z1 = document.getElementById('rubik-zaatar-overlay');
+  if (r1) r1.style.display = 'none';
+  if (z1) z1.style.display = 'none';
+  rk.animQueue = []; rk.animating = false;
+  rk.history = []; rk.histIdx = -1; rk.moveCount = 0;
+  rk.shuffled = false; rk.shuffleSeq = [];
+  rkTimerStop(); rk.timerSec = 0; rkUpdateTimer();
+  rk.state = rkMakeState();
+  rkBuildCube();
+  rkSyncColors();
+  rkUpdateMoveUI();
+}
+
+// ══ حركة من الزرارات ══
+async function rubikMove(moveStr) {
+  if (!MOVE_AXIS[moveStr]) return;
+  await rkEnqueue(moveStr, true);
 }
 
 // ══ ألوان ══
-function rubikApplyColors(){
-  ['U','D','R','L','F','B'].forEach(f=>{
-    const inp=document.getElementById('rubik-color-'+f);
-    if(inp) RUBIK_FC[f]=inp.value;
+function rubikApplyColors() {
+  ['U','D','R','L','F','B'].forEach(f => {
+    const inp = document.getElementById('rubik-color-' + f);
+    if (inp) FACE_COLORS[f] = parseInt(inp.value.replace('#',''), 16);
   });
-  if(rubikIsSolved4()||!rubikShuffled) rubikState=rubikMakeState();
+  rkSyncColors();
 }
 
 // ══ Zoom ══
-function rubikSetZoom(v){
-  document.getElementById('rubik-zoom-val').textContent=v;
-  rubikCamDist = 3 + ((v-1)/9)*32; // 3..35
+function rubikSetZoom(v) {
+  document.getElementById('rubik-zoom-val').textContent = v;
+  rk.orbitDist = 3 + ((v - 1) / 9) * 9; // 3..12
 }
+let rubikAnimSpeed = 5;
 
 // ══ تايمر ══
-function rubikTimerStart(){ if(rubikTimerRunning)return; rubikTimerRunning=true; rubikTimerInt=setInterval(()=>{ rubikTimerSec++; rubikUpdateTimer4(); },1000); }
-function rubikTimerStop(){ clearInterval(rubikTimerInt); rubikTimerRunning=false; }
-function rubikFormatTime4(s){ return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
-function rubikUpdateTimer4(){ const el=document.getElementById('rubik-timer-display'); if(el) el.textContent=rubikFormatTime4(rubikTimerSec); }
+function rkTimerStart() { if (rk.timerRunning) return; rk.timerRunning = true; rk.timerInt = setInterval(() => { rk.timerSec++; rkUpdateTimer(); }, 1000); }
+function rkTimerStop()  { clearInterval(rk.timerInt); rk.timerRunning = false; }
+function rkFmtTime(s)   { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function rkUpdateTimer(){ const el = document.getElementById('rubik-timer-display'); if (el) el.textContent = rkFmtTime(rk.timerSec); }
 
 // ══ UI ══
-function rubikUpdateMoveUI4(){
-  const ml=document.getElementById('rubik-move-list');
-  if(ml){
-    ml.innerHTML='';
-    rubikHistory.forEach((m,i)=>{
-      const sp=document.createElement('span');
-      sp.style.cssText=`background:var(--bg2);border:1px solid ${i===rubikHistIdx?'var(--green)':'var(--border)'};border-radius:2px;padding:1px 3px;font-size:9px;color:${i===rubikHistIdx?'var(--green)':'var(--text3)'};`;
-      sp.textContent=m; ml.appendChild(sp);
+function rkUpdateMoveUI() {
+  const ml = document.getElementById('rubik-move-list');
+  if (ml) {
+    ml.innerHTML = '';
+    rk.history.forEach((m, i) => {
+      const sp = document.createElement('span');
+      sp.style.cssText = `background:var(--bg2);border:1px solid ${i===rk.histIdx?'var(--green)':'var(--border)'};border-radius:2px;padding:1px 4px;font-size:9px;color:${i===rk.histIdx?'var(--green)':'var(--text3)'};`;
+      sp.textContent = m;
+      ml.appendChild(sp);
     });
-    ml.scrollTop=ml.scrollHeight;
+    ml.scrollTop = ml.scrollHeight;
   }
-  const mc=document.getElementById('rubik-moves-display');
-  if(mc) mc.textContent=rubikMoveCount+' حركة';
-}
-function rubikUpdateUnitPanel(){
-  const el=document.getElementById('rubik-pts-display');
-  if(el&&typeof mindgamesUnitPts!=='undefined') el.textContent=mindgamesUnitPts||0;
-}
-
-// ══ تطبيق حركة من UI ══
-async function rubikMove(moveStr){
-  if(!RUBIK4_MOVES[moveStr]) return;
-  await rubikEnqueue4(moveStr,true);
-}
-
-// ══ تحكم الماوس واللمس ══
-function rubikSetupControls4(canvas){
-  let dragX=0,dragY=0,dragging=false;
-  function onDown(x,y){ dragging=true; dragX=x; dragY=y; }
-  function onMove(x,y){
-    if(!dragging) return;
-    const dx=x-dragX, dy=y-dragY;
-    rubikCamTheta -= dx*0.007;
-    rubikCamPhi = Math.max(0.05, Math.min(Math.PI-0.05, rubikCamPhi-dy*0.007));
-    dragX=x; dragY=y;
-  }
-  function onUp(){ dragging=false; }
-
-  canvas.addEventListener('mousedown',  e=>onDown(e.clientX,e.clientY));
-  canvas.addEventListener('mousemove',  e=>onMove(e.clientX,e.clientY));
-  canvas.addEventListener('mouseup',    onUp);
-  canvas.addEventListener('mouseleave', onUp);
-  canvas.addEventListener('wheel', e=>{
-    e.preventDefault();
-    rubikCamDist = Math.max(3, Math.min(35, rubikCamDist+e.deltaY*0.03));
-    const sl=document.getElementById('rubik-zoom-slider');
-    if(sl){ const v=Math.round(1+((rubikCamDist-3)/32)*9); sl.value=Math.max(1,Math.min(10,v)); document.getElementById('rubik-zoom-val').textContent=sl.value; }
-  },{passive:false});
-
-  let lastPinch=null;
-  canvas.addEventListener('touchstart', e=>{
-    e.preventDefault();
-    if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
-      lastPinch=Math.hypot(dx,dy);
-    }else{ lastPinch=null; onDown(e.touches[0].clientX,e.touches[0].clientY); }
-  },{passive:false});
-  canvas.addEventListener('touchmove', e=>{
-    e.preventDefault();
-    if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
-      const dist=Math.hypot(dx,dy);
-      if(lastPinch) rubikCamDist=Math.max(3,Math.min(35,rubikCamDist+(lastPinch-dist)*0.07));
-      lastPinch=dist;
-    }else{ lastPinch=null; onMove(e.touches[0].clientX,e.touches[0].clientY); }
-  },{passive:false});
-  canvas.addEventListener('touchend', e=>{ e.preventDefault(); lastPinch=null; onUp(); },{passive:false});
+  const mc = document.getElementById('rubik-moves-display');
+  if (mc) mc.textContent = rk.moveCount + ' حركة';
+  // سرعة
+  const sp = document.getElementById('rubik-speed-slider');
+  if (sp) rk.animSpeed = +sp.value;
 }
 
 // ══ تهيئة ══
-function rubikInit(){
-  const canvas=document.getElementById('rubik-canvas');
-  if(!canvas) return;
-  if(rubikInitialized){
-    const w=canvas.parentElement;
-    if(w&&w.clientWidth>10){ canvas.width=w.clientWidth; canvas.height=w.clientHeight||500; }
+function rubikInit() {
+  const container = document.getElementById('rubik-threejs-container');
+  if (!container) return;
+  if (rk.initialized) {
+    // resize فقط
+    const w = container.clientWidth, h = container.clientHeight;
+    if (rk.renderer) rk.renderer.setSize(w, h);
+    if (rk.camera)   { rk.camera.aspect = w/h; rk.camera.updateProjectionMatrix(); }
     return;
   }
-  rubikInitialized=true;
-  rubikCanvas=canvas;
-  rubikCtx=canvas.getContext('2d');
-  const wrap=canvas.parentElement;
-  canvas.width=(wrap&&wrap.clientWidth>10)?wrap.clientWidth:700;
-  canvas.height=(wrap&&wrap.clientHeight>10)?wrap.clientHeight:500;
-  rubikState=rubikMakeState();
-  rubikSetupControls4(canvas);
-  if(rubikRafId) cancelAnimationFrame(rubikRafId);
-  rubikRenderLoop4();
-  rubikUpdateUnitPanel();
+  rk.initialized = true;
+  rk.container = container;
+  rk.state = rkMakeState();
+  // ننتظر ثانية ليكون الـ container جاهز
+  setTimeout(() => {
+    rkInitThree(container);
+    rkBuildCube();
+    rkSyncColors();
+  }, 80);
 }
 </script>
 
