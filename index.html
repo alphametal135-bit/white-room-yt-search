@@ -1559,6 +1559,7 @@ body::after {
       <button class="tab-btn" onclick="showPage('profile', this)">📊 ملف الطالب</button>
       <button class="tab-btn" onclick="showPage('daily-tasks', this)">📋 المهام اليومية</button>
       <button class="tab-btn" onclick="showPage('achievements', this)">🏅 الإنجازات</button>
+      <button class="tab-btn" onclick="showPage('cyber-chem', this)">⚗️ الكيمياء السيبرانية</button>
       <button class="tab-btn" onclick="showPage('cyber-labs', this)">🔬 Cyber Labs</button>
       <button class="tab-btn" onclick="showPage('skill-tree', this)">🌳 Skill Tree</button>
       <button class="tab-btn" onclick="showPage('dashboard', this); setTimeout(renderDashboardCharts, 100);" id="nav-tab-dashboard">📈 Dashboard</button>
@@ -2141,6 +2142,1063 @@ body::after {
       <canvas id="chart-achievements" height="140"></canvas>
     </div>
   </div>
+</div>
+
+<div class="page" id="page-cyber-chem" style="padding:0;margin:0;">
+  <iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;ar&quot; dir=&quot;rtl&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>محلل النظائر المشعة v5.1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&amp;family=Tajawal:wght@300;400;700;900&amp;family=Cairo:wght@300;400;600;700;900&amp;display=swap');
+:root {
+  --bg:#060a0c;--s1:#0c1419;--border:#1b3038;--accent:#00e5a0;--a2:#00b07a;
+  --warn:#ff4545;--warn2:#ff8c00;--text:#c8e8de;--dim:#4a7870;
+  --fusion:#ff6b2b;--fusion2:#ff4500;--neutron:#7b68ee;
+  --mono:'IBM Plex Mono',monospace;--ar:'Tajawal',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--ar);min-height:100vh}
+#atom-bg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(100vw,100vh);height:min(100vw,100vh);pointer-events:none;z-index:0;opacity:0.07}
+#atom-bg .eb1{animation:rot 10s linear infinite;transform-origin:50% 50%}
+#atom-bg .eb2{animation:rot 15s linear infinite reverse;transform-origin:50% 50%}
+#atom-bg .eb3{animation:rot 8s linear infinite;transform-origin:50% 50%}
+body > *:not(#atom-bg){position:relative;z-index:1}
+header{position:relative;overflow:hidden;background:linear-gradient(170deg,#0a1f18,#060e0c,#08100f);border-bottom:1px solid var(--border);padding:40px 24px 32px;text-align:center}
+header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% -10%,rgba(0,229,160,.12),transparent 65%);pointer-events:none}
+.scan-line{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,229,160,.04),transparent);animation:scanAnim 4s ease-in-out infinite}
+@keyframes scanAnim{to{left:150%}}
+.logo-row{display:inline-flex;align-items:center;gap:16px;margin-bottom:8px}
+.atom{width:60px;height:60px}.atom svg{width:100%;height:100%}
+.e1{animation:rot 6s linear infinite;transform-origin:50% 50%}
+.e2{animation:rot 9s linear infinite reverse;transform-origin:50% 50%}
+.e3{animation:rot 4.5s linear infinite;transform-origin:50% 50%}
+@keyframes rot{to{transform:rotate(360deg)}}
+h1{font-size:2.2rem;font-weight:900;color:var(--accent);letter-spacing:-1px}
+.sub{color:var(--dim);font-size:.78rem;font-family:var(--mono);direction:ltr;letter-spacing:2px;margin-top:4px}
+.wrap{max-width:900px;margin:0 auto;padding:24px 16px 60px}
+
+/* NAV TABS */
+.tab-nav{display:flex;gap:4px;margin-bottom:20px;background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:6px}
+.tab-btn{flex:1;padding:10px 16px;border:none;border-radius:10px;cursor:pointer;font-family:var(--ar);font-size:.9rem;font-weight:700;transition:all .2s;background:transparent;color:var(--dim)}
+.tab-btn.active{background:var(--accent);color:#060a0c}
+.tab-btn.fusion-tab.active{background:linear-gradient(135deg,var(--fusion),var(--fusion2));color:#fff}
+.tab-btn.chem-tab.active{background:linear-gradient(135deg,#4488ff,var(--neutron));color:#fff}
+
+/* SEARCH */
+.search-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.card-label{font-size:.68rem;font-family:var(--mono);color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;direction:ltr;display:flex;align-items:center;gap:8px}
+.card-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.card-label.fusion-label{color:var(--fusion)}
+.card-label.fusion-label::after{background:rgba(255,107,43,.3)}
+.input-row{display:flex;gap:10px;margin-bottom:14px}
+input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--ar);font-size:1rem;padding:12px 16px;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,160,.1)}
+input.fusion-input:focus{border-color:var(--fusion);box-shadow:0 0 0 3px rgba(255,107,43,.15)}
+input::placeholder{color:var(--dim)}
+.btn{background:var(--accent);border:none;border-radius:10px;color:#060a0c;cursor:pointer;font-family:var(--ar);font-size:.95rem;font-weight:700;padding:12px 22px;transition:opacity .2s,transform .1s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.btn:hover{opacity:.85}.btn:active{transform:scale(.97)}
+.btn-fusion{background:linear-gradient(135deg,var(--fusion),var(--fusion2));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:var(--ar);font-size:.95rem;font-weight:700;padding:12px 22px;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;box-shadow:0 0 20px rgba(255,107,43,.2)}
+.btn-fusion:hover{opacity:.85;box-shadow:0 0 30px rgba(255,107,43,.4)}.btn-fusion:active{transform:scale(.97)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim);font-size:.8rem;padding:7px 13px;border-radius:8px;cursor:pointer;font-family:var(--mono);transition:all .2s;direction:ltr}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.quick-wrap{display:flex;gap:7px;flex-wrap:wrap}
+.hint{color:var(--dim);font-size:.8rem;margin-top:12px;line-height:1.7;text-align:center}
+
+/* FUSION PANEL */
+.fusion-panel{display:none}
+.fusion-panel.active{display:block}
+.chem-panel{display:none}
+.chem-panel.active{display:block}
+.analyzer-panel{display:none}
+.analyzer-panel.active{display:block}
+
+/* CHEM ELEMENT GRID */
+.chem-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chem-filter-btn{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--s1);color:var(--dim);cursor:pointer;font-family:var(--ar);font-size:.78rem;font-weight:700;transition:all .2s}
+.chem-filter-btn.active{border-color:#4488ff;background:rgba(68,136,255,.12);color:#7ab0ff}
+.chem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:20px}
+.chem-tile{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.chem-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.chem-tile:hover{border-color:#4488ff;transform:translateY(-2px)}
+.chem-tile.sel{border-color:#4488ff;background:rgba(68,136,255,.08)}
+.chem-tile-sym{font-family:var(--mono);font-size:1.4rem;font-weight:700;color:#fff;line-height:1}
+.chem-tile-z{font-family:var(--mono);font-size:.6rem;color:var(--dim);margin-bottom:4px}
+.chem-tile-name{font-size:.68rem;color:var(--text);margin-top:4px;line-height:1.3}
+.cat-alkali::before{background:#ff6b6b}.cat-alkaline::before{background:#ffa55b}
+.cat-transition::before{background:#ffd93d}.cat-metalloid::before{background:#6bcf7f}
+.cat-nonmetal::before{background:#4ea8de}.cat-halogen::before{background:#9b5de5}
+.cat-noble::before{background:#c77dff}.cat-other::before{background:#5a7a9a}
+
+.chem-card{background:var(--s1);border:1px solid rgba(68,136,255,.3);border-radius:16px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;display:none}
+.chem-card.show{display:block}
+.chem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#4488ff,var(--neutron),#4488ff)}
+.chem-hero-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.chem-badge{background:linear-gradient(135deg,#4488ff,var(--neutron));color:#fff;border-radius:14px;font-family:var(--mono);font-weight:700;font-size:1.8rem;padding:14px 20px;min-width:80px;text-align:center;line-height:1;box-shadow:0 0 30px rgba(68,136,255,.3);flex-shrink:0}
+.chem-hero-info{flex:1}
+.chem-hero-name{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:3px}
+.chem-hero-en{font-family:var(--mono);color:var(--dim);font-size:.8rem;direction:ltr}
+.chem-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tag-cat{background:rgba(68,136,255,.12);border:1px solid #4488ff;color:#7ab0ff}
+.chem-info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.chem-sections{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.chem-sections{grid-template-columns:1fr}}
+.chem-sec{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px}
+.chem-sec-icon{font-size:1.2rem;margin-bottom:6px}
+.chem-sec-title{font-size:.68rem;color:var(--dim);letter-spacing:.5px;margin-bottom:8px}
+.chem-sec-body{font-size:.86rem;line-height:1.8;color:var(--text)}
+.bond-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:20px}
+.bond-row{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.bond-row:last-child{border-bottom:none}
+.bond-icon{font-size:1.4rem;flex-shrink:0;width:32px;text-align:center}
+.bond-title{font-weight:700;color:#fff;font-size:.92rem;margin-bottom:4px}
+.bond-body{font-size:.85rem;line-height:1.8;color:var(--dim)}
+
+.fusion-card{background:var(--s1);border:1px solid rgba(255,107,43,.3);border-radius:16px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.fusion-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--fusion),var(--fusion2),var(--fusion))}
+
+.fusion-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;margin-bottom:16px}
+@media(max-width:600px){.fusion-row{grid-template-columns:1fr;gap:10px}}
+.fusion-plus{font-size:1.8rem;color:var(--fusion);text-align:center;padding:8px 0;font-weight:900}
+.fusion-field label{font-size:.7rem;color:var(--dim);font-family:var(--mono);letter-spacing:1px;display:block;margin-bottom:6px;text-transform:uppercase}
+
+/* MASS INPUT */
+.mass-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mass-field label{font-size:.7rem;color:var(--dim);font-family:var(--mono);letter-spacing:1px;display:block;margin-bottom:6px}
+.mass-field input{font-family:var(--mono)}
+.unit-note{color:var(--dim);font-size:.72rem;text-align:center;margin-bottom:14px;font-family:var(--mono);direction:ltr}
+
+/* REACTION TYPE SELECTOR */
+.rxn-selector{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.rxn-btn{flex:1;min-width:120px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--dim);cursor:pointer;font-family:var(--ar);font-size:.82rem;font-weight:700;transition:all .2s;text-align:center}
+.rxn-btn.selected{border-color:var(--fusion);background:rgba(255,107,43,.1);color:var(--fusion)}
+.rxn-btn:hover{border-color:var(--fusion);color:var(--fusion)}
+
+/* FUSION REPORT */
+#fusionReport{display:none}
+.fusion-hero{background:linear-gradient(135deg,#1a0800,#120a00,#0d0a0c);border:1px solid rgba(255,107,43,.3);border-radius:16px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.fusion-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,43,.08),transparent 70%)}
+.fh-top{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.fh-icon{font-size:3rem;flex-shrink:0}
+.fh-info{flex:1}
+.fh-title{font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:4px}
+.fh-sub{font-family:var(--mono);color:var(--dim);font-size:.8rem;direction:ltr}
+.fh-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tag-exp{background:rgba(255,69,69,.15);border:1px solid var(--warn);color:var(--warn)}
+.tag-fus{background:rgba(255,107,43,.12);border:1px solid var(--fusion);color:var(--fusion)}
+.tag-crit{background:rgba(123,104,238,.12);border:1px solid var(--neutron);color:var(--neutron)}
+.tag{display:inline-flex;align-items:center;gap:5px;border-radius:20px;font-size:.75rem;font-weight:700;font-family:var(--mono);padding:4px 12px;letter-spacing:.5px}
+
+/* EXPLOSION METER */
+.exp-meter{background:var(--bg);border-radius:12px;padding:16px;border:1px solid rgba(255,69,69,.15);margin-bottom:16px}
+.exp-meter-title{font-size:.68rem;font-family:var(--mono);color:var(--fusion);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;direction:ltr;display:flex;align-items:center;gap:8px}
+.exp-meter-title::after{content:'';flex:1;height:1px;background:rgba(255,107,43,.2)}
+.exp-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.exp-stat{background:var(--s1);border-radius:10px;padding:12px;border:1px solid var(--border)}
+.exp-stat-label{font-size:.65rem;color:var(--dim);font-family:var(--mono);margin-bottom:4px}
+.exp-stat-val{font-family:var(--mono);font-size:.9rem;color:var(--warn);font-weight:700}
+.exp-stat-val.orange{color:var(--warn2)}
+.exp-stat-val.green{color:var(--accent)}
+.exp-stat-val.purple{color:var(--neutron)}
+
+/* BLAST RINGS */
+.blast-visual{background:var(--bg);border-radius:12px;padding:20px;border:1px solid rgba(255,69,69,.1);margin-bottom:16px;text-align:center}
+.blast-title{font-size:.68rem;font-family:var(--mono);color:var(--fusion);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;direction:ltr;display:flex;align-items:center;gap:8px}
+.blast-title::after{content:'';flex:1;height:1px;background:rgba(255,107,43,.2)}
+.blast-rings-wrap{position:relative;width:280px;height:280px;margin:0 auto 16px}
+.blast-ring{position:absolute;border-radius:50%;border:2px solid;animation:pulseRing 2s ease-in-out infinite}
+.br1{inset:0;border-color:rgba(255,69,69,.8);animation-delay:0s}
+.br2{inset:25px;border-color:rgba(255,140,0,.6);animation-delay:.3s}
+.br3{inset:55px;border-color:rgba(255,180,0,.5);animation-delay:.6s}
+.br4{inset:90px;border-color:rgba(100,200,100,.4);animation-delay:.9s}
+.br5{inset:125px;border-color:rgba(0,200,255,.3);animation-delay:1.2s}
+.blast-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem}
+@keyframes pulseRing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.03)}}
+.blast-legend{display:flex;flex-direction:column;gap:6px;text-align:right}
+.bl-row{display:flex;align-items:center;gap:10px;font-size:.78rem;justify-content:center}
+.bl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* SECTIONS */
+.fx-sections{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:640px){.fx-sections{grid-template-columns:1fr}}
+.fx-sec{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.fx-sec::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.fx-sec.nuke::before{background:linear-gradient(90deg,var(--warn),var(--fusion))}
+.fx-sec.bio::before{background:linear-gradient(90deg,#00c8a0,var(--accent))}
+.fx-sec.env2::before{background:linear-gradient(90deg,#0096ff,var(--accent))}
+.fx-sec.chem::before{background:linear-gradient(90deg,var(--neutron),#4488ff)}
+.fx-sec-icon{font-size:1.3rem;margin-bottom:6px}
+.fx-sec-title{font-size:.7rem;color:var(--dim);letter-spacing:.5px;margin-bottom:8px}
+.fx-sec-body{font-size:.87rem;line-height:1.8;color:var(--text)}
+
+.full-fx{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+.full-fx-title{font-size:.68rem;font-family:var(--mono);color:var(--fusion);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;direction:ltr;display:flex;align-items:center;gap:8px}
+.full-fx-title::after{content:'';flex:1;height:1px;background:rgba(255,107,43,.2)}
+.protection-box{background:var(--bg);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.04);font-size:.87rem;line-height:1.9;color:var(--text)}
+.protect-step{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.87rem;line-height:1.7}
+.protect-step:last-child{border-bottom:none}
+.ps-num{font-family:var(--mono);font-size:.7rem;font-weight:700;width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,107,43,.15);color:var(--fusion);margin-top:2px}
+
+.symptom-list{list-style:none}
+.symptom-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.87rem;line-height:1.6}
+.symptom-list li:last-child{border-bottom:none}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.sdot-r{background:var(--warn)}.sdot-o{background:var(--warn2)}.sdot-g{background:var(--accent)}
+
+.products-list{display:flex;flex-wrap:wrap;gap:8px}
+.product-chip{background:rgba(123,104,238,.12);border:1px solid rgba(123,104,238,.3);border-radius:8px;padding:6px 12px;font-family:var(--mono);font-size:.82rem;color:var(--neutron)}
+
+/* REACTION EQUATION BOX */
+.eq-box{background:var(--bg);border:1px solid rgba(255,107,43,.2);border-radius:12px;padding:16px;text-align:center;font-family:var(--mono);direction:ltr;font-size:.9rem;color:var(--text);margin-bottom:14px;line-height:1.8}
+.eq-arrow{color:var(--fusion);font-size:1.2rem;margin:0 8px}
+.eq-energy{color:var(--warn);font-weight:700}
+
+/* No-explosion box */
+.no-exp-box{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-radius:12px;padding:20px;text-align:center}
+.no-exp-icon{font-size:2.5rem;margin-bottom:10px}
+.no-exp-title{color:var(--accent);font-weight:700;font-size:1.1rem;margin-bottom:8px}
+.no-exp-body{font-size:.88rem;line-height:1.8;color:var(--text)}
+
+/* ORIGINAL REPORT STYLES */
+#report{display:none}
+.report-hero{background:linear-gradient(135deg,#0a1f18,#0d1a14);border:1px solid rgba(0,229,160,.2);border-radius:16px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.report-hero::before{content:'';position:absolute;top:-40px;left:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,.08),transparent 70%)}
+.hero-top{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.element-badge{background:linear-gradient(135deg,var(--accent),var(--a2));color:#060a0c;border-radius:14px;font-family:var(--mono);font-weight:700;font-size:1.6rem;padding:12px 18px;min-width:70px;text-align:center;line-height:1;box-shadow:0 0 30px rgba(0,229,160,.3);flex-shrink:0}
+.hero-info{flex:1}
+.hero-name{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:3px}
+.hero-en{font-family:var(--mono);color:var(--dim);font-size:.82rem;direction:ltr}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tag-rad{background:rgba(255,69,69,.15);border:1px solid var(--warn);color:var(--warn)}
+.tag-stable{background:rgba(0,229,160,.1);border:1px solid var(--accent);color:var(--accent)}
+.tag-alpha{background:rgba(255,180,0,.12);border:1px solid #ffb400;color:#ffb400}
+.tag-beta{background:rgba(0,150,255,.12);border:1px solid #0096ff;color:#0096ff}
+.tag-gamma{background:rgba(200,0,255,.12);border:1px solid #c800ff;color:#c800ff}
+.tag-info{background:rgba(0,229,160,.07);border:1px solid var(--border);color:var(--dim)}
+.danger-strip{display:flex;align-items:center;gap:16px;margin-top:18px;padding:14px;border-radius:10px;background:var(--bg);border:1px solid rgba(255,255,255,.04);flex-wrap:wrap}
+.danger-num{font-family:var(--mono);font-size:2.4rem;font-weight:700;line-height:1}
+.danger-num.high{color:var(--warn)}.danger-num.medium{color:var(--warn2)}.danger-num.low{color:var(--accent)}
+.danger-bar-wrap{flex:1;min-width:120px}
+.danger-bar-label{font-size:.7rem;color:var(--dim);margin-bottom:5px}
+.danger-bar-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.danger-bar-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.25,.46,.45,.94)}
+.danger-bar-fill.high{background:linear-gradient(90deg,var(--warn),#c00)}
+.danger-bar-fill.medium{background:linear-gradient(90deg,var(--warn2),#c55)}
+.danger-bar-fill.low{background:linear-gradient(90deg,var(--accent),var(--a2))}
+.danger-level{font-size:.82rem;font-weight:700;margin-top:4px}
+.danger-level.high{color:var(--warn)}.danger-level.medium{color:var(--warn2)}.danger-level.low{color:var(--accent)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.info-item{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px}
+.info-label{font-size:.68rem;color:var(--dim);margin-bottom:4px}
+.info-value{font-family:var(--mono);font-size:.85rem;color:var(--text);direction:ltr}
+.sections{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:640px){.sections{grid-template-columns:1fr}}
+.sec{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.sec::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.sec.human::before{background:linear-gradient(90deg,var(--warn),var(--warn2))}
+.sec.env::before{background:linear-gradient(90deg,#0096ff,var(--accent))}
+.sec.organs::before{background:linear-gradient(90deg,#c800ff,var(--warn))}
+.sec.time::before{background:linear-gradient(90deg,#ffb400,var(--warn2))}
+.sec-icon{font-size:1.3rem;margin-bottom:6px}
+.sec-title{font-size:.7rem;color:var(--dim);letter-spacing:.5px;margin-bottom:8px}
+.sec-body{font-size:.88rem;line-height:1.8;color:var(--text)}
+.full-sec{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+.full-sec-title{font-size:.68rem;font-family:var(--mono);color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;direction:ltr;display:flex;align-items:center;gap:8px}
+.full-sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.treatment-card{border-radius:14px;overflow:hidden;margin-bottom:14px;border:1px solid}
+.treatment-card.yes{border-color:rgba(0,229,160,.3)}.treatment-card.no{border-color:rgba(255,69,69,.4)}
+.treatment-head{display:flex;align-items:center;gap:14px;padding:16px 20px}
+.treatment-card.yes .treatment-head{background:rgba(0,229,160,.07)}
+.treatment-card.no .treatment-head{background:rgba(255,69,69,.08)}
+.t-icon{font-size:1.8rem;flex-shrink:0}
+.t-badge{font-size:.68rem;font-family:var(--mono);font-weight:700;border-radius:20px;padding:3px 10px;letter-spacing:1px;margin-bottom:4px;display:inline-block}
+.treatment-card.yes .t-badge{background:rgba(0,229,160,.15);border:1px solid var(--accent);color:var(--accent)}
+.treatment-card.no .t-badge{background:rgba(255,69,69,.15);border:1px solid var(--warn);color:var(--warn)}
+.t-title{font-size:1rem;font-weight:700}
+.treatment-card.yes .t-title{color:var(--accent)}.treatment-card.no .t-title{color:var(--warn)}
+.treatment-body-inner{background:var(--bg);padding:16px 20px}
+.no-treat-warn{display:flex;align-items:flex-start;gap:10px;background:rgba(255,69,69,.06);border:1px solid rgba(255,69,69,.2);border-radius:8px;padding:12px;margin-bottom:12px}
+.no-treat-warn p{font-size:.87rem;line-height:1.7;color:#ffaaaa}
+.treat-steps{list-style:none}
+.treat-steps li{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.87rem;line-height:1.65}
+.treat-steps li:last-child{border-bottom:none}
+.step-num{font-family:var(--mono);font-size:.7rem;font-weight:700;width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.treatment-card.yes .step-num{background:rgba(0,229,160,.15);color:var(--accent)}
+.treatment-card.no .step-num{background:rgba(255,69,69,.15);color:var(--warn)}
+.chain-wrap{background:var(--bg);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.04);overflow-x:auto}
+.chain-inner{display:flex;align-items:center;gap:6px;flex-wrap:wrap;direction:ltr}
+.chain-node{font-family:var(--mono);font-size:.82rem;color:var(--accent)}
+.chain-arr{color:var(--dim)}
+#error-msg{display:none;background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.3);border-radius:14px;padding:20px;margin-bottom:20px;text-align:center}
+.err-text{font-size:.9rem;color:#ffaaaa}
+#fusionError{display:none;background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.3);border-radius:14px;padding:20px;margin-bottom:20px;text-align:center}
+
+/* ENERGY RELEASE BAR */
+.energy-bar-section{background:var(--bg);border-radius:12px;padding:14px;border:1px solid rgba(255,107,43,.15);margin-bottom:16px}
+.eb-label{font-size:.7rem;color:var(--dim);font-family:var(--mono);margin-bottom:8px;direction:ltr}
+.eb-track{height:14px;background:var(--border);border-radius:7px;overflow:hidden;margin-bottom:6px}
+.eb-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,#ff4500,#ff8c00,#ffcc00);transition:width 1.5s cubic-bezier(.25,.46,.45,.94)}
+.eb-val{font-family:var(--mono);font-size:.85rem;color:var(--warn);text-align:right;direction:ltr}
+
+/* FOOTER */
+footer{background:var(--s1);border-top:1px solid var(--border);padding:48px 24px 40px;margin-top:30px}
+.dev-card-wrap{display:flex;justify-content:center;margin-bottom:20px}
+.dev-card{position:relative;width:100%;max-width:520px;background:#0f1724;border:1px solid #1a2640;border-radius:20px;padding:44px 42px 36px;overflow:hidden;font-family:'Cairo',sans-serif}
+.dev-card::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(0,229,160,.06) 0%,transparent 70%);pointer-events:none}
+.dev-card::after{content:'';position:absolute;top:0;right:48px;left:48px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);border-radius:0 0 2px 2px}
+.dc-atom{width:46px;height:46px;margin-bottom:22px}
+.dc-rank{font-family:var(--mono);font-size:10px;letter-spacing:3.5px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;opacity:.8}
+.dc-name{font-size:1.8rem;font-weight:900;color:#f0f6ff;line-height:1.2;margin-bottom:5px}
+.dc-title{font-size:.92rem;font-weight:300;color:#4a7870;margin-bottom:28px;letter-spacing:.5px}
+.dc-title strong{color:var(--accent);font-weight:600}
+.dc-hr{border:none;border-top:1px solid #1a2640;margin-bottom:24px}
+.dc-bio{font-size:.88rem;color:#8aa0bc;line-height:1.9;margin-bottom:28px}
+.dc-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.dc-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--accent);background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.2);padding:5px 12px;border-radius:20px;text-transform:uppercase}
+.dc-foot{display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid #1a2640}
+.dc-foot-label{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:#2a3d55;text-transform:uppercase}
+.dc-pulse-wrap{display:flex;align-items:center;gap:7px}
+.dc-pulse{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:dcBlink 2s ease infinite}
+@keyframes dcBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,229,160,.5)}50%{opacity:.5;box-shadow:0 0 0 5px rgba(0,229,160,0)}}
+.dc-pulse-text{font-family:var(--mono);font-size:8.5px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase}
+.footer-sub{color:var(--dim);font-size:.72rem;font-family:var(--mono);direction:ltr;text-align:center}
+
+/* DISCLAIMER */
+.disclaimer{background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.78rem;color:#cc8800;line-height:1.7;text-align:center}
+</style>
+</head>
+<body>
+
+<svg id=&quot;atom-bg&quot; viewBox=&quot;0 0 100 100&quot; fill=&quot;none&quot;>
+  <ellipse class=&quot;eb1&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;48&quot; ry=&quot;18&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;0.8&quot;/>
+  <ellipse class=&quot;eb2&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;48&quot; ry=&quot;18&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;0.8&quot; transform=&quot;rotate(60 50 50)&quot;/>
+  <ellipse class=&quot;eb3&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;48&quot; ry=&quot;18&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;0.8&quot; transform=&quot;rotate(120 50 50)&quot;/>
+  <circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;5&quot; fill=&quot;#00e5a0&quot;/>
+  <circle cx=&quot;98&quot; cy=&quot;50&quot; r=&quot;2.5&quot; fill=&quot;#ff4545&quot;/>
+  <circle cx=&quot;26&quot; cy=&quot;89&quot; r=&quot;2.5&quot; fill=&quot;#ff4545&quot;/>
+  <circle cx=&quot;26&quot; cy=&quot;11&quot; r=&quot;2.5&quot; fill=&quot;#ff4545&quot;/>
+</svg>
+
+<header>
+  <div class=&quot;scan-line&quot;></div>
+  <div class=&quot;logo-row&quot;>
+    <div class=&quot;atom&quot;>
+      <svg viewBox=&quot;0 0 100 100&quot; fill=&quot;none&quot;>
+        <ellipse class=&quot;e1&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;46&quot; ry=&quot;17&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1.8&quot; opacity=&quot;0.5&quot;/>
+        <ellipse class=&quot;e2&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;46&quot; ry=&quot;17&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1.8&quot; opacity=&quot;0.35&quot; transform=&quot;rotate(60 50 50)&quot;/>
+        <ellipse class=&quot;e3&quot; cx=&quot;50&quot; cy=&quot;50&quot; rx=&quot;46&quot; ry=&quot;17&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1.8&quot; opacity=&quot;0.22&quot; transform=&quot;rotate(120 50 50)&quot;/>
+        <circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;9&quot; fill=&quot;#00e5a0&quot;/>
+        <circle cx=&quot;96&quot; cy=&quot;50&quot; r=&quot;4&quot; fill=&quot;#ff4545&quot;/>
+        <circle cx=&quot;28.5&quot; cy=&quot;86&quot; r=&quot;4&quot; fill=&quot;#ff4545&quot;/>
+        <circle cx=&quot;28.5&quot; cy=&quot;14&quot; r=&quot;4&quot; fill=&quot;#ff4545&quot;/>
+      </svg>
+    </div>
+    <h1>محلل النظائر المشعة</h1>
+  </div>
+  <div class=&quot;sub&quot;>RADIOACTIVE ISOTOPE ANALYZER v5.1 · HAZARD · FUSION · CHEMISTRY · 40 ISOTOPES</div>
+</header>
+
+<div class=&quot;wrap&quot;>
+
+  <!-- TAB NAV -->
+  <div class=&quot;tab-nav&quot;>
+    <button class=&quot;tab-btn active&quot; id=&quot;tab1&quot;>☢ تحليل نظير</button>
+    <button class=&quot;tab-btn fusion-tab&quot; id=&quot;tab2&quot;>💥 دمج النظائر وتحليل الانفجار</button>
+    <button class=&quot;tab-btn chem-tab&quot; id=&quot;tab3&quot;>📚 الكيمياء العامة</button>
+  </div>
+
+  <!-- ══════════ ANALYZER PANEL ══════════ -->
+  <div class=&quot;analyzer-panel active&quot; id=&quot;analyzerPanel&quot;>
+    <div class=&quot;search-card&quot;>
+      <div class=&quot;card-label&quot;>// INPUT ISOTOPE</div>
+      <div class=&quot;input-row&quot;>
+        <input id=&quot;searchInput&quot; type=&quot;text&quot; placeholder=&quot;ابحث عن نظير... مثلاً: U-235 أو Radon أو يورانيوم&quot; />
+        <button class=&quot;btn&quot; id=&quot;analyzeBtn&quot;>⚛ تحليل</button>
+      </div>
+      <div class=&quot;quick-wrap&quot; id=&quot;quickBtns&quot;></div>
+      <div class=&quot;hint&quot;>اختر من الأزرار أعلاه أو اكتب اسم النظير للبحث — 40 نظير مشع مُحلَّل</div>
+    </div>
+    <div id=&quot;error-msg&quot;><div class=&quot;err-text&quot; id=&quot;errText&quot;>لم يُعثر على هذا النظير.</div></div>
+    <div id=&quot;report&quot;>
+      <div class=&quot;report-hero&quot;>
+        <div class=&quot;hero-top&quot;>
+          <div class=&quot;element-badge&quot; id=&quot;rSym&quot;>-</div>
+          <div class=&quot;hero-info&quot;>
+            <div class=&quot;hero-name&quot; id=&quot;rName&quot;>-</div>
+            <div class=&quot;hero-en&quot; id=&quot;rEn&quot;>-</div>
+            <div class=&quot;hero-tags&quot; id=&quot;rTags&quot;></div>
+          </div>
+        </div>
+        <div class=&quot;danger-strip&quot;>
+          <div>
+            <div style=&quot;font-size:.7rem;color:var(--dim);margin-bottom:4px&quot;>مستوى الخطر</div>
+            <div class=&quot;danger-num&quot; id=&quot;rScore&quot;>-</div>
+          </div>
+          <div class=&quot;danger-bar-wrap&quot;>
+            <div class=&quot;danger-bar-label&quot;>مقياس الخطر من 100</div>
+            <div class=&quot;danger-bar-track&quot;><div class=&quot;danger-bar-fill&quot; id=&quot;rBar&quot; style=&quot;width:0%&quot;></div></div>
+            <div class=&quot;danger-level&quot; id=&quot;rLevel&quot;>-</div>
+          </div>
+        </div>
+      </div>
+      <div class=&quot;info-grid&quot; id=&quot;rInfoGrid&quot;></div>
+      <div class=&quot;full-sec&quot; id=&quot;rChainSec&quot; style=&quot;display:none&quot;>
+        <div class=&quot;full-sec-title&quot;>// DECAY CHAIN</div>
+        <div class=&quot;chain-wrap&quot;><div class=&quot;chain-inner&quot; id=&quot;rChain&quot;></div></div>
+      </div>
+      <div class=&quot;sections&quot;>
+        <div class=&quot;sec human&quot;><div class=&quot;sec-icon&quot;>🧬</div><div class=&quot;sec-title&quot;>التأثير على جسم الإنسان</div><div class=&quot;sec-body&quot; id=&quot;rHuman&quot;>-</div></div>
+        <div class=&quot;sec env&quot;><div class=&quot;sec-icon&quot;>🌍</div><div class=&quot;sec-title&quot;>التأثير على البيئة</div><div class=&quot;sec-body&quot; id=&quot;rEnv&quot;>-</div></div>
+        <div class=&quot;sec organs&quot;><div class=&quot;sec-icon&quot;>🫀</div><div class=&quot;sec-title&quot;>الأعضاء الأكثر تضرراً</div><div class=&quot;sec-body&quot; id=&quot;rOrgans&quot;>-</div></div>
+        <div class=&quot;sec time&quot;><div class=&quot;sec-icon&quot;>⏱</div><div class=&quot;sec-title&quot;>مدة ظهور الأعراض</div><div class=&quot;sec-body&quot; id=&quot;rTime&quot;>-</div></div>
+      </div>
+      <div class=&quot;full-sec&quot;>
+        <div class=&quot;full-sec-title&quot;>// SYMPTOMS</div>
+        <ul class=&quot;symptom-list&quot; id=&quot;rSymptoms&quot;></ul>
+      </div>
+      <div class=&quot;full-sec&quot;>
+        <div class=&quot;full-sec-title&quot;>// PROTECTION</div>
+        <div class=&quot;protection-box&quot; id=&quot;rProtection&quot;>-</div>
+      </div>
+      <div class=&quot;treatment-card&quot; id=&quot;rTreatCard&quot;>
+        <div class=&quot;treatment-head&quot;>
+          <div class=&quot;t-icon&quot; id=&quot;rTIcon&quot;>💊</div>
+          <div>
+            <div class=&quot;t-badge&quot; id=&quot;rTBadge&quot;>TREATMENT</div>
+            <div class=&quot;t-title&quot; id=&quot;rTTitle&quot;>-</div>
+          </div>
+        </div>
+        <div class=&quot;treatment-body-inner&quot; id=&quot;rTBody&quot;></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ FUSION PANEL ══════════ -->
+  <div class=&quot;fusion-panel&quot; id=&quot;fusionPanel&quot;>
+
+    <div class=&quot;disclaimer&quot;>
+      ⚠️ هذا التحليل لأغراض تعليمية وعلمية بحتة. جميع الحسابات تقريبية مبنية على مبادئ الفيزياء النووية.
+    </div>
+
+    <div class=&quot;fusion-card&quot;>
+      <div class=&quot;card-label fusion-label&quot;>// SELECT ISOTOPES FOR REACTION</div>
+
+      <!-- REACTION TYPE -->
+      <div style=&quot;margin-bottom:12px;font-size:.75rem;color:var(--dim)&quot;>نوع التفاعل:</div>
+      <div class=&quot;rxn-selector&quot;>
+        <button class=&quot;rxn-btn selected&quot; id=&quot;rxnFission&quot;>⚡ انشطار نووي</button>
+        <button class=&quot;rxn-btn&quot; id=&quot;rxnFusion&quot;>☀ اندماج نووي</button>
+        <button class=&quot;rxn-btn&quot; id=&quot;rxnChemRad&quot;>🧪 تفاعل كيميائي + إشعاع</button>
+        <button class=&quot;rxn-btn&quot; id=&quot;rxnDirty&quot;>💣 قنبلة قذرة</button>
+      </div>
+
+      <!-- ISOTOPE SELECTION -->
+      <div class=&quot;fusion-row&quot;>
+        <div class=&quot;fusion-field&quot;>
+          <label>النظير الأول</label>
+          <input class=&quot;fusion-input&quot; id=&quot;iso1Input&quot; type=&quot;text&quot; placeholder=&quot;مثلاً: U-235&quot; />
+          <div style=&quot;margin-top:6px;font-size:.7rem;color:var(--dim)&quot; id=&quot;iso1Hint&quot;></div>
+        </div>
+        <div class=&quot;fusion-plus&quot; id=&quot;fusionOp&quot;>+</div>
+        <div class=&quot;fusion-field&quot;>
+          <label>النظير الثاني</label>
+          <input class=&quot;fusion-input&quot; id=&quot;iso2Input&quot; type=&quot;text&quot; placeholder=&quot;مثلاً: Pu-239&quot; />
+          <div style=&quot;margin-top:6px;font-size:.7rem;color:var(--dim)&quot; id=&quot;iso2Hint&quot;></div>
+        </div>
+      </div>
+
+      <!-- MASS INPUTS -->
+      <div class=&quot;mass-row&quot;>
+        <div class=&quot;mass-field&quot;>
+          <label>كتلة النظير الأول (كجم)</label>
+          <input class=&quot;fusion-input&quot; id=&quot;mass1&quot; type=&quot;number&quot; placeholder=&quot;1.0&quot; value=&quot;1&quot; min=&quot;0.001&quot; max=&quot;10000&quot; step=&quot;0.001&quot;/>
+        </div>
+        <div class=&quot;mass-field&quot;>
+          <label>كتلة النظير الثاني (كجم)</label>
+          <input class=&quot;fusion-input&quot; id=&quot;mass2&quot; type=&quot;number&quot; placeholder=&quot;1.0&quot; value=&quot;1&quot; min=&quot;0.001&quot; max=&quot;10000&quot; step=&quot;0.001&quot;/>
+        </div>
+      </div>
+      <div class=&quot;unit-note&quot;>الكتلة بالكيلوغرام · الحد الأقصى 10,000 كجم لكل نظير</div>
+
+      <!-- QUICK SELECT -->
+      <div style=&quot;margin-bottom:10px;font-size:.72rem;color:var(--dim);font-family:var(--mono)&quot;>اختيار سريع للنظير الأول:</div>
+      <div class=&quot;quick-wrap&quot; id=&quot;fusionQuick1&quot; style=&quot;margin-bottom:14px&quot;></div>
+      <div style=&quot;margin-bottom:10px;font-size:.72rem;color:var(--dim);font-family:var(--mono)&quot;>اختيار سريع للنظير الثاني:</div>
+      <div class=&quot;quick-wrap&quot; id=&quot;fusionQuick2&quot; style=&quot;margin-bottom:16px&quot;></div>
+
+      <button class=&quot;btn-fusion&quot; id=&quot;fusionBtn&quot; >💥 تحليل التفاعل والانفجار</button>
+    </div>
+
+    <div id=&quot;fusionError&quot;><div class=&quot;err-text&quot; id=&quot;fusionErrText&quot;>خطأ في البيانات.</div></div>
+    <div id=&quot;fusionReport&quot;></div>
+  </div>
+
+  <!-- ══════════ CHEMISTRY PANEL (تعليمي بحت — بدون تفاعلات) ══════════ -->
+  <div class=&quot;chem-panel&quot; id=&quot;chemPanel&quot;>
+    <div class=&quot;disclaimer&quot;>
+      📚 هذا القسم تعليمي بحت لعرض خصائص العناصر الكيميائية وتاريخها واستخداماتها المشروعة فقط — لا يتضمن أي طرق دمج أو تفاعل بين المواد.
+    </div>
+
+    <div class=&quot;search-card&quot;>
+      <div class=&quot;card-label&quot; style=&quot;color:#7ab0ff&quot;>// PERIODIC ELEMENT BROWSER</div>
+      <div class=&quot;input-row&quot;>
+        <input id=&quot;chemSearchInput&quot; type=&quot;text&quot; placeholder=&quot;ابحث عن عنصر... مثلاً: Fe أو حديد أو Oxygen&quot; />
+        <button class=&quot;btn&quot; id=&quot;chemAnalyzeBtn&quot; style=&quot;background:#4488ff;color:#fff&quot;>🔬 عرض</button>
+      </div>
+      <div class=&quot;chem-filter-row&quot; id=&quot;chemFilterRow&quot;></div>
+      <div class=&quot;chem-grid&quot; id=&quot;chemGrid&quot;></div>
+      <div class=&quot;hint&quot;>اضغط على أي عنصر لعرض خصائصه الكاملة — تصنيفه، تاريخ اكتشافه، واستخداماته اليومية</div>
+    </div>
+
+    <div class=&quot;chem-card&quot; id=&quot;chemCard&quot;>
+      <div class=&quot;chem-hero-top&quot;>
+        <div class=&quot;chem-badge&quot; id=&quot;cSym&quot;>-</div>
+        <div class=&quot;chem-hero-info&quot;>
+          <div class=&quot;chem-hero-name&quot; id=&quot;cName&quot;>-</div>
+          <div class=&quot;chem-hero-en&quot; id=&quot;cEn&quot;>-</div>
+          <div class=&quot;chem-tags&quot; id=&quot;cTags&quot;></div>
+        </div>
+      </div>
+      <div class=&quot;chem-info-grid&quot; id=&quot;cInfoGrid&quot;></div>
+      <div class=&quot;chem-sections&quot;>
+        <div class=&quot;chem-sec&quot;><div class=&quot;chem-sec-icon&quot;>🏭</div><div class=&quot;chem-sec-title&quot;>الاستخدامات المشروعة</div><div class=&quot;chem-sec-body&quot; id=&quot;cUses&quot;>-</div></div>
+        <div class=&quot;chem-sec&quot;><div class=&quot;chem-sec-icon&quot;>📜</div><div class=&quot;chem-sec-title&quot;>قصة الاكتشاف</div><div class=&quot;chem-sec-body&quot; id=&quot;cHistory&quot;>-</div></div>
+        <div class=&quot;chem-sec&quot;><div class=&quot;chem-sec-icon&quot;>🌎</div><div class=&quot;chem-sec-title&quot;>أين يوجد طبيعياً</div><div class=&quot;chem-sec-body&quot; id=&quot;cWhere&quot;>-</div></div>
+        <div class=&quot;chem-sec&quot;><div class=&quot;chem-sec-icon&quot;>⚛️</div><div class=&quot;chem-sec-title&quot;>خصائص فيزيائية</div><div class=&quot;chem-sec-body&quot; id=&quot;cPhys&quot;>-</div></div>
+      </div>
+    </div>
+
+    <div class=&quot;bond-box&quot;>
+      <div class=&quot;card-label&quot; style=&quot;color:#7ab0ff&quot;>// CHEMICAL BONDING — مفاهيم نظرية عامة</div>
+      <div class=&quot;bond-row&quot;>
+        <div class=&quot;bond-icon&quot;>🔗</div>
+        <div><div class=&quot;bond-title&quot;>الرابطة الأيونية (Ionic Bond)</div><div class=&quot;bond-body&quot;>تنتج من انتقال إلكترون كامل من ذرة فلزية لذرة غير فلزية، فتتكون أيونات متضادة الشحنة تتجاذب كهربائياً. مثال نظري كلاسيكي: ملح الطعام (كلوريد الصوديوم) حيث يفقد الصوديوم إلكتروناً ويكسبه الكلور.</div></div>
+      <div class=&quot;bond-row&quot;>
+        <div class=&quot;bond-icon&quot;>⚛️</div>
+        <div><div class=&quot;bond-title&quot;>الرابطة التساهمية (Covalent Bond)</div><div class=&quot;bond-body&quot;>تنتج من مشاركة زوج إلكترونات أو أكثر بين ذرتين غير فلزيتين. توجد في غالبية الجزيئات العضوية وفي غازات كالأكسجين والنيتروجين الجوي.</div></div>
+      </div>
+      <div class=&quot;bond-row&quot;>
+        <div class=&quot;bond-icon&quot;>🔩</div>
+        <div><div class=&quot;bond-title&quot;>الرابطة الفلزية (Metallic Bond)</div><div class=&quot;bond-body&quot;>تنتج من &quot;بحر&quot; إلكترونات حرة الحركة بين ذرات فلزية متلاصقة، وهي ما يفسر الموصلية الكهربائية والحرارية العالية وقابلية الطرق والسحب في الفلزات.</div></div>
+      </div>
+      <div class=&quot;bond-row&quot;>
+        <div class=&quot;bond-icon&quot;>📊</div>
+        <div><div class=&quot;bond-title&quot;>الجدول الدوري وتنظيمه</div><div class=&quot;bond-body&quot;>العناصر مرتبة بترتيب تصاعدي للعدد الذري (عدد البروتونات)، وتتوزع في أعمدة (مجموعات) تتشابه خصائصها الكيميائية، وصفوف (دورات) يزداد فيها عدد المدارات الإلكترونية.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class=&quot;dev-card-wrap&quot;>
+    <div class=&quot;dev-card&quot;>
+      <svg class=&quot;dc-atom&quot; viewBox=&quot;0 0 52 52&quot; fill=&quot;none&quot;>
+        <circle cx=&quot;26&quot; cy=&quot;26&quot; r=&quot;4&quot; fill=&quot;#00e5a0&quot; opacity=&quot;.9&quot;/>
+        <ellipse cx=&quot;26&quot; cy=&quot;26&quot; rx=&quot;22&quot; ry=&quot;8&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1&quot; opacity=&quot;.35&quot;/>
+        <ellipse cx=&quot;26&quot; cy=&quot;26&quot; rx=&quot;22&quot; ry=&quot;8&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1&quot; opacity=&quot;.35&quot; transform=&quot;rotate(60 26 26)&quot;/>
+        <ellipse cx=&quot;26&quot; cy=&quot;26&quot; rx=&quot;22&quot; ry=&quot;8&quot; stroke=&quot;#00e5a0&quot; stroke-width=&quot;1&quot; opacity=&quot;.35&quot; transform=&quot;rotate(120 26 26)&quot;/>
+        <circle r=&quot;2.5&quot; fill=&quot;#ff6b2b&quot;>
+          <animateMotion dur=&quot;2.4s&quot; repeatCount=&quot;indefinite&quot;>
+            <mpath href=&quot;#dcP1&quot;/>
+          </animateMotion>
+        </circle>
+        <path id=&quot;dcP1&quot; d=&quot;M 48 26 A 22 8 0 1 0 4 26 A 22 8 0 1 0 48 26&quot; fill=&quot;none&quot;/>
+        <circle r=&quot;2.5&quot; fill=&quot;#fff&quot; opacity=&quot;.7&quot;>
+          <animateMotion dur=&quot;3.2s&quot; repeatCount=&quot;indefinite&quot; begin=&quot;-1s&quot;>
+            <mpath href=&quot;#dcP2&quot;/>
+          </animateMotion>
+        </circle>
+        <path id=&quot;dcP2&quot; d=&quot;M 48 26 A 22 8 0 1 0 4 26 A 22 8 0 1 0 48 26&quot; fill=&quot;none&quot; transform=&quot;rotate(60 26 26)&quot;/>
+      </svg>
+      
+      <div class=&quot;dc-name&quot;>أحمد يحيى أحمد</div>
+      
+      
+  <div class=&quot;footer-sub&quot;>Radioactive Isotope Analyzer v5.1 · Static Edition · 40 Isotopes · Fusion Module · 2025</div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ISOTOPE DATABASE (condensed key isotopes)
+// ═══════════════════════════════════════════════════════════
+var ISOTOPES=[
+{symbol:&quot;U-235&quot;,elementSymbol:&quot;U&quot;,nameAr:&quot;يورانيوم-235&quot;,nameEn:&quot;Uranium-235&quot;,Z:92,A:235,radioactive:true,halflife:&quot;703.8 مليون سنة&quot;,radiation:[&quot;alpha&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Th-231&quot;,chain:[&quot;U-235&quot;,&quot;Th-231&quot;,&quot;Pa-231&quot;,&quot;Ac-227&quot;,&quot;Th-227&quot;,&quot;Ra-223&quot;,&quot;Rn-219&quot;,&quot;Po-215&quot;,&quot;Pb-211&quot;,&quot;Bi-211&quot;,&quot;Tl-207&quot;,&quot;Pb-207(stable)&quot;],energy:&quot;4.68 MeV&quot;,use:&quot;وقود نووي وأسلحة نووية&quot;,dangerScore:95,human:&quot;يسبب تلفاً للحمض النووي DNA وزيادة خطر سرطان الرئة والعظام&quot;,env:&quot;ملوث بيئي خطير يستمر آلاف السنين في التربة والمياه الجوفية&quot;,organs:&quot;الكلى، الرئتان، نخاع العظام&quot;,time:&quot;قد تظهر الأعراض المزمنة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان الرئة والعظام&quot;},{s:&quot;high&quot;,t:&quot;فشل كلوي حاد&quot;},{s:&quot;medium&quot;,t:&quot;ضعف الجهاز المناعي&quot;},{s:&quot;medium&quot;,t:&quot;تلف الحمض النووي&quot;},{s:&quot;low&quot;,t:&quot;الغثيان والإرهاق&quot;}],protection:&quot;استخدم دروع الرصاص السميكة، ابتعد مسافة آمنة، ارتدِ بدلة واقية كاملة&quot;,treatmentAvailable:true,treatmentTitle:&quot;يوجد علاج داعم جزئي&quot;,treatmentSteps:[&quot;إزالة التلوث الفوري وغسل الجسم&quot;,&quot;غسيل الكلى لإزالة السموم&quot;,&quot;عوامل مخلبة (DTPA)&quot;,&quot;علاج داعم لنخاع العظام&quot;,&quot;متابعة طويلة الأمد&quot;],fissile:true,criticalMass:52,fusible:false},
+{symbol:&quot;Pu-239&quot;,elementSymbol:&quot;Pu&quot;,nameAr:&quot;بلوتونيوم-239&quot;,nameEn:&quot;Plutonium-239&quot;,Z:94,A:239,radioactive:true,halflife:&quot;24100 سنة&quot;,radiation:[&quot;alpha&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;U-235&quot;,chain:[&quot;Pu-239&quot;,&quot;U-235&quot;,&quot;Th-231&quot;,&quot;Pb-207(stable)&quot;],energy:&quot;5.24 MeV&quot;,use:&quot;أسلحة نووية ووقود مفاعلات&quot;,dangerScore:99,human:&quot;من أشد المواد سمية للإنسان، ذرة واحدة مستنشقة قد تسبب سرطان الرئة&quot;,env:&quot;ملوث دائم للتربة والمياه، يتراكم في السلسلة الغذائية&quot;,organs:&quot;الرئتان، الكبد، نخاع العظام، العظام&quot;,time:&quot;سرطان بعد سنوات أو عقود&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان الرئة والكبد&quot;},{s:&quot;high&quot;,t:&quot;قصور نخاع العظام&quot;},{s:&quot;medium&quot;,t:&quot;هشاشة العظام&quot;},{s:&quot;medium&quot;,t:&quot;تلف الكبد&quot;}],protection:&quot;بدلة واقية كاملة P3، لا تلمس أبداً، تهوية قوية&quot;,treatmentAvailable:false,treatmentTitle:&quot;لا يوجد علاج فعال&quot;,treatmentSteps:[&quot;إخلاء المنطقة فوراً&quot;,&quot;إزالة التلوث الشاملة&quot;,&quot;رعاية داعمة&quot;,&quot;مراقبة طويلة الأمد&quot;],fissile:true,criticalMass:10,fusible:false},
+{symbol:&quot;U-238&quot;,elementSymbol:&quot;U&quot;,nameAr:&quot;يورانيوم-238&quot;,nameEn:&quot;Uranium-238&quot;,Z:92,A:238,radioactive:true,halflife:&quot;4.47 مليار سنة&quot;,radiation:[&quot;alpha&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Th-234&quot;,chain:[&quot;U-238&quot;,&quot;Th-234&quot;,&quot;Pa-234&quot;,&quot;U-234&quot;,&quot;Th-230&quot;,&quot;Ra-226&quot;,&quot;Rn-222&quot;,&quot;Pb-206(stable)&quot;],energy:&quot;4.27 MeV&quot;,use:&quot;وقود نووي (نظير خصيب)، يورانيوم منضب&quot;,dangerScore:60,human:&quot;أقل خطورة من U-235 لكن سام كيميائياً وإشعاعياً&quot;,env:&quot;ملوث بيئي طويل الأمد جداً&quot;,organs:&quot;الكلى، العظام&quot;,time:&quot;أعراض مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;medium&quot;,t:&quot;فشل كلوي تدريجي&quot;},{s:&quot;medium&quot;,t:&quot;زيادة خطر السرطان&quot;},{s:&quot;low&quot;,t:&quot;الإرهاق العام&quot;}],protection:&quot;دروع رصاص، قفازات، تجنب الاستنشاق&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج داعم&quot;,treatmentSteps:[&quot;DTPA لتسريع الإخراج&quot;,&quot;غسيل الكلى&quot;,&quot;مراقبة دورية&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;H-2&quot;,elementSymbol:&quot;H&quot;,nameAr:&quot;ديوتيريوم&quot;,nameEn:&quot;Deuterium&quot;,Z:1,A:2,radioactive:false,halflife:&quot;مستقر&quot;,radiation:[],decayMode:&quot;مستقر&quot;,decayProduct:&quot;—&quot;,chain:[&quot;H-2(stable)&quot;],energy:&quot;—&quot;,use:&quot;وقود الاندماج النووي، الماء الثقيل&quot;,dangerScore:5,human:&quot;غير مشع، خطره فقط في تفاعلات الاندماج&quot;,env:&quot;موجود طبيعياً في الماء&quot;,organs:&quot;—&quot;,time:&quot;—&quot;,symptoms:[{s:&quot;low&quot;,t:&quot;لا أعراض إشعاعية — خطره في الاندماج فقط&quot;}],protection:&quot;الوقاية من الاندماج والنيوترونات الناتجة&quot;,treatmentAvailable:true,treatmentTitle:&quot;لا علاج مطلوب&quot;,treatmentSteps:[&quot;لا خطر إشعاعي مباشر&quot;],fissile:false,criticalMass:999,fusible:true,fusionPartner:&quot;H-3&quot;},
+{symbol:&quot;H-3&quot;,elementSymbol:&quot;H&quot;,nameAr:&quot;تريتيوم&quot;,nameEn:&quot;Tritium&quot;,Z:1,A:3,radioactive:true,halflife:&quot;12.32 سنة&quot;,radiation:[&quot;beta&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;He-3(stable)&quot;,chain:[&quot;H-3&quot;,&quot;He-3(stable)&quot;],energy:&quot;0.0186 MeV&quot;,use:&quot;أسلحة هيدروجينية، أجهزة ليلية، مفاعلات اندماج&quot;,dangerScore:30,human:&quot;يندمج في جزيئات الماء ويدخل الجسم بسهولة&quot;,env:&quot;موجود طبيعياً بكميات ضئيلة&quot;,organs:&quot;الخلايا بشكل عام&quot;,time:&quot;آثار طويلة الأمد&quot;,symptoms:[{s:&quot;medium&quot;,t:&quot;طفرات جينية&quot;},{s:&quot;low&quot;,t:&quot;زيادة خطر السرطان&quot;}],protection:&quot;تجنب استنشاق البخار والماء الملوث&quot;,treatmentAvailable:true,treatmentTitle:&quot;شرب كميات كبيرة من الماء&quot;,treatmentSteps:[&quot;شرب 3-4 لتر ماء يومياً&quot;,&quot;مراقبة بول&quot;,&quot;تقليل التعرض&quot;],fissile:false,criticalMass:999,fusible:true,fusionPartner:&quot;H-2&quot;},
+{symbol:&quot;Ra-226&quot;,elementSymbol:&quot;Ra&quot;,nameAr:&quot;راديوم-226&quot;,nameEn:&quot;Radium-226&quot;,Z:88,A:226,radioactive:true,halflife:&quot;1600 سنة&quot;,radiation:[&quot;alpha&quot;,&quot;beta&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Rn-222&quot;,chain:[&quot;Ra-226&quot;,&quot;Rn-222&quot;,&quot;Po-218&quot;,&quot;Pb-214&quot;,&quot;Bi-214&quot;,&quot;Po-214&quot;,&quot;Pb-210&quot;,&quot;Bi-210&quot;,&quot;Po-210&quot;,&quot;Pb-206(stable)&quot;],energy:&quot;4.87 MeV&quot;,use:&quot;سابقاً في الطلاء المضيء، الآن طبي محدود&quot;,dangerScore:90,human:&quot;يتراكم في العظام ويحل محل الكالسيوم&quot;,env:&quot;يولد غاز الرادون المشع&quot;,organs:&quot;العظام، الدم، نخاع العظام&quot;,time:&quot;أعراض مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان العظام&quot;},{s:&quot;high&quot;,t:&quot;ابيضاض الدم&quot;},{s:&quot;medium&quot;,t:&quot;فقر الدم الحاد&quot;},{s:&quot;medium&quot;,t:&quot;كسور العظام التلقائية&quot;}],protection:&quot;دروع رصاص، تجنب الابتلاع، قفازات&quot;,treatmentAvailable:false,treatmentTitle:&quot;لا علاج فعال&quot;,treatmentSteps:[&quot;رعاية داعمة&quot;,&quot;علاج الأعراض&quot;,&quot;مراقبة سرطانية مستمرة&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Cs-137&quot;,elementSymbol:&quot;Cs&quot;,nameAr:&quot;سيزيوم-137&quot;,nameEn:&quot;Caesium-137&quot;,Z:55,A:137,radioactive:true,halflife:&quot;30.17 سنة&quot;,radiation:[&quot;beta&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;Ba-137m&quot;,chain:[&quot;Cs-137&quot;,&quot;Ba-137m&quot;,&quot;Ba-137(stable)&quot;],energy:&quot;0.514 MeV&quot;,use:&quot;أجهزة قياس الكثافة، علاج السرطان&quot;,dangerScore:85,human:&quot;يتوزع في عضلات الجسم كله نظراً لشبهه بالبوتاسيوم&quot;,env:&quot;تلوث واسع للتربة والمياه، انتشر بعد تشيرنوبيل&quot;,organs:&quot;العضلات، الكلى، الغدد التناسلية&quot;,time:&quot;أعراض حادة خلال أيام، مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;متلازمة الإشعاع الحادة&quot;},{s:&quot;high&quot;,t:&quot;سرطان الغدة الدرقية والعضلات&quot;},{s:&quot;medium&quot;,t:&quot;تلف الجهاز المناعي&quot;},{s:&quot;low&quot;,t:&quot;حروق جلدية&quot;}],protection:&quot;الإخلاء الفوري، دروع رصاص سميكة، أقراص اليود&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج جزئي — Prussian Blue&quot;,treatmentSteps:[&quot;إعطاء Prussian Blue&quot;,&quot;علاج داعم&quot;,&quot;مراقبة دم مستمرة&quot;,&quot;علاج أعراض إشعاعية&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;I-131&quot;,elementSymbol:&quot;I&quot;,nameAr:&quot;يود-131&quot;,nameEn:&quot;Iodine-131&quot;,Z:53,A:131,radioactive:true,halflife:&quot;8.02 يوم&quot;,radiation:[&quot;beta&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;Xe-131(stable)&quot;,chain:[&quot;I-131&quot;,&quot;Xe-131(stable)&quot;],energy:&quot;0.606 MeV&quot;,use:&quot;علاج سرطان الغدة الدرقية وتصويرها&quot;,dangerScore:72,human:&quot;يتركز في الغدة الدرقية ويسبب تدميرها أو سرطانها&quot;,env:&quot;تلوث مؤقت نسبياً&quot;,organs:&quot;الغدة الدرقية&quot;,time:&quot;أعراض خلال أسابيع&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان الغدة الدرقية&quot;},{s:&quot;high&quot;,t:&quot;قصور الغدة الدرقية&quot;},{s:&quot;medium&quot;,t:&quot;تضخم الغدة الدرقية&quot;},{s:&quot;low&quot;,t:&quot;التعب والضعف العام&quot;}],protection:&quot;أقراص يوديد البوتاسيوم (KI)، أقنعة، تجنب الحليب الملوث&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج فعال — يوديد البوتاسيوم&quot;,treatmentSteps:[&quot;يوديد البوتاسيوم فوراً&quot;,&quot;مراقبة وظائف الغدة&quot;,&quot;هرمونات بديلة&quot;,&quot;متابعة سنوية&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Po-210&quot;,elementSymbol:&quot;Po&quot;,nameAr:&quot;بولونيوم-210&quot;,nameEn:&quot;Polonium-210&quot;,Z:84,A:210,radioactive:true,halflife:&quot;138.4 يوم&quot;,radiation:[&quot;alpha&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Pb-206(stable)&quot;,chain:[&quot;Po-210&quot;,&quot;Pb-206(stable)&quot;],energy:&quot;5.30 MeV&quot;,use:&quot;مصادر نيوترون، شحن كهرباء ساكنة صناعياً&quot;,dangerScore:98,human:&quot;من أشد المواد سمية المعروفة، الجرعة المميتة ميكروغرامات&quot;,env:&quot;تلوث محدود المدى بسبب نصف العمر القصير نسبياً&quot;,organs:&quot;الكبد، الكلى، نخاع العظام، الجهاز الهضمي&quot;,time:&quot;أعراض خلال أيام قليلة&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;فشل متعدد الأجهزة&quot;},{s:&quot;high&quot;,t:&quot;تساقط الشعر الكامل&quot;},{s:&quot;high&quot;,t:&quot;نزيف داخلي&quot;},{s:&quot;high&quot;,t:&quot;الوفاة في أيام&quot;}],protection:&quot;لا تلمس أبداً، خطير جداً عند الابتلاع&quot;,treatmentAvailable:false,treatmentTitle:&quot;لا علاج فعال&quot;,treatmentSteps:[&quot;رعاية مكثفة داعمة&quot;,&quot;نقل دم&quot;,&quot;غسيل الكلى&quot;,&quot;لا يوجد ترياق&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Co-60&quot;,elementSymbol:&quot;Co&quot;,nameAr:&quot;كوبالت-60&quot;,nameEn:&quot;Cobalt-60&quot;,Z:27,A:60,radioactive:true,halflife:&quot;5.27 سنة&quot;,radiation:[&quot;beta&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;Ni-60(stable)&quot;,chain:[&quot;Co-60&quot;,&quot;Ni-60(stable)&quot;],energy:&quot;2.82 MeV&quot;,use:&quot;علاج الأورام، تعقيم الأغذية&quot;,dangerScore:80,human:&quot;أشعة جاما عالية الطاقة تخترق الجسم كله&quot;,env:&quot;تلوث بيئي متوسط الأمد&quot;,organs:&quot;نخاع العظام، الجهاز الهضمي، الجلد&quot;,time:&quot;أعراض حادة خلال ساعات لأيام&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;متلازمة الإشعاع الحادة&quot;},{s:&quot;high&quot;,t:&quot;فشل نخاع العظام&quot;},{s:&quot;medium&quot;,t:&quot;حروق إشعاعية حادة&quot;},{s:&quot;medium&quot;,t:&quot;الغثيان والقيء الشديد&quot;}],protection:&quot;دروع رصاص أو كونكريت سميكة، مسافة أمان كبيرة&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج داعم وزرع نخاع&quot;,treatmentSteps:[&quot;إزالة التلوث الفورية&quot;,&quot;علاج داعم مكثف&quot;,&quot;زرع نخاع العظام&quot;,&quot;أدوية G-CSF&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Rn-222&quot;,elementSymbol:&quot;Rn&quot;,nameAr:&quot;رادون-222&quot;,nameEn:&quot;Radon-222&quot;,Z:86,A:222,radioactive:true,halflife:&quot;3.82 يوم&quot;,radiation:[&quot;alpha&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Po-218&quot;,chain:[&quot;Rn-222&quot;,&quot;Po-218&quot;,&quot;Pb-214&quot;,&quot;Bi-214&quot;,&quot;Po-214&quot;,&quot;Pb-210&quot;,&quot;Pb-206(stable)&quot;],energy:&quot;5.49 MeV&quot;,use:&quot;لا استخدام صناعي&quot;,dangerScore:70,human:&quot;ثاني أكبر سبب لسرطان الرئة بعد التدخين&quot;,env:&quot;غاز طبيعي ينبعث من التربة والصخور&quot;,organs:&quot;الرئتان&quot;,time:&quot;سرطان الرئة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان الرئة&quot;},{s:&quot;medium&quot;,t:&quot;التهاب مزمن في الرئة&quot;},{s:&quot;low&quot;,t:&quot;لا أعراض فورية&quot;}],protection:&quot;تهوية جيدة للمنازل، فحص مستوى الرادون&quot;,treatmentAvailable:true,treatmentTitle:&quot;الوقاية الرئيسية&quot;,treatmentSteps:[&quot;تحسين التهوية&quot;,&quot;تركيب أنظمة تفريغ الرادون&quot;,&quot;فحص دوري&quot;,&quot;إيقاف التدخين&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Am-241&quot;,elementSymbol:&quot;Am&quot;,nameAr:&quot;أمريسيوم-241&quot;,nameEn:&quot;Americium-241&quot;,Z:95,A:241,radioactive:true,halflife:&quot;432.2 سنة&quot;,radiation:[&quot;alpha&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Np-237&quot;,chain:[&quot;Am-241&quot;,&quot;Np-237&quot;,&quot;Pa-233&quot;,&quot;U-233&quot;,&quot;Th-229&quot;,&quot;Pb-205(stable)&quot;],energy:&quot;5.49 MeV&quot;,use:&quot;أجهزة إنذار الدخان&quot;,dangerScore:75,human:&quot;خطير جداً عند الاستنشاق، يتراكم في العظام والكبد&quot;,env:&quot;ملوث بيئي دائم&quot;,organs:&quot;العظام، الكبد، الكلى&quot;,time:&quot;آثار مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان العظام والكبد&quot;},{s:&quot;medium&quot;,t:&quot;فشل كبدي تدريجي&quot;},{s:&quot;medium&quot;,t:&quot;تلف الكلى&quot;}],protection:&quot;لا تفكك أجهزة إنذار الدخان، دروع رصاص&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج بعوامل مخلبة&quot;,treatmentSteps:[&quot;DTPA لتسريع الإخراج&quot;,&quot;دعم الكبد والكلى&quot;,&quot;مراقبة سرطانية&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Tc-99m&quot;,elementSymbol:&quot;Tc&quot;,nameAr:&quot;تكنيشيوم-99م&quot;,nameEn:&quot;Technetium-99m&quot;,Z:43,A:99,radioactive:true,halflife:&quot;6.01 ساعة&quot;,radiation:[&quot;gamma&quot;],decayMode:&quot;تحلل ميتاستابل&quot;,decayProduct:&quot;Tc-99&quot;,chain:[&quot;Tc-99m&quot;,&quot;Tc-99&quot;,&quot;Ru-99(stable)&quot;],energy:&quot;0.14 MeV&quot;,use:&quot;أشيع النظائر في التصوير الطبي النووي&quot;,dangerScore:15,human:&quot;خطر منخفض جداً بسبب نصف العمر القصير&quot;,env:&quot;يتحلل سريعاً جداً&quot;,organs:&quot;يتوزع حسب المركب الكيميائي&quot;,time:&quot;يزول من الجسم خلال 24 ساعة&quot;,symptoms:[{s:&quot;low&quot;,t:&quot;لا أعراض ملحوظة بالجرعات الطبية&quot;}],protection:&quot;حجرة معزولة بعد الجرعة لساعات&quot;,treatmentAvailable:true,treatmentTitle:&quot;لا علاج مطلوب&quot;,treatmentSteps:[&quot;الانتظار فقط — يتحلل تلقائياً&quot;,&quot;شرب السوائل لتسريع الإخراج&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Sr-90&quot;,elementSymbol:&quot;Sr&quot;,nameAr:&quot;سترونشيوم-90&quot;,nameEn:&quot;Strontium-90&quot;,Z:38,A:90,radioactive:true,halflife:&quot;28.8 سنة&quot;,radiation:[&quot;beta&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;Y-90&quot;,chain:[&quot;Sr-90&quot;,&quot;Y-90&quot;,&quot;Zr-90(stable)&quot;],energy:&quot;0.546 MeV&quot;,use:&quot;مصادر طاقة نظير&quot;,dangerScore:82,human:&quot;يحل محل الكالسيوم في العظام ويتراكم&quot;,env:&quot;تلوث خطير طويل الأمد للتربة والغذاء&quot;,organs:&quot;العظام، نخاع العظام&quot;,time:&quot;سرطان بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان العظام&quot;},{s:&quot;high&quot;,t:&quot;اللوكيميا&quot;},{s:&quot;medium&quot;,t:&quot;قصور نخاع العظام&quot;}],protection:&quot;تجنب الغذاء الملوث، درع كبلتوني&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج جزئي بالكالسيوم والـ DTPA&quot;,treatmentSteps:[&quot;مكملات الكالسيوم&quot;,&quot;DTPA لتسريع الإخراج&quot;,&quot;علاج داعم لنخاع العظام&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Cf-252&quot;,elementSymbol:&quot;Cf&quot;,nameAr:&quot;كاليفورنيوم-252&quot;,nameEn:&quot;Californium-252&quot;,Z:98,A:252,radioactive:true,halflife:&quot;2.645 سنة&quot;,radiation:[&quot;alpha&quot;,&quot;gamma&quot;],decayMode:&quot;انشطار عفوي وتحلل ألفا&quot;,decayProduct:&quot;Cm-248&quot;,chain:[&quot;Cf-252&quot;,&quot;Cm-248&quot;,&quot;Pu-244&quot;],energy:&quot;6.12 MeV&quot;,use:&quot;مصادر نيوترون للتنشيط النيوتروني&quot;,dangerScore:92,human:&quot;منبع نيوترونات قوي، النيوترونات تخترق الجسم بالكامل&quot;,env:&quot;ملوث خطير مستمر&quot;,organs:&quot;كل الجسم بالنيوترونات، العظام، نخاع العظام&quot;,time:&quot;أعراض حادة خلال ساعات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;متلازمة الإشعاع الحادة&quot;},{s:&quot;high&quot;,t:&quot;فشل أعضاء متعدد&quot;},{s:&quot;high&quot;,t:&quot;الوفاة بجرعات عالية&quot;}],protection:&quot;خندق ماء أو بارافين لامتصاص النيوترونات&quot;,treatmentAvailable:false,treatmentTitle:&quot;لا علاج فعال للتعرض للنيوترونات&quot;,treatmentSteps:[&quot;إخلاء فوري&quot;,&quot;رعاية مكثفة داعمة&quot;,&quot;زرع نخاع في حالات&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Th-232&quot;,elementSymbol:&quot;Th&quot;,nameAr:&quot;ثوريوم-232&quot;,nameEn:&quot;Thorium-232&quot;,Z:90,A:232,radioactive:true,halflife:&quot;14.05 مليار سنة&quot;,radiation:[&quot;alpha&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Ra-228&quot;,chain:[&quot;Th-232&quot;,&quot;Ra-228&quot;,&quot;Ac-228&quot;,&quot;Th-228&quot;,&quot;Ra-224&quot;,&quot;Rn-220&quot;,&quot;Po-216&quot;,&quot;Pb-212&quot;,&quot;Bi-212&quot;,&quot;Pb-208(stable)&quot;],energy:&quot;4.08 MeV&quot;,use:&quot;معادن خاصة، تطبيقات نووية محدودة&quot;,dangerScore:55,human:&quot;خطر متوسط، يتراكم في العظام والرئتين&quot;,env:&quot;موجود طبيعياً في الصخور والتربة&quot;,organs:&quot;العظام، الرئتان&quot;,time:&quot;أعراض مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;medium&quot;,t:&quot;سرطان العظام&quot;},{s:&quot;medium&quot;,t:&quot;سرطان الرئة&quot;},{s:&quot;low&quot;,t:&quot;أمراض الكلى&quot;}],protection:&quot;تجنب استنشاق الغبار، قفازات، تهوية&quot;,treatmentAvailable:true,treatmentTitle:&quot;علاج داعم&quot;,treatmentSteps:[&quot;عوامل مخلبة&quot;,&quot;رعاية داعمة&quot;,&quot;مراقبة دورية&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;H-1&quot;,elementSymbol:&quot;H&quot;,nameAr:&quot;بروتيوم (هيدروجين-1)&quot;,nameEn:&quot;Protium&quot;,Z:1,A:1,radioactive:false,halflife:&quot;مستقر&quot;,radiation:[],decayMode:&quot;مستقر&quot;,decayProduct:&quot;—&quot;,chain:[&quot;H-1(stable)&quot;],energy:&quot;—&quot;,use:&quot;شائع جداً — الهيدروجين العادي&quot;,dangerScore:2,human:&quot;لا خطر إشعاعي&quot;,env:&quot;لا تأثير بيئي إشعاعي&quot;,organs:&quot;—&quot;,time:&quot;—&quot;,symptoms:[{s:&quot;low&quot;,t:&quot;لا أعراض&quot;}],protection:&quot;لا حماية مطلوبة&quot;,treatmentAvailable:true,treatmentTitle:&quot;لا علاج مطلوب&quot;,treatmentSteps:[&quot;آمن تماماً&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;Np-237&quot;,elementSymbol:&quot;Np&quot;,nameAr:&quot;نبتونيوم-237&quot;,nameEn:&quot;Neptunium-237&quot;,Z:93,A:237,radioactive:true,halflife:&quot;2.14 مليون سنة&quot;,radiation:[&quot;alpha&quot;,&quot;gamma&quot;],decayMode:&quot;تحلل ألفا&quot;,decayProduct:&quot;Pa-233&quot;,chain:[&quot;Np-237&quot;,&quot;Pa-233&quot;,&quot;U-233&quot;,&quot;Th-229&quot;,&quot;Pb-205(stable)&quot;],energy:&quot;4.79 MeV&quot;,use:&quot;بحوث نووية، إنتاج Am-238&quot;,dangerScore:78,human:&quot;خطير عند الاستنشاق أو الابتلاع&quot;,env:&quot;ملوث بيئي دائم جداً&quot;,organs:&quot;العظام، الكبد&quot;,time:&quot;آثار مزمنة بعد سنوات&quot;,symptoms:[{s:&quot;high&quot;,t:&quot;سرطان العظام&quot;},{s:&quot;medium&quot;,t:&quot;تلف الكبد&quot;},{s:&quot;medium&quot;,t:&quot;تلف الكلى&quot;}],protection:&quot;بدلة واقية كاملة، دروع رصاص&quot;,treatmentAvailable:true,treatmentTitle:&quot;DTPA لتسريع الإخراج&quot;,treatmentSteps:[&quot;DTPA عاجلاً&quot;,&quot;دعم الأعضاء&quot;,&quot;مراقبة طويلة الأمد&quot;],fissile:true,criticalMass:60,fusible:false},
+{symbol:&quot;F-18&quot;,elementSymbol:&quot;F&quot;,nameAr:&quot;فلور-18&quot;,nameEn:&quot;Fluorine-18&quot;,Z:9,A:18,radioactive:true,halflife:&quot;109.77 دقيقة&quot;,radiation:[&quot;beta&quot;],decayMode:&quot;تحلل بيتا موجب&quot;,decayProduct:&quot;O-18(stable)&quot;,chain:[&quot;F-18&quot;,&quot;O-18(stable)&quot;],energy:&quot;0.634 MeV&quot;,use:&quot;التصوير بالتوضع البوزيتروني PET&quot;,dangerScore:8,human:&quot;خطر ضئيل جداً، يتحلل خلال ساعات&quot;,env:&quot;تحلل سريع جداً&quot;,organs:&quot;حسب الجزيء الحامل&quot;,time:&quot;يزول خلال ساعات&quot;,symptoms:[{s:&quot;low&quot;,t:&quot;لا أعراض بالجرعات الطبية&quot;}],protection:&quot;حماية قياسية في مرافق PET&quot;,treatmentAvailable:true,treatmentTitle:&quot;لا علاج مطلوب&quot;,treatmentSteps:[&quot;يتحلل تلقائياً خلال ساعات&quot;],fissile:false,criticalMass:999,fusible:false},
+{symbol:&quot;C-14&quot;,elementSymbol:&quot;C&quot;,nameAr:&quot;كربون-14&quot;,nameEn:&quot;Carbon-14&quot;,Z:6,A:14,radioactive:true,halflife:&quot;5730 سنة&quot;,radiation:[&quot;beta&quot;],decayMode:&quot;تحلل بيتا&quot;,decayProduct:&quot;N-14(stable)&quot;,chain:[&quot;C-14&quot;,&quot;N-14(stable)&quot;],energy:&quot;0.156 MeV&quot;,use:&quot;التأريخ الراديوكربوني، تتبع المركبات في الأبحاث&quot;,dangerScore:10,human:&quot;خطر منخفض جداً، موجود طبيعياً في أجسامنا&quot;,env:&quot;موجود طبيعياً في الغلاف الجوي&quot;,organs:&quot;خلايا الجسم عموماً&quot;,time:&quot;لا أعراض فورية&quot;,symptoms:[{s:&quot;low&quot;,t:&quot;لا أعراض ملحوظة بالمستويات الطبيعية&quot;}],protection:&quot;لا حاجة لحماية خاصة في التعامل المختبري العادي&quot;,treatmentAvailable:true,treatmentTitle:&quot;لا علاج مطلوب&quot;,treatmentSteps:[&quot;التعرض الطبيعي آمن تماماً&quot;],fissile:false,criticalMass:999,fusible:false}
+];
+
+// ═══════════════════════════════════════════════════════════
+// CHEMISTRY ELEMENTS DATABASE (تعليمي بحت — خصائص فقط، بدون أي طرق تفاعل/دمج)
+// ═══════════════════════════════════════════════════════════
+var ELEMENTS=[
+{sym:&quot;H&quot;,z:1,mass:&quot;1.008&quot;,nameAr:&quot;هيدروجين&quot;,nameEn:&quot;Hydrogen&quot;,cat:&quot;nonmetal&quot;,state:&quot;غاز&quot;,color:&quot;عديم اللون&quot;,discYear:&quot;1766&quot;,discBy:&quot;هنري كافنديش&quot;,uses:&quot;إنتاج الأمونيا والوقود، صناعة الهيدروجين السائل كوقود صاروخي، معالجة الزيوت.&quot;,history:&quot;اكتشفه العالم البريطاني هنري كافنديش، وسمّاه أنطوان لافوازييه 'هيدروجين' أي مولّد الماء.&quot;,where:&quot;أكثر عنصر انتشاراً في الكون، يدخل في تركيب الماء وكل المركبات العضوية.&quot;,phys:&quot;أخف عنصر معروف، نقطة الانصهار -259°C.&quot;},
+{sym:&quot;O&quot;,z:8,mass:&quot;15.999&quot;,nameAr:&quot;أكسجين&quot;,nameEn:&quot;Oxygen&quot;,cat:&quot;nonmetal&quot;,state:&quot;غاز&quot;,color:&quot;عديم اللون&quot;,discYear:&quot;1774&quot;,discBy:&quot;جوزيف بريستلي وكارل شيله&quot;,uses:&quot;التنفس، اللحام بالأكسي-أسيتيلين، الاستخدامات الطبية في أجهزة التنفس.&quot;,history:&quot;اكتشفه بريستلي وشيله بشكل مستقل، وسمّاه لافوازييه نسبة لدوره في تكوين الأحماض.&quot;,where:&quot;يمثل حوالي 21% من الغلاف الجوي، وعنصر أساسي في الماء والصخور.&quot;,phys:&quot;غاز ضروري للاحتراق والتنفس، نقطة الغليان -183°C.&quot;},
+{sym:&quot;C&quot;,z:6,mass:&quot;12.011&quot;,nameAr:&quot;كربون&quot;,nameEn:&quot;Carbon&quot;,cat:&quot;nonmetal&quot;,state:&quot;صلب&quot;,color:&quot;أسود (جرافيت) أو شفاف (ألماس)&quot;,discYear:&quot;معروف منذ القدم&quot;,discBy:&quot;معروف منذ العصور القديمة&quot;,uses:&quot;أساس الكيمياء العضوية وجميع الكائنات الحية، صناعة الفحم والألماس والجرافيت ومواد البناء.&quot;,history:&quot;استخدمه الإنسان كفحم منذ ما قبل التاريخ، وتم التعرف على تنوع أشكاله (الألوتروبات) عبر القرون.&quot;,where:&quot;موجود في كل الكائنات الحية، الفحم، النفط، والغاز الطبيعي.&quot;,phys:&quot;له أشكال متعددة (جرافيت، ألماس، فوليرين) بخصائص فيزيائية مختلفة جداً لكل شكل.&quot;},
+{sym:&quot;N&quot;,z:7,mass:&quot;14.007&quot;,nameAr:&quot;نيتروجين&quot;,nameEn:&quot;Nitrogen&quot;,cat:&quot;nonmetal&quot;,state:&quot;غاز&quot;,color:&quot;عديم اللون&quot;,discYear:&quot;1772&quot;,discBy:&quot;دانيال رذرفورد&quot;,uses:&quot;تصنيع الأسمدة، حفظ الأغذية بالتبريد بالنيتروجين السائل، نفخ الإطارات.&quot;,history:&quot;اكتشفه الطبيب الاسكتلندي دانيال رذرفورد عندما لاحظ غازاً لا يدعم الاحتراق أو التنفس.&quot;,where:&quot;يمثل نحو 78% من الغلاف الجوي للأرض.&quot;,phys:&quot;غاز خامل نسبياً في الظروف العادية، نقطة الغليان -196°C.&quot;},
+{sym:&quot;Fe&quot;,z:26,mass:&quot;55.845&quot;,nameAr:&quot;حديد&quot;,nameEn:&quot;Iron&quot;,cat:&quot;transition&quot;,state:&quot;صلب&quot;,color:&quot;رمادي فضي&quot;,discYear:&quot;معروف منذ القدم&quot;,discBy:&quot;معروف منذ العصر الحديدي&quot;,uses:&quot;صناعة الفولاذ والإنشاءات، صناعة السيارات والآلات، عنصر أساسي في الهيموغلوبين بالدم.&quot;,history:&quot;استخدمه الإنسان منذ حوالي 1200 ق.م في العصر الحديدي، وكان نقلة في صناعة الأدوات والأسلحة القديمة.&quot;,where:&quot;رابع أكثر عنصر انتشاراً في القشرة الأرضية، ولُب الأرض غني به.&quot;,phys:&quot;فلز مغناطيسي قابل للطرق والسحب، نقطة الانصهار 1538°C.&quot;},
+{sym:&quot;Au&quot;,z:79,mass:&quot;196.97&quot;,nameAr:&quot;ذهب&quot;,nameEn:&quot;Gold&quot;,cat:&quot;transition&quot;,state:&quot;صلب&quot;,color:&quot;أصفر لامع&quot;,discYear:&quot;معروف منذ القدم&quot;,discBy:&quot;معروف منذ آلاف السنين&quot;,uses:&quot;صناعة الحلي والمجوهرات، الإلكترونيات الدقيقة لجودة توصيله، احتياطي نقدي للدول.&quot;,history:&quot;من أوائل المعادن التي استخدمها الإنسان لثبوته الكيميائي ولمعانه، واستُخدم كعملة منذ آلاف السنين.&quot;,where:&quot;يوجد على هيئة عنصر حر في الطبيعة، غالباً في رواسب الأنهار والصخور.&quot;,phys:&quot;فلز ثمين لا يتفاعل مع الهواء أو الماء، قابل للسحب بشكل كبير جداً.&quot;},
+{sym:&quot;Na&quot;,z:11,mass:&quot;22.99&quot;,nameAr:&quot;صوديوم&quot;,nameEn:&quot;Sodium&quot;,cat:&quot;alkali&quot;,state:&quot;صلب&quot;,color:&quot;فضي&quot;,discYear:&quot;1807&quot;,discBy:&quot;همفري ديفي&quot;,uses:&quot;صناعة ملح الطعام (مع الكلور)، صناعة الصابون والزجاج، إنارة الشوارع القديمة (أبخرة الصوديوم).&quot;,history:&quot;عزله الكيميائي البريطاني همفري ديفي بالتحليل الكهربائي للصودا الكاوية.&quot;,where:&quot;يوجد بكثرة على هيئة مركبات في مياه البحر والصخور الملحية.&quot;,phys:&quot;فلز قلوي لين جداً وخفيف، يتفاعل بسرعة مع الرطوبة في الجو.&quot;},
+{sym:&quot;Cl&quot;,z:17,mass:&quot;35.45&quot;,nameAr:&quot;كلور&quot;,nameEn:&quot;Chlorine&quot;,cat:&quot;halogen&quot;,state:&quot;غاز&quot;,color:&quot;أصفر مخضر&quot;,discYear:&quot;1774&quot;,discBy:&quot;كارل ويلهلم شيله&quot;,uses:&quot;تعقيم مياه الشرب وحمامات السباحة، صناعة بعض البلاستيك مثل PVC.&quot;,history:&quot;اكتشفه الكيميائي السويدي شيله، وسمّي 'كلوروس' نسبة لكلمة يونانية تعني الأصفر المخضر.&quot;,where:&quot;يوجد على هيئة مركبات في مياه البحر والملح الصخري، لا يوجد حراً في الطبيعة.&quot;,phys:&quot;غاز خانق رائحته قوية، شديد التفاعل كيميائياً.&quot;},
+{sym:&quot;He&quot;,z:2,mass:&quot;4.003&quot;,nameAr:&quot;هيليوم&quot;,nameEn:&quot;Helium&quot;,cat:&quot;noble&quot;,state:&quot;غاز&quot;,color:&quot;عديم اللون&quot;,discYear:&quot;1868&quot;,discBy:&quot;بيير جانسن ونورمان لوكير&quot;,uses:&quot;نفخ بالونات الاحتفالات والمناطيد، تبريد المغناطيسات الفائقة في أجهزة الرنين المغناطيسي.&quot;,history:&quot;اكتُشف أولاً في ضوء الشمس عبر التحليل الطيفي قبل أن يُعزل على الأرض.&quot;,where:&quot;ثاني أكثر عنصر انتشاراً في الكون بعد الهيدروجين، نادر نسبياً على الأرض.&quot;,phys:&quot;غاز خامل كيميائياً تماماً، أقل كثافة من الهواء بكثير.&quot;},
+{sym:&quot;Ne&quot;,z:10,mass:&quot;20.18&quot;,nameAr:&quot;نيون&quot;,nameEn:&quot;Neon&quot;,cat:&quot;noble&quot;,state:&quot;غاز&quot;,color:&quot;عديم اللون (يتوهج أحمر-برتقالي بالكهرباء)&quot;,discYear:&quot;1898&quot;,discBy:&quot;ويليام رامزي ومورس ترافرز&quot;,uses:&quot;لافتات الإعلانات المتوهجة (النيون)، بعض أنواع الليزر.&quot;,history:&quot;اكتُشف خلال تجارب على تكثيف الهواء وتحليل مكوناته النادرة.&quot;,where:&quot;موجود بكميات ضئيلة جداً في الغلاف الجوي.&quot;,phys:&quot;غاز خامل تماماً، يتوهج بلون أحمر-برتقالي مميز عند تمرير كهرباء فيه.&quot;},
+{sym:&quot;Si&quot;,z:14,mass:&quot;28.085&quot;,nameAr:&quot;سيليكون&quot;,nameEn:&quot;Silicon&quot;,cat:&quot;metalloid&quot;,state:&quot;صلب&quot;,color:&quot;رمادي معدني لامع&quot;,discYear:&quot;1824&quot;,discBy:&quot;يونس بيرسيليوس&quot;,uses:&quot;صناعة الرقائق الإلكترونية وأشباه الموصلات، صناعة الزجاج والسيراميك.&quot;,history:&quot;عزله الكيميائي السويدي بيرسيليوس، وهو ثاني أكثر عنصر انتشاراً في قشرة الأرض.&quot;,where:&quot;يدخل في تركيب الرمل والكوارتز ومعظم الصخور.&quot;,phys:&quot;شبه فلز له خصائص توصيل كهربائي متغيرة، أساس صناعة الكمبيوتر الحديثة.&quot;},
+{sym:&quot;Cu&quot;,z:29,mass:&quot;63.546&quot;,nameAr:&quot;نحاس&quot;,nameEn:&quot;Copper&quot;,cat:&quot;transition&quot;,state:&quot;صلب&quot;,color:&quot;بني محمر&quot;,discYear:&quot;معروف منذ القدم&quot;,discBy:&quot;معروف منذ العصر النحاسي&quot;,uses:&quot;الأسلاك الكهربائية لجودة توصيله، أنابيب السباكة، صناعة البرونز والنقود المعدنية.&quot;,history:&quot;من أوائل المعادن التي استخدمها الإنسان، واستخدم في صناعة الأدوات منذ حوالي 9000 سنة.&quot;,where:&quot;يوجد في رواسب معدنية حول العالم، يُستخرج غالباً من خام الكالكوبيريت.&quot;,phys:&quot;فلز موصل جيد للكهرباء والحرارة، يتحول للون الأخضر (الزنجار) مع التأكسد البطيء.&quot;},
+{sym:&quot;Ag&quot;,z:47,mass:&quot;107.87&quot;,nameAr:&quot;فضة&quot;,nameEn:&quot;Silver&quot;,cat:&quot;transition&quot;,state:&quot;صلب&quot;,color:&quot;أبيض فضي لامع&quot;,discYear:&quot;معروف منذ القدم&quot;,discBy:&quot;معروف منذ آلاف السنين&quot;,uses:&quot;صناعة الحلي والأدوات الفضية، استخدامات طبية كمطهر، أفضل موصل كهربائي بين الفلزات.&quot;,history:&quot;عُرفت واستُخدمت كعملة وحلي منذ العصور القديمة في معظم الحضارات.&quot;,where:&quot;توجد أحياناً حرة في الطبيعة، وغالباً مصاحبة لخامات الرصاص والنحاس.&quot;,phys:&quot;أعلى الفلزات توصيلاً للكهرباء والحرارة، يكسف (يسودّ) مع التعرض للكبريت في الهواء.&quot;}
+];
+
+var ELEM_CAT_LABELS={alkali:&quot;فلزات قلوية&quot;,alkaline:&quot;فلزات قلوية أرضية&quot;,transition:&quot;فلزات انتقالية&quot;,metalloid:&quot;أشباه فلزات&quot;,nonmetal:&quot;لا فلزات&quot;,halogen:&quot;هالوجينات&quot;,noble:&quot;غازات نبيلة&quot;,other:&quot;أخرى&quot;};
+
+var ELEM_INDEX={};
+ELEMENTS.forEach(function(el){
+  [el.sym.toLowerCase(),el.nameAr,el.nameEn.toLowerCase()].forEach(function(k){ELEM_INDEX[k]=el.sym;});
+});
+function findElement(q){
+  q=q.trim().toLowerCase().replace(/\s+/g,'');
+  for(var k in ELEM_INDEX){if(k.toLowerCase().replace(/\s+/g,'')===q){var s=ELEM_INDEX[k];for(var i=0;i<ELEMENTS.length;i++)if(ELEMENTS[i].sym===s)return ELEMENTS[i];}}
+  for(var i=0;i<ELEMENTS.length;i++){var el=ELEMENTS[i];if((el.sym+el.nameAr+el.nameEn).toLowerCase().replace(/\s+/g,'').includes(q))return el;}
+  return null;
+}
+var INDEX={};
+ISOTOPES.forEach(function(iso){
+  [iso.symbol.toLowerCase(),iso.nameAr,iso.nameEn.toLowerCase(),iso.elementSymbol.toLowerCase()].forEach(function(k){INDEX[k]=iso.symbol;});
+});
+function findIsotope(q){
+  q=q.trim().toLowerCase().replace(/\s+/g,'');
+  for(var k in INDEX){if(k.toLowerCase().replace(/\s+/g,'')===q){var s=INDEX[k];for(var i=0;i<ISOTOPES.length;i++)if(ISOTOPES[i].symbol===s)return ISOTOPES[i];}}
+  for(var i=0;i<ISOTOPES.length;i++){var iso=ISOTOPES[i];if((iso.symbol+iso.nameAr+iso.nameEn+iso.elementSymbol).toLowerCase().replace(/\s+/g,'').includes(q))return iso;}
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function $(id){return document.getElementById(id);}
+function lvlClass(s){return s>=70?'high':s>=35?'medium':'low';}
+function lvlText(s){return s>=70?'خطر عالٍ جداً — HIGH RISK':s>=35?'خطر متوسط — MEDIUM RISK':'خطر منخفض — LOW RISK';}
+function fmt(n,d){return Number(n).toLocaleString('en-US',{maximumFractionDigits:d!=null?d:2});}
+var TNT_J=4.184e9;
+
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab){
+  var ap=$('analyzerPanel'), fp=$('fusionPanel'), cp=$('chemPanel'), t1=$('tab1'), t2=$('tab2'), t3=$('tab3');
+  if(!ap||!fp||!t1||!t2) return;
+  ap.className='analyzer-panel'+(tab==='analyzer'?' active':'');
+  fp.className='fusion-panel'+(tab==='fusion'?' active':'');
+  if(cp) cp.className='chem-panel'+(tab==='chem'?' active':'');
+  t1.className='tab-btn'+(tab==='analyzer'?' active':'');
+  t2.className='tab-btn fusion-tab'+(tab==='fusion'?' active':'');
+  if(t3) t3.className='tab-btn chem-tab'+(tab==='chem'?' active':'');
+}
+
+// ═══════════════════════════════════════════════════════════
+// REACTION TYPE SELECTOR
+// ═══════════════════════════════════════════════════════════
+var selectedRxn='fission';
+var RXN_IDS={fission:'rxnFission',fusion:'rxnFusion',chemrad:'rxnChemRad',dirty:'rxnDirty'};
+function selectRxn(r){
+  selectedRxn=r;
+  Object.keys(RXN_IDS).forEach(function(x){
+    var el=$(RXN_IDS[x]);
+    if(el) el.className='rxn-btn'+(x===r?' selected':'');
+  });
+  var op=$('fusionOp');
+  if(op) op.textContent=r==='fusion'?'⊕':r==='dirty'?'💣':r==='fission'?'→':'+';
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK BUTTONS
+// ═══════════════════════════════════════════════════════════
+function buildQuickBtns(){
+  var qWrap=$('quickBtns'), fq1=$('fusionQuick1'), fq2=$('fusionQuick2');
+  if(!qWrap||!fq1||!fq2) return;
+  ISOTOPES.forEach(function(iso){
+    var b=document.createElement('button'); b.className='btn-ghost'; b.textContent=iso.symbol;
+    b.onclick=function(){$('searchInput').value=iso.symbol; analyze();};
+    qWrap.appendChild(b);
+    var b1=document.createElement('button'); b1.className='btn-ghost'; b1.textContent=iso.symbol;
+    b1.onclick=function(){$('iso1Input').value=iso.symbol; setHint('iso1Hint',iso);};
+    fq1.appendChild(b1);
+    var b2=document.createElement('button'); b2.className='btn-ghost'; b2.textContent=iso.symbol;
+    b2.onclick=function(){$('iso2Input').value=iso.symbol; setHint('iso2Hint',iso);};
+    fq2.appendChild(b2);
+  });
+}
+function setHint(hintId,iso){
+  var el=$(hintId); if(el) el.textContent=iso.nameAr+' | Z='+iso.Z+' A='+iso.A;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PHYSICS ENGINE
+// ═══════════════════════════════════════════════════════════
+function calcBlastRadii(E_kton){
+  var ek=Math.max(E_kton,0.000001);
+  var scale=Math.pow(ek,1/3);
+  return{ring1:Math.round(60*scale),ring2:Math.round(220*scale),ring3:Math.round(500*scale),ring4:Math.round(900*scale),ring5:Math.round(1800*scale)};
+}
+
+function calcFission(iso1,iso2,m1,m2){
+  var primary=iso1.fissile?iso1:(iso2.fissile?iso2:null);
+  if(!primary) return{canExplode:false,reason:'لا يوجد نظير قابل للانشطار النووي في هذا التركيب. الانشطار يتطلب نظائر مثل U-235 أو Pu-239 أو Np-237.'};
+  var pm=primary===iso1?m1:m2, cm=primary.criticalMass||50;
+  if(pm<cm*0.05) return{canExplode:false,reason:'الكتلة ('+pm.toFixed(2)+' كجم) أقل بكثير من الكتلة الحرجة لـ '+primary.symbol+' (≈'+cm+' كجم). لا يحدث تفاعل انشطاري متسلسل.'};
+  var avog=6.022e23, atomsPerKg=(avog/primary.A)*1000, epf=200e6*1.6e-19;
+  var eff=Math.min(pm/cm,1)*0.12;
+  var E_J=pm*atomsPerKg*epf*eff;
+  E_J=Math.min(E_J,pm*8e13);
+  var E_kton=E_J/TNT_J/1000;
+  var prods=primary.symbol==='U-235'?['Kr-92','Ba-141','3 نيوترونات','أشعة γ']:primary.symbol==='Pu-239'?['Sr-94','Xe-140','3 نيوترونات','أشعة γ']:['ناتج 1','ناتج 2','نيوترونات','أشعة γ'];
+  return{canExplode:true,type:'fission',primary:primary,E_J:E_J,E_kton:E_kton,products:prods,radii:calcBlastRadii(E_kton),criticalMass:cm,efficiency:(eff*100).toFixed(1)};
+}
+
+function calcFusionRxn(iso1,iso2,m1,m2){
+  var d=(iso1.symbol==='H-2'&amp;&amp;iso2.symbol==='H-3')||(iso1.symbol==='H-3'&amp;&amp;iso2.symbol==='H-2');
+  if(!d) return{canExplode:false,reason:'الاندماج النووي الحراري الفعال يتطلب تفاعل D+T (ديوتيريوم H-2 + تريتيوم H-3). هذا هو الأساس لقنابل الهيدروجين ومفاعلات الاندماج.'};
+  var totalM=m1+m2, atomsPerKg=(6.022e23/2.5)*1000, epf=17.6e6*1.6e-19, eff=0.10;
+  var E_J=Math.min(totalM*atomsPerKg*epf*eff, totalM*3.4e13);
+  var E_kton=E_J/TNT_J/1000;
+  return{canExplode:true,type:'fusion',primary:iso1,secondary:iso2,E_J:E_J,E_kton:E_kton,products:['He-4 (هيليوم-4)','نيوترونات سريعة 14.1 MeV','طاقة حرارية هائلة'],radii:calcBlastRadii(E_kton),efficiency:(eff*100).toFixed(1)};
+}
+
+function calcChemRad(iso1,iso2,m1,m2){
+  var totalM=m1+m2, E_J=totalM*4.184e6, E_kton=E_J/TNT_J/1000;
+  return{canExplode:true,type:'chemrad',primary:iso1,secondary:iso2,E_J:E_J,E_kton:E_kton,products:['شظايا','موجة انفجار','غبار مشع','دخان ملوث'],radii:calcBlastRadii(E_kton),contamZone:Math.min(totalM*((iso1.dangerScore+iso2.dangerScore)/2)*2,50000),efficiency:'كيميائي'};
+}
+
+function calcDirtyBomb(iso1,iso2,m1,m2){
+  var totalM=m1+m2, expM=totalM*0.5, E_J=expM*4.184e6, E_kton=E_J/TNT_J/1000;
+  var ds=(iso1.dangerScore+iso2.dangerScore)/2;
+  return{canExplode:true,type:'dirty',primary:iso1,secondary:iso2,E_J:E_J,E_kton:E_kton,products:['موجة انفجار','شظايا','جسيمات مشعة','تلوث منطقة واسعة'],radii:calcBlastRadii(E_kton),contamZone:Math.min(totalM*ds*3,80000),dangerSum:ds,efficiency:'قنبلة قذرة'};
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER FUSION REPORT
+// ═══════════════════════════════════════════════════════════
+function runFusion(){
+  var v1=($('iso1Input').value||'').trim();
+  var v2=($('iso2Input').value||'').trim();
+  var m1=parseFloat($('mass1').value)||1;
+  var m2=parseFloat($('mass2').value)||1;
+  var errEl=$('fusionError'), repEl=$('fusionReport');
+  if(errEl) errEl.style.display='none';
+  if(repEl){repEl.innerHTML=''; repEl.style.display='none';}
+  var iso1=findIsotope(v1), iso2=findIsotope(v2);
+  if(!iso1||!iso2){showFusionError('لم يتم التعرف على '+(iso1?'النظير الثاني':'النظير الأول')+'. جرب: U-235, Pu-239, H-2, H-3, Cs-137');return;}
+  if(m1<=0||m2<=0||m1>10000||m2>10000){showFusionError('يرجى إدخال كتلة بين 0.001 و 10,000 كجم.');return;}
+  var res;
+  if(selectedRxn==='fission') res=calcFission(iso1,iso2,m1,m2);
+  else if(selectedRxn==='fusion') res=calcFusionRxn(iso1,iso2,m1,m2);
+  else if(selectedRxn==='chemrad') res=calcChemRad(iso1,iso2,m1,m2);
+  else res=calcDirtyBomb(iso1,iso2,m1,m2);
+  renderFusionReport(res,iso1,iso2,m1,m2);
+}
+
+function showFusionError(msg){
+  var et=$('fusionErrText'); if(et) et.textContent=msg;
+  var er=$('fusionError'); if(er) er.style.display='block';
+}
+
+function renderFusionReport(res,iso1,iso2,m1,m2){
+  var el=$('fusionReport'); if(!el) return;
+  if(!res.canExplode){
+    el.innerHTML='<div class=&quot;no-exp-box&quot;><div class=&quot;no-exp-icon&quot;>✅</div><div class=&quot;no-exp-title&quot;>لا يحدث انفجار نووي</div><div class=&quot;no-exp-body&quot;>'+res.reason+'</div></div>';
+    el.style.display='block'; el.scrollIntoView({behavior:'smooth'}); return;
+  }
+  var rxnL={fission:'انشطار نووي',fusion:'اندماج نووي',chemrad:'تفاعل كيميائي + إشعاع',dirty:'قنبلة قذرة'};
+  var rxnI={fission:'⚡',fusion:'☀',chemrad:'🧪',dirty:'💣'};
+  var r=res.radii, E_kton=res.E_kton, E_TJ=(res.E_J/1e12).toFixed(3);
+  var hiroshima=(E_kton/15).toFixed(4), E_Mton=(E_kton/1000).toFixed(5);
+
+  var html='';
+  // HERO
+  html+='<div class=&quot;fusion-hero&quot;>';
+  html+='<div class=&quot;fh-top&quot;><div class=&quot;fh-icon&quot;>'+rxnI[res.type]+'</div>';
+  html+='<div class=&quot;fh-info&quot;><div class=&quot;fh-title&quot;>'+rxnL[res.type]+': '+iso1.nameAr+' + '+iso2.nameAr+'</div>';
+  html+='<div class=&quot;fh-sub&quot; style=&quot;direction:ltr&quot;>'+iso1.symbol+' ('+m1+'kg) + '+iso2.symbol+' ('+m2+'kg)</div>';
+  html+='<div class=&quot;fh-tags&quot;><span class=&quot;tag tag-exp&quot;>💥 انفجار محتمل</span><span class=&quot;tag tag-fus&quot;>'+rxnL[res.type]+'</span>'+(E_kton>=0.1?'<span class=&quot;tag tag-crit&quot;>☢ خطر نووي</span>':'')+'</div></div></div>';
+  // Equation
+  html+='<div class=&quot;eq-box&quot;><span style=&quot;color:var(--neutron)&quot;>'+iso1.symbol+' + '+iso2.symbol+'</span><span class=&quot;eq-arrow&quot;> → </span><span class=&quot;eq-energy&quot;>'+((res.products||[]).join(' + '))+'</span><br><small style=&quot;color:var(--dim)&quot;>طاقة محررة: </small><span class=&quot;eq-energy&quot;>'+E_TJ+' TJ</span></div>';
+  html+='</div>';
+
+  // STATS
+  html+='<div class=&quot;exp-meter&quot;><div class=&quot;exp-meter-title&quot;>// EXPLOSION ANALYSIS</div><div class=&quot;exp-stats&quot;>';
+  html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>الطاقة المحررة</div><div class=&quot;exp-stat-val&quot;>'+E_TJ+' TJ</div></div>';
+  html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>مكافئ TNT</div><div class=&quot;exp-stat-val orange&quot;>'+fmt(E_kton,3)+' كيلوطن</div></div>';
+  html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>بالميغاطن</div><div class=&quot;exp-stat-val orange&quot;>'+E_Mton+' MT</div></div>';
+  html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>التدمير</div><div class=&quot;exp-stat-val&quot;>'+(parseFloat(hiroshima)>0.0001?hiroshima:'< 0.0001')+'x</div></div>';
+  html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>الكفاءة</div><div class=&quot;exp-stat-val green&quot;>'+res.efficiency+'%</div></div>';
+  if(res.contamZone) html+='<div class=&quot;exp-stat&quot;><div class=&quot;exp-stat-label&quot;>منطقة تلوث إشعاعي</div><div class=&quot;exp-stat-val purple&quot;>'+fmt(res.contamZone,0)+' م</div></div>';
+  html+='</div></div>';
+
+  // ENERGY BAR
+  var barPct=Math.min((E_kton/1000)*100,100);
+  html+='<div class=&quot;energy-bar-section&quot;><div class=&quot;eb-label&quot;>Yield Scale (0 → 1 Megaton TNT)</div>';
+  html+='<div class=&quot;eb-track&quot;><div class=&quot;eb-fill&quot; id=&quot;fusEnergyBar&quot; style=&quot;width:0%&quot;></div></div>';
+  html+='<div class=&quot;eb-val&quot;>'+fmt(E_kton,4)+' kton TNT equivalent</div></div>';
+
+  // BLAST RINGS VISUAL
+  html+='<div class=&quot;blast-visual&quot;><div class=&quot;blast-title&quot;>// BLAST RADIUS ZONES</div>';
+  html+='<div class=&quot;blast-rings-wrap&quot;><div class=&quot;br5 blast-ring&quot;></div><div class=&quot;br4 blast-ring&quot;></div><div class=&quot;br3 blast-ring&quot;></div><div class=&quot;br2 blast-ring&quot;></div><div class=&quot;br1 blast-ring&quot;></div><div class=&quot;blast-center&quot;>'+rxnI[res.type]+'</div></div>';
+  html+='<div class=&quot;blast-legend&quot;>';
+  var rings=[{r:r.ring1,l:'النيران الفورية / موت فوري',c:'#ff2020'},{r:r.ring2,l:'تدمير كامل للمباني',c:'#ff6600'},{r:r.ring3,l:'أضرار شديدة + حروق',c:'#ffaa00'},{r:r.ring4,l:'كسر الزجاج + شظايا',c:'#88cc00'},{r:r.ring5,l:'إشعاع حراري وإشعاعي',c:'#00aaff'}];
+  rings.forEach(function(rg){html+='<div class=&quot;bl-row&quot;><div class=&quot;bl-dot&quot; style=&quot;background:'+rg.c+'&quot;></div><span style=&quot;color:'+rg.c+';font-family:var(--mono);font-size:.75rem&quot;>'+fmt(rg.r,0)+' م</span><span style=&quot;font-size:.78rem&quot;> — '+rg.l+'</span></div>';});
+  if(res.contamZone) html+='<div class=&quot;bl-row&quot;><div class=&quot;bl-dot&quot; style=&quot;background:var(--neutron)&quot;></div><span style=&quot;color:var(--neutron);font-family:var(--mono);font-size:.75rem&quot;>'+fmt(res.contamZone,0)+' م</span><span style=&quot;font-size:.78rem&quot;> — منطقة التلوث الإشعاعي</span></div>';
+  html+='</div></div>';
+
+  // ZONE TABLE
+  html+='<div class=&quot;full-fx&quot;><div class=&quot;full-fx-title&quot;>// ZONE-BY-ZONE IMPACT</div>';
+  html+='<table style=&quot;width:100%;border-collapse:collapse;font-size:.82rem&quot;>';
+  html+='<thead><tr style=&quot;color:var(--fusion);font-family:var(--mono);font-size:.68rem&quot;>';
+  ['المنطقة','المسافة','الضغط','المباني','الإنسان'].forEach(function(h){html+='<th style=&quot;padding:8px 6px;border-bottom:1px solid rgba(255,107,43,.2);text-align:right&quot;>'+h+'</th>';});
+  html+='</tr></thead><tbody>';
+  var td=[
+    {z:'نار فورية',r:r.ring1,p:'> 20 psi',b:'تدمير تام',h:'موت فوري — انصهار'},
+    {z:'تدمير كامل',r:r.ring2,p:'5-20 psi',b:'انهيار خرسانة',h:'وفاة شبه مؤكدة'},
+    {z:'أضرار شديدة',r:r.ring3,p:'2-5 psi',b:'انهيار الجدران',h:'حروق شديدة + كسور'},
+    {z:'أضرار متوسطة',r:r.ring4,p:'0.5-2 psi',b:'كسر نوافذ',h:'جروح بالشظايا'},
+    {z:'حراري وإشعاعي',r:r.ring5,p:'< 0.5 psi',b:'أضرار طفيفة',h:'حروق جلدية + جرعة إشعاعية'},
+  ];
+  var cols=['rgba(255,32,32,.1)','rgba(255,102,0,.08)','rgba(255,170,0,.06)','rgba(136,204,0,.04)','rgba(0,170,255,.04)'];
+  td.forEach(function(rd,i){
+    html+='<tr style=&quot;background:'+cols[i]+';border-bottom:1px solid rgba(255,255,255,.04)&quot;>';
+    html+='<td style=&quot;padding:8px 6px;font-weight:700;color:#fff&quot;>'+rd.z+'</td>';
+    html+='<td style=&quot;padding:8px 6px;font-family:var(--mono);color:var(--warn)&quot;>'+fmt(rd.r,0)+' م</td>';
+    html+='<td style=&quot;padding:8px 6px;font-family:var(--mono);color:var(--dim);direction:ltr&quot;>'+rd.p+'</td>';
+    html+='<td style=&quot;padding:8px 6px&quot;>'+rd.b+'</td>';
+    html+='<td style=&quot;padding:8px 6px&quot;>'+rd.h+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // HUMAN + ENV SECTIONS
+  html+='<div class=&quot;fx-sections&quot;>';
+  html+='<div class=&quot;fx-sec nuke&quot;><div class=&quot;fx-sec-icon&quot;>🧬</div><div class=&quot;fx-sec-title&quot;>التأثير على جسم الإنسان</div><div class=&quot;fx-sec-body&quot;>';
+  if(res.type==='fission'||res.type==='fusion') html+='موجة الانفجار تسبب رضوضاً داخلية فورية. الإشعاع المباشر يدمر DNA. تليها متلازمة الإشعاع الحادة (ARS): غثيان، تساقط شعر، فشل نخاع العظام. على المدى البعيد: سرطانات متعددة وطفرات جينية.';
+  else html+='الانفجار الكيميائي يسبب رضوضاً وحروقاً وجروح شظايا. الجسيمات المشعة تُستنشق وتتراكم في الرئتين والجهاز الهضمي مسببةً تلفاً مزمناً.';
+  html+='</div></div>';
+  html+='<div class=&quot;fx-sec env2&quot;><div class=&quot;fx-sec-icon&quot;>🌍</div><div class=&quot;fx-sec-title&quot;>التأثير البيئي</div><div class=&quot;fx-sec-body&quot;>';
+  if(res.type==='fission') html+='تلوث إشعاعي واسع للتربة والمياه. السقوط الإشعاعي (Fallout) يلوث مساحات شاسعة تبعاً للرياح. الأنظمة البيئية تتضرر لعقود أو قرون.';
+  else if(res.type==='dirty'||res.type==='chemrad') html+='تلوث محلي وإقليمي بجسيمات مشعة. الرياح تحمل الغبار الإشعاعي. التربة والمياه السطحية تتلوث لسنوات.';
+  else html+='إطلاق طاقة حرارية هائلة. التأثير البيئي أقل استمراراً من الانشطار لكن النيوترونات تُنشّط المواد المجاورة.';
+  html+='</div></div>';
+  html+='<div class=&quot;fx-sec bio&quot;><div class=&quot;fx-sec-icon&quot;>🫀</div><div class=&quot;fx-sec-title&quot;>الأعضاء الأكثر تضرراً</div><div class=&quot;fx-sec-body&quot;>نخاع العظام (إيقاف إنتاج الدم)، الرئتان (الجسيمات المستنشقة)، الجهاز الهضمي، الغدة الدرقية، الجلد (حروق إشعاعية)، الكلى</div></div>';
+  html+='<div class=&quot;fx-sec chem&quot;><div class=&quot;fx-sec-icon&quot;>⚗</div><div class=&quot;fx-sec-title&quot;>منتجات التفاعل</div><div class=&quot;fx-sec-body&quot;><div class=&quot;products-list&quot;>';
+  (res.products||[]).forEach(function(p){html+='<span class=&quot;product-chip&quot;>'+p+'</span>';});
+  html+='</div></div></div></div>';
+
+  // SYMPTOMS
+  html+='<div class=&quot;full-fx&quot;><div class=&quot;full-fx-title&quot;>// RADIATION SYMPTOMS TIMELINE</div><ul class=&quot;symptom-list&quot;>';
+  [{s:'high',t:'موجة الانفجار: تمزق الأوعية والأعضاء الداخلية'},{s:'high',t:'متلازمة الإشعاع الحادة (ARS): غثيان، قيء، إسهال'},{s:'high',t:'تساقط الشعر الكامل خلال أسبوعين'},{s:'high',t:'فشل نخاع العظام: نزيف وعدوى مميتة'},{s:'medium',t:'حروق إشعاعية حرارية شديدة على الجلد'},{s:'medium',t:'تلف الجهاز العصبي بجرعات عالية جداً'},{s:'low',t:'زيادة خطر السرطان على المدى البعيد'},{s:'low',t:'طفرات جينية قد تنتقل للأجيال القادمة'}].forEach(function(sy){
+    var dc=sy.s==='high'?'sdot-r':sy.s==='medium'?'sdot-o':'sdot-g';
+    html+='<li><span class=&quot;sdot '+dc+'&quot;></span><span>'+sy.t+'</span></li>';
+  });
+  html+='</ul></div>';
+
+  // PROTECTION
+  html+='<div class=&quot;full-fx&quot;><div class=&quot;full-fx-title&quot;>// EMERGENCY PROTECTION PROTOCOL</div>';
+  [{t:'الإخلاء الفوري',b:'ابتعد فوراً عكس اتجاه الريح. حتى مسافة '+fmt(r.ring5,0)+' م ستكون خطرة.'},{t:'الاختباء في المباني',b:'أغلق جميع النوافذ والأبواب والتهوية. الطوابق الوسطى أكثر أماناً من الأسفل والأعلى.'},{t:'الحماية التنفسية',b:'غطِّ أنفك وفمك بقماش مبلل أو قناع N95 لتقليل استنشاق الجسيمات المشعة.'},{t:'أقراص يوديد البوتاسيوم (KI)',b:'تناولها فوراً إذا كان التعرض يشمل I-131 لحماية الغدة الدرقية.'},{t:'إزالة التلوث الخارجي',b:'اخلع ملابسك الخارجية واغسل جسمك بالماء والصابون — يزيل 80-90% من التلوث.'},{t:'متابعة طبية طارئة',b:'أبلغ المستشفى بالتعرض للإشعاع. سيجرون فحص CBC وقياس الجرعة الإشعاعية.'},{t:'تجنب الطعام والماء الملوثَين',b:'لا تتناول أي طعام أو ماء محلي حتى تأكيد الجهات الرسمية لسلامته.'},{t:'مراقبة الأعراض',b:'الغثيان الشديد خلال ساعات يشير لجرعة خطيرة — اطلب علاجاً طارئاً فوراً.'}].forEach(function(s,i){
+    html+='<div class=&quot;protect-step&quot;><div class=&quot;ps-num&quot;>'+(i+1)+'</div><div><strong style=&quot;color:#fff&quot;>'+s.t+'</strong><br><span style=&quot;color:var(--dim);font-size:.82rem&quot;>'+s.b+'</span></div></div>';
+  });
+  html+='</div>';
+
+  // MEDICAL
+  html+='<div class=&quot;full-fx&quot;><div class=&quot;full-fx-title&quot;>// MEDICAL RESPONSE</div><ul class=&quot;treat-steps&quot; style=&quot;padding:0&quot;>';
+  ['فرز الضحايا (Triage) حسب الجرعة المقدّرة والأعراض','DTPA أو Prussian Blue حسب النظير المُعرَّض له','G-CSF (عوامل تحفيز المستعمرة) لحماية نخاع العظام','نقل الدم ومشتقاته لعلاج نقص الخلايا','مضادات حيوية وقائية ضد الالتهابات','زرع نخاع العظام في الحالات الحرجة (جرعة > 6 Gy)','علاج الحروق الإشعاعية بطرق متخصصة','متابعة سرطانية طويلة الأمد للناجين'].forEach(function(s,i){
+    html+='<li><span class=&quot;step-num&quot; style=&quot;background:rgba(255,107,43,.15);color:var(--fusion)&quot;>'+(i+1)+'</span><span>'+s+'</span></li>';
+  });
+  html+='</ul></div>';
+
+  el.innerHTML=html;
+  el.style.display='block';
+  el.scrollIntoView({behavior:'smooth'});
+  setTimeout(function(){var b=$('fusEnergyBar');if(b)b.style.width=Math.min(barPct,100)+'%';},200);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHEMISTRY PANEL — render (تعليمي بحت، بدون أي تفاعلات)
+// ═══════════════════════════════════════════════════════════
+var chemActiveCat='all';
+function buildChemFilters(){
+  var fr=$('chemFilterRow'); if(!fr) return;
+  var cats=['all'].concat(Object.keys(ELEM_CAT_LABELS));
+  fr.innerHTML='';
+  cats.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='chem-filter-btn'+(c==='all'?' active':'');
+    b.textContent=c==='all'?'الكل':ELEM_CAT_LABELS[c];
+    b.onclick=function(){
+      chemActiveCat=c;
+      document.querySelectorAll('.chem-filter-btn').forEach(function(x){x.className='chem-filter-btn';});
+      b.className='chem-filter-btn active';
+      buildChemGrid();
+    };
+    fr.appendChild(b);
+  });
+}
+function buildChemGrid(){
+  var g=$('chemGrid'); if(!g) return;
+  g.innerHTML='';
+  ELEMENTS.filter(function(el){return chemActiveCat==='all'||el.cat===chemActiveCat;}).forEach(function(el){
+    var t=document.createElement('div');
+    t.className='chem-tile cat-'+el.cat;
+    t.innerHTML='<div class=&quot;chem-tile-z&quot;>'+el.z+'</div><div class=&quot;chem-tile-sym&quot;>'+el.sym+'</div><div class=&quot;chem-tile-name&quot;>'+el.nameAr+'</div>';
+    t.onclick=function(){renderChemElement(el);};
+    g.appendChild(t);
+  });
+}
+function renderChemElement(el){
+  var card=$('chemCard'); if(!card) return;
+  $('cSym').textContent=el.sym;
+  $('cName').textContent=el.nameAr;
+  $('cEn').textContent=el.nameEn+'  |  Z='+el.z+'  |  الكتلة الذرية='+el.mass;
+  var tagsEl=$('cTags'); tagsEl.innerHTML='';
+  function addTag(txt){var s=document.createElement('span');s.className='tag tag-cat';s.textContent=txt;tagsEl.appendChild(s);}
+  addTag('🏷 '+ELEM_CAT_LABELS[el.cat]);
+  addTag('🌡 '+el.state);
+  var ig=$('cInfoGrid');
+  ig.innerHTML=[['اللون',el.color],['الحالة الفيزيائية',el.state],['سنة الاكتشاف',el.discYear],['اكتشفه',el.discBy]].map(function(x){
+    return '<div class=&quot;info-item&quot;><div class=&quot;info-label&quot;>'+x[0]+'</div><div class=&quot;info-value&quot;>'+(x[1]||'—')+'</div></div>';
+  }).join('');
+  $('cUses').textContent=el.uses||'—';
+  $('cHistory').textContent=el.history||'—';
+  $('cWhere').textContent=el.where||'—';
+  $('cPhys').textContent=el.phys||'—';
+  card.className='chem-card show';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function analyzeChem(){
+  var si=$('chemSearchInput'); if(!si||!si.value.trim()){if(si)si.focus();return;}
+  var el=findElement(si.value);
+  if(el) renderChemElement(el);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ORIGINAL ANALYZER RENDER
+// ═══════════════════════════════════════════════════════════
+function renderReport(iso){
+  var lvl=lvlClass(iso.dangerScore);
+  var rSym=$('rSym'),rName=$('rName'),rEn=$('rEn'),rTags=$('rTags');
+  var rScore=$('rScore'),rBar=$('rBar'),rLevel=$('rLevel');
+  if(!rSym||!rName||!rEn||!rTags||!rScore||!rBar||!rLevel) return;
+  rSym.textContent=iso.elementSymbol;
+  rName.textContent=iso.nameAr;
+  rEn.textContent=iso.nameEn+'  |  Z='+iso.Z+'  A='+iso.A;
+  rTags.innerHTML='';
+  function addTag(cls,txt){var s=document.createElement('span');s.className='tag '+cls;s.textContent=txt;rTags.appendChild(s);}
+  addTag(iso.radioactive?'tag-rad':'tag-stable',iso.radioactive?'☢ مشع':'✓ مستقر');
+  (iso.radiation||[]).forEach(function(r){
+    if(r==='alpha')addTag('tag-alpha','α ألفا');
+    if(r==='beta')addTag('tag-beta','β بيتا');
+    if(r==='gamma')addTag('tag-gamma','γ جاما');
+  });
+  if(iso.use)addTag('tag-info','⚙ '+iso.use.substring(0,30)+(iso.use.length>30?'…':''));
+  rScore.textContent=iso.dangerScore+'/100'; rScore.className='danger-num '+lvl;
+  rBar.className='danger-bar-fill '+lvl; rBar.style.width='0%';
+  setTimeout(function(){rBar.style.width=iso.dangerScore+'%';},80);
+  rLevel.textContent=lvlText(iso.dangerScore); rLevel.className='danger-level '+lvl;
+  var ig=$('rInfoGrid'); if(ig) ig.innerHTML=[['نصف العمر',iso.halflife],['نمط التحلل',iso.decayMode],['ناتج التحلل',iso.decayProduct],['طاقة الإشعاع',iso.energy]].map(function(x){return '<div class=&quot;info-item&quot;><div class=&quot;info-label&quot;>'+x[0]+'</div><div class=&quot;info-value&quot;>'+(x[1]||'—')+'</div></div>';}).join('');
+  var chain=iso.chain||[]; var rcs=$('rChainSec'), rc=$('rChain');
+  if(rcs&amp;&amp;rc){if(chain.length>0){rcs.style.display='block';rc.innerHTML=chain.map(function(c,i){return '<span class=&quot;chain-node&quot;>'+c+'</span>'+(i<chain.length-1?'<span class=&quot;chain-arr&quot;>→</span>':'');}).join('');}else rcs.style.display='none';}
+  var rH=$('rHuman'),rEv=$('rEnv'),rOr=$('rOrgans'),rTm=$('rTime'),rSy=$('rSymptoms'),rPr=$('rProtection');
+  if(rH) rH.textContent=iso.human||'—';
+  if(rEv) rEv.textContent=iso.env||'—';
+  if(rOr) rOr.textContent=iso.organs||'—';
+  if(rTm) rTm.textContent=iso.time||'—';
+  if(rSy) rSy.innerHTML=(iso.symptoms||[]).map(function(sy){var dc=sy.s==='high'?'sdot-r':sy.s==='medium'?'sdot-o':'sdot-g';return '<li><span class=&quot;sdot '+dc+'&quot;></span><span>'+sy.t+'</span></li>';}).join('');
+  if(rPr) rPr.textContent=iso.protection||'—';
+  var tCard=$('rTreatCard');
+  if(tCard){tCard.className='treatment-card '+(iso.treatmentAvailable?'yes':'no');}
+  var rTI=$('rTIcon'),rTB=$('rTBadge'),rTT=$('rTTitle'),rTBody=$('rTBody');
+  if(rTI) rTI.textContent=iso.treatmentAvailable?'💊':'☠️';
+  if(rTB) rTB.textContent=iso.treatmentAvailable?'✅ TREATMENT AVAILABLE':'❌ NO EFFECTIVE TREATMENT';
+  if(rTT) rTT.textContent=iso.treatmentTitle||'—';
+  if(rTBody){
+    var stepsHtml=(iso.treatmentSteps||[]).map(function(s,i){return '<li><span class=&quot;step-num&quot;>'+(i+1)+'</span><span>'+s+'</span></li>';}).join('');
+    rTBody.innerHTML=iso.treatmentAvailable?'<ul class=&quot;treat-steps&quot;>'+stepsHtml+'</ul>':'<div class=&quot;no-treat-warn&quot;><span style=&quot;font-size:1.3rem;flex-shrink:0&quot;>⚠️</span><p>لا يوجد علاج فعال معروف. الوقاية هي الخيار الوحيد.</p></div><ul class=&quot;treat-steps&quot;>'+stepsHtml+'</ul>';
+  }
+  var em=$('error-msg'),rep=$('report');
+  if(em) em.style.display='none';
+  if(rep){rep.style.display='block'; rep.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+
+function analyze(){
+  var si=$('searchInput'); if(!si||!si.value.trim()){if(si)si.focus();return;}
+  var iso=findIsotope(si.value);
+  var em=$('error-msg'),et=$('errText'),rep=$('report');
+  if(iso){renderReport(iso);}
+  else{
+    if(rep) rep.style.display='none';
+    if(et) et.textContent='لم يُعثر على &quot;'+si.value+'&quot; في قاعدة البيانات.';
+    if(em) em.style.display='block';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT — runs after DOM is ready
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+  buildQuickBtns();
+  buildChemFilters();
+  buildChemGrid();
+
+  // Tab buttons
+  var t1=$('tab1'), t2=$('tab2'), t3=$('tab3');
+  if(t1) t1.onclick=function(){switchTab('analyzer');};
+  if(t2) t2.onclick=function(){switchTab('fusion');};
+  if(t3) t3.onclick=function(){switchTab('chem');};
+
+  // Chemistry panel
+  var cab=$('chemAnalyzeBtn'); if(cab) cab.onclick=analyzeChem;
+  var csi=$('chemSearchInput'); if(csi) csi.onkeydown=function(e){if(e.key==='Enter')analyzeChem();};
+
+  // Reaction type buttons
+  var rxnFission=$('rxnFission'), rxnFusion=$('rxnFusion'), rxnChemRad=$('rxnChemRad'), rxnDirty=$('rxnDirty');
+  if(rxnFission) rxnFission.onclick=function(){selectRxn('fission');};
+  if(rxnFusion) rxnFusion.onclick=function(){selectRxn('fusion');};
+  if(rxnChemRad) rxnChemRad.onclick=function(){selectRxn('chemrad');};
+  if(rxnDirty) rxnDirty.onclick=function(){selectRxn('dirty');};
+
+  // Fusion button
+  var fb=$('fusionBtn'); if(fb) fb.onclick=runFusion;
+
+  // Analyzer
+  var ab=$('analyzeBtn'); if(ab) ab.onclick=analyze;
+  var si=$('searchInput'); if(si) si.onkeydown=function(e){if(e.key==='Enter')analyze();};
+
+  // Fusion inputs
+  var i1=$('iso1Input'),i2=$('iso2Input');
+  if(i1){
+    i1.oninput=function(){var iso=findIsotope(this.value);setHint('iso1Hint',iso||null);if(!iso){var h=$('iso1Hint');if(h)h.textContent='';}};
+    i1.onkeydown=function(e){if(e.key==='Enter')runFusion();};
+  }
+  if(i2){
+    i2.oninput=function(){var iso=findIsotope(this.value);setHint('iso2Hint',iso||null);if(!iso){var h=$('iso2Hint');if(h)h.textContent='';}};
+    i2.onkeydown=function(e){if(e.key==='Enter')runFusion();};
+  }
+});
+</script>
+</body>
+</html>
+" style="width:100%;height:calc(100vh - 90px);border:none;display:block;"></iframe>
 </div>
 
 <div id="auth-overlay">
