@@ -10616,9 +10616,16 @@ async function rubikMove(moveStr) {
 function rubikApplyColors() {
   ['U','D','R','L','F','B'].forEach(f => {
     const inp = document.getElementById('rubik-color-' + f);
-    if (inp) FACE_COLORS[f] = parseInt(inp.value.replace('#',''), 16);
+    if (inp) {
+      const hex = parseInt(inp.value.replace('#',''), 16);
+      FACE_COLORS[f] = hex;
+    }
   });
-  rkSyncColors();
+  // أعد بناء المكعب بالألوان الجديدة
+  if (rk.initialized && rk.scene) {
+    rkBuildCube();
+    rkSyncColors();
+  }
 }
 
 // ══ Zoom ══
@@ -10659,21 +10666,172 @@ function rubikInit() {
   const container = document.getElementById('rubik-threejs-container');
   if (!container) return;
   if (rk.initialized) {
-    // resize فقط
     const w = container.clientWidth, h = container.clientHeight;
     if (rk.renderer) rk.renderer.setSize(w, h);
     if (rk.camera)   { rk.camera.aspect = w/h; rk.camera.updateProjectionMatrix(); }
+    rkUpdatePtsDisplay();
     return;
   }
   rk.initialized = true;
   rk.container = container;
   rk.state = rkMakeState();
-  // ننتظر ثانية ليكون الـ container جاهز
   setTimeout(() => {
     rkInitThree(container);
     rkBuildCube();
     rkSyncColors();
+    rkPostInit();
   }, 80);
+}
+
+// ══════════════════════════════════════════════════
+// ══ وظائف مكملة للنظام ══
+// ══════════════════════════════════════════════════
+
+// ── منح النقاط (تربط مع نظام النقاط الموجود) ──
+function awardPoints(pts, source) {
+  // نقاط userPoints
+  if (typeof userPoints !== 'undefined') {
+    userPoints = Math.min(typeof MAX_POINTS !== 'undefined' ? MAX_POINTS : 1000, userPoints + pts);
+    if (typeof updateStatusBar === 'function') updateStatusBar();
+    if (typeof saveUserData === 'function') saveUserData();
+  }
+  // نقاط وحدة الترقي
+  if (source === 'rubik') {
+    if (typeof applyMindgameUnitPts === 'function') applyMindgameUnitPts('مكعب روبيك');
+    rkSaveStats();
+  }
+  rkUpdatePtsDisplay();
+}
+
+// ── تحديث بانل النقاط والرتبة ──
+function rkUpdatePtsDisplay() {
+  const el = document.getElementById('rubik-pts-display');
+  if (el && typeof userPoints !== 'undefined') el.textContent = Math.floor(userPoints);
+
+  const tierEl = document.getElementById('rubik-tier-display');
+  if (tierEl && typeof getTier === 'function' && typeof unitPoints !== 'undefined') {
+    const tier = getTier(unitPoints);
+    tierEl.innerHTML = `<span style="font-size:18px;">${tier.icon||'⭐'}</span>
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono);display:block;margin-top:2px;">${tier.label||''}</span>`;
+  }
+}
+
+// ── ربط الـ slider بالسرعة ──
+function rubikSpeedChanged(v) {
+  rk.animSpeed = +v;
+  const el = document.getElementById('rubik-speed-val');
+  if (el) el.textContent = v;
+}
+
+// ── إحصائيات روبيك ──
+let rkStats = { solves: 0, bestTime: null, totalMoves: 0 };
+
+function rkLoadStats() {
+  try {
+    const saved = localStorage.getItem('rubik_stats_v1');
+    if (saved) rkStats = { ...rkStats, ...JSON.parse(saved) };
+  } catch(e) {}
+  rkUpdateStatsDisplay();
+}
+
+function rkSaveStats() {
+  // تحديث الإحصائيات
+  rkStats.solves = (rkStats.solves || 0) + 1;
+  rkStats.totalMoves = (rkStats.totalMoves || 0) + rk.moveCount;
+  if (!rkStats.bestTime || rk.timerSec < rkStats.bestTime) {
+    rkStats.bestTime = rk.timerSec;
+  }
+  try { localStorage.setItem('rubik_stats_v1', JSON.stringify(rkStats)); } catch(e) {}
+
+  // حفظ في Firebase لو متاح
+  if (typeof dbFs !== 'undefined' && typeof mySysId !== 'undefined' && mySysId) {
+    dbFs.collection('users').doc(mySysId).update({
+      rubikSolves: firebase.firestore.FieldValue.increment(1),
+      rubikBestTime: rkStats.bestTime,
+      rubikTotalMoves: firebase.firestore.FieldValue.increment(rk.moveCount),
+    }).catch(() => {});
+  }
+  rkUpdateStatsDisplay();
+}
+
+function rkUpdateStatsDisplay() {
+  // بانل الرتبة بيعرض الإحصائيات
+  const tierEl = document.getElementById('rubik-tier-display');
+  if (!tierEl) return;
+  let html = '';
+  if (typeof getTier === 'function' && typeof unitPoints !== 'undefined') {
+    const tier = getTier(unitPoints);
+    html += `<span style="font-size:16px;">${tier.icon||'⭐'}</span>
+    <span style="font-size:10px;color:var(--text3);font-family:var(--mono);display:block;">${tier.label||''}</span>`;
+  }
+  if (rkStats.solves > 0) {
+    html += `<div style="font-size:9px;color:var(--text3);margin-top:4px;font-family:var(--mono);">
+      🏆 ${rkStats.solves} حل | ⚡ أفضل: ${rkStats.bestTime ? rkFmtTime(rkStats.bestTime) : '--'}
+    </div>`;
+  }
+  tierEl.innerHTML = html;
+}
+
+// ── إخفاء hint بعد أول تفاعل ──
+function rkHideHint() {
+  const h = document.getElementById('rubik-drag-hint');
+  if (h) { h.style.opacity = '0'; setTimeout(() => { if(h) h.style.display='none'; }, 500); }
+}
+
+// ── اختصارات لوحة المفاتيح ──
+function rkSetupKeyboard() {
+  if (rkSetupKeyboard._done) return;
+  rkSetupKeyboard._done = true;
+  document.addEventListener('keydown', e => {
+    // فقط لو صفحة الروبيك مفتوحة
+    const page = document.getElementById('page-rubik');
+    if (!page || page.style.display === 'none') return;
+    if (rk.animating) return;
+    // تجاهل لو المستخدم كاتب في input
+    if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
+
+    const map = {
+      'u': 'U',  'U': "U'",
+      'i': 'D',  'I': "D'",
+      'r': 'R',  'R': "R'",
+      'l': 'L',  'L': "L'",
+      'f': 'F',  'F': "F'",
+      'b': 'B',  'B': "B'",
+      'z': 'U2', 'x': 'D2', 'c': 'R2',
+      'v': 'L2', 'n': 'F2', 'm': 'B2',
+    };
+    if (map[e.key]) { e.preventDefault(); rubikMove(map[e.key]); return; }
+    // Ctrl+Z = undo, Ctrl+Y = redo
+    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); rubikUndo(); }
+    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); rubikRedo(); }
+  });
+}
+
+// ── rubikUpdateUnitPanel (متوافق مع الكود القديم) ──
+function rubikUpdateUnitPanel() {
+  rkUpdatePtsDisplay();
+  rkUpdateStatsDisplay();
+}
+
+// تشغيل الإعدادات عند التهيئة
+function rkPostInit() {
+  rkLoadStats();
+  rkUpdatePtsDisplay();
+  rkSetupKeyboard();
+
+  // ربط slider السرعة
+  const sp = document.getElementById('rubik-speed-slider');
+  if (sp) {
+    sp.oninput = function() { rubikSpeedChanged(this.value); };
+    rk.animSpeed = +sp.value;
+  }
+  // ربط hint
+  const cont = document.getElementById('rubik-threejs-container');
+  if (cont) {
+    ['mousedown','touchstart'].forEach(ev =>
+      cont.addEventListener(ev, rkHideHint, { once: false, passive: true })
+    );
+  }
 }
 </script>
 
