@@ -6130,7 +6130,7 @@ function closeAiQuiz() {
   document.getElementById('ai-quiz-modal-bg').classList.remove('open');
 }
 
-// ════ استدعاء الـ AI عبر Netlify Function (بيحل CORS نهائياً) ════
+// ════ استدعاء الـ AI عبر Vercel Serverless Function (بيحل CORS نهائياً) ════
 // ── مفتاح Anthropic API (يُجلب من Firestore مرة واحدة) ──
 let _anthropicKey = null;
 async function getAnthropicKey() {
