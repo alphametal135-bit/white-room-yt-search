@@ -5265,18 +5265,11 @@ async function cyberbotSend() {
       : 'Reply in the same language the user used.';
     const fullPrompt = CYBERBOT_SYSTEM + '\n\n' + langHint + '\n\n' + messages.map(m => (m.role === 'user' ? 'User: ' : 'Zaatar: ') + m.content).join('\n') + '\nZaatar:';
 
-    const res = await fetch('https://white-room-yt-search.vercel.app/api/ai-proxy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: fullPrompt })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    const reply = data.text || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅';
+    // نستخدم callAI عشان يكون عندنا fallback تلقائي (proxy → Firestore key)
+    const reply = await callAI(fullPrompt);
 
     typing.remove();
-    cyberbotAddBubble('ai', reply);
+    cyberbotAddBubble('ai', reply || 'معلش، مش قادر أرد دلوقتي. جرب تاني! 😅');
     zaatarHistory.push({ role: 'assistant', content: reply });
 
   } catch(e) {
@@ -6159,6 +6152,7 @@ const AI_PROXY_URL = 'https://white-room-yt-search.vercel.app/api/ai-proxy';
 
 async function callAI(prompt) {
   // ── أولاً: نجرب الـ Proxy على Vercel ──
+  let proxyFailed = false;
   try {
     const res = await fetch(AI_PROXY_URL, {
       method: 'POST',
@@ -6166,17 +6160,26 @@ async function callAI(prompt) {
       body: JSON.stringify({ prompt })
     });
     if (res.ok) {
+      // الـ proxy رد بنجاح — نعتمد على رده ونوقف هنا سواء text فاضي أو لا
       const data = await res.json();
-      if (data?.text) return data.text;
-      if (data?.error) console.warn('Proxy error:', data.error);
+      if (data?.error) {
+        // الـ proxy نفسه بيقول فيه error — نكمل للـ fallback
+        console.warn('Proxy returned error:', data.error);
+        proxyFailed = true;
+      } else {
+        return data?.text ?? '';
+      }
     } else {
       console.warn('Proxy HTTP error:', res.status);
+      proxyFailed = true;
     }
   } catch(e) {
     console.warn('Proxy غير متاح:', e.message);
+    proxyFailed = true;
   }
 
-  // ── ثانياً: fallback — اتصال مباشر بـ Anthropic ──
+  // ── ثانياً: fallback — اتصال مباشر بـ Anthropic (بس لو الـ proxy فشل فعلاً) ──
+  if (!proxyFailed) throw new Error('callAI: حالة غير متوقعة');
   const key = await getAnthropicKey();
   if (!key) throw new Error('مفتاح API غير متاح — تواصل مع المشرف');
   const res2 = await fetch('https://api.anthropic.com/v1/messages', {
@@ -8821,27 +8824,12 @@ async function submitReport() {
 
 async function analyzeReportWithAI(reportDocId, body, type) {
   try {
-    const key = await getAnthropicKey();
-    if (!key) return;
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: `أنت مساعد مراجعة بلاغات لنظام تعليمي. راجع هذا البلاغ وقدم ملخصاً (3-4 جمل) وتوصية للأدمن.\nنوع الحادث الأمني: ${type}\nمحتوى البلاغ: ${body}\nأجب بالعربية فقط. ابدأ بـ "ملخص:" ثم "التوصية:"` }]
-      })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      const analysis = data.content?.[0]?.text || '';
-      if (analysis) await dbFs.collection('reports').doc(reportDocId).update({aiAnalysis: analysis});
-    }
+    const prompt = `أنت مساعد مراجعة بلاغات لنظام تعليمي. راجع هذا البلاغ وقدم ملخصاً (3-4 جمل) وتوصية للأدمن.
+نوع الحادث الأمني: ${type}
+محتوى البلاغ: ${body}
+أجب بالعربية فقط. ابدأ بـ "ملخص:" ثم "التوصية:"`;
+    const analysis = await callAI(prompt);
+    if (analysis) await dbFs.collection('reports').doc(reportDocId).update({aiAnalysis: analysis});
   } catch(e) { console.warn('AI analysis failed:', e); }
 }
 
