@@ -6871,7 +6871,8 @@ function chessMakeMove(state, fromR, fromC, move) {
 
   // ── تكرار المواضع: حفظ بصمة اللوحة ──
   if (!state.positionHistory) state.positionHistory = [];
-  const posKey = JSON.stringify(state.board) + state.turn;
+  // نسجّل الـ turn الجديد (اللي هيلعب بعد الحركة) مش القديم عشان قاعدة التكرار الثلاثي تشتغل صح
+  const posKey = JSON.stringify(state.board) + chessOpp(color);
   state.positionHistory.push(posKey);
 
   const moveLabel = `${color==='w'?'⚪':'⚫'} ${chessTypeOf(p)}${chessSquareName(fromR,fromC)}→${chessSquareName(move.toR,move.toC)}${captured?' ✕':''}${move.special==='castleK'?' (تبييت قصير)':''}${move.special==='castleQ'?' (تبييت طويل)':''}${move.special==='promotion'?' (ترقية)':''}`;
@@ -6906,7 +6907,7 @@ function chessRenderBoard() {
       // إضافة تسمية الصف (1-8) في أول عمود
       if (c === colsOrd[0]) {
         const rankLabel = document.createElement('span');
-        rankLabel.textContent = humanColor === 'w' ? (r+1) : (8-r);
+        rankLabel.textContent = humanColor === 'w' ? (8-r) : (r+1);
         rankLabel.style.cssText = 'position:absolute;top:2px;right:3px;font-family:var(--mono);font-size:9px;color:rgba(200,190,160,0.75);line-height:1;pointer-events:none;';
         sq.appendChild(rankLabel);
       }
@@ -7549,7 +7550,8 @@ async function chessResign() {
     // AI أو hotseat: خسارة مباشرة
     const CHESS_POINTS = 50;
     chessState.gameOver = true;
-    const loserColor = chessState.turn; // المستسلم هو اللي دوره
+    // المستسلم هو اللاعب البشري دايماً (مش اللي دوره) — في hotseat هو الأبيض دايماً
+    const loserColor = chessState.mode === 'hotseat' ? chessState.turn : chessHumanColor();
     const winnerColor = loserColor === 'w' ? 'b' : 'w';
     const winnerAr = winnerColor === 'w' ? 'الأبيض' : 'الأسود';
     chessState.gameOverMsg = `🏳️ استسلام! ${winnerAr} فاز بالمباراة`;
@@ -7847,12 +7849,17 @@ async function sendNotifToUser(targetSysId, type, title, body) {
 
 // إرسال إشعار لكل المحللين (للأدمن فقط)
 async function sendNotifToAll(type, title, body, rows) {
-  const batch = dbFs.batch();
-  rows.forEach(u => {
-    const ref = dbFs.collection('users').doc(u.id).collection('notifications').doc();
-    batch.set(ref, { type, title, body, read: false, ts: Date.now(), fromAdmin: true });
-  });
-  await batch.commit();
+  // Firestore batch حده الأقصى 500 عملية — نقسّم على chunks
+  const CHUNK = 499;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const chunk = rows.slice(i, i + CHUNK);
+    const batch = dbFs.batch();
+    chunk.forEach(u => {
+      const ref = dbFs.collection('users').doc(u.id).collection('notifications').doc();
+      batch.set(ref, { type, title, body, read: false, ts: Date.now(), fromAdmin: true });
+    });
+    await batch.commit();
+  }
 }
 
 // ════════════════════════════════════════════════════════════
