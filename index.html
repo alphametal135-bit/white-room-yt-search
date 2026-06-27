@@ -1851,7 +1851,7 @@ body::after {
     <div>
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;">🎲 نقاط مكعب روبيك</div>
       <div style="font-size:20px;font-family:var(--mono);color:var(--green);font-weight:bold;" id="rubik-pts-display">0</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px;">حل بنفسك = +150 | زعتر يحل = مافيش نقاط</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">حل بنفسك = +150 | زعتر يحل = بدون نقاط</div>
     </div>
     <div>
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;">⏱ الوقت</div>
@@ -1872,7 +1872,7 @@ body::after {
       <div style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;border-bottom:1px solid var(--border);padding-bottom:5px;">التحكم</div>
       <button class="chess-btn" style="width:100%;background:var(--green);color:#000;border-color:var(--green);font-weight:bold;" onclick="rubikShuffle4()">🎲 خلط المكعب</button>
       <button class="chess-btn" style="width:100%;background:var(--bg2);" onclick="rubikSolveManual()">✨ حل بنفسي (+150)</button>
-      <button class="chess-btn" style="width:100%;background:rgba(176,110,243,0.15);border-color:rgba(176,110,243,0.5);color:rgba(176,110,243,1);" onclick="rubikAISolve()">🤖 زعتر يحل (مافيش نقاط)</button>
+      <button class="chess-btn" style="width:100%;background:rgba(176,110,243,0.15);border-color:rgba(176,110,243,0.5);color:rgba(176,110,243,1);" onclick="rubikAISolve()">🤖 زعتر يحل</button>
       <button class="chess-btn" style="width:100%;" onclick="rubikReset4()">↺ إعادة تعيين</button>
       <div style="display:flex;gap:5px;">
         <button class="chess-btn" style="flex:1;" onclick="rubikUndo()">↩</button>
@@ -5286,8 +5286,14 @@ async function cyberbotSend() {
   }
 
   zaatarLoading = false;
-  document.getElementById('cyberbot-send-btn').disabled = false;
-  input.focus();
+  // لو وصل الحد بعد الرسالة دي — اقفل الشات
+  if (cyberbotGetCount() >= CYBERBOT_DAILY_LIMIT) {
+    cyberbotAddBubble('ai', 'خلصت رسايلك النهارده 😅 أشوفك بكرا إن شاء الله وهنكمل! 💪');
+    cyberbotLockChat();
+  } else {
+    document.getElementById('cyberbot-send-btn').disabled = false;
+    input.focus();
+  }
 }
 
 function showPage(name, btn) {
@@ -10084,7 +10090,7 @@ let rk = {
   animating: false,
   animQueue: [],
   history: [], histIdx: -1, moveCount: 0,
-  shuffled: false, shuffleSeq: [],
+  shuffled: false, shuffleSeq: [], zaatarSolving: false,
   timerSec: 0, timerRunning: false, timerInt: null,
   animSpeed: 5,
   state: null,      // مصفوفة 6×9 للألوان
@@ -10528,7 +10534,12 @@ function rkProcessQueue() {
       if (rkIsSolved(rk.state) && rk.shuffled) {
         rk.shuffled = false;
         rkTimerStop();
-        rkOnSolved(true);
+        const bySelf = !rk.zaatarSolving;
+        rk.zaatarSolving = false;
+        // أخفِ overlay زعتر لو كان شغّال
+        const zov = document.getElementById('rubik-zaatar-overlay');
+        if (zov) zov.style.display = 'none';
+        rkOnSolved(bySelf);
       }
       rkProcessQueue();
     });
@@ -10567,14 +10578,11 @@ async function rubikZaatarSolve4() {
   const ov = document.getElementById('rubik-zaatar-overlay');
   if (ov) ov.style.display = 'flex';
   await new Promise(r => setTimeout(r, 400));
+  // flag عشان rkProcessQueue يعرف إن الحل بواسطة زعتر ومافيش نقاط
+  rk.zaatarSolving = true;
   const solution = [...rk.shuffleSeq].reverse().map(m => MOVE_INV[m] || m);
-  try {
-    for (const m of solution) await rkEnqueue(m, false);
-  } finally {
-    // أخفي الـ overlay بعد ما كل الأنيميشن يخلص فعلاً
-    if (ov) ov.style.display = 'none';
-  }
-  rkOnSolved(false);
+  for (const m of solution) await rkEnqueue(m, false);
+  // الـ overlay بيتخفى وrkOnSolved بيتنادى من rkProcessQueue بعد آخر حركة فعلاً
 }
 function rubikAISolve() { rubikZaatarSolve4(); }
 
