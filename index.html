@@ -1780,12 +1780,6 @@ body::after {
       <div class="mindgame-card-sub">حل مكعب روبيك ثلاثي الأبعاد — اخلط وحل بنفسك أو استعن بزعتر</div>
       <div class="mindgame-card-btn">ابدأ اللعب ▶</div>
     </div>
-    <div class="mindgame-card disabled">
-      <div class="mindgame-card-icon">🧩</div>
-      <div class="mindgame-card-title">ألعاب قادمة</div>
-      <div class="mindgame-card-sub">المزيد من الألعاب الذهنية هتتضاف هنا قريباً</div>
-      <div class="mindgame-card-btn" style="opacity:.4">تحت التطوير</div>
-    </div>
 
     <!-- ═══ كارت المحاكي السيبراني ═══ -->
     <div class="mindgame-card" id="cyber-sim-card" onclick="showPage('cyber-simulator', document.querySelector('.tab-btn[onclick*=mindgames]'))" style="border-color:rgba(0,229,255,0.35);background:linear-gradient(135deg,rgba(0,229,255,0.06) 0%,rgba(157,78,221,0.10) 100%);position:relative;overflow:hidden;cursor:pointer;">
@@ -1801,6 +1795,12 @@ body::after {
         <span style="font-size:9px;padding:2px 7px;border-radius:8px;background:rgba(157,78,221,0.1);color:#9d4edd;border:1px solid rgba(157,78,221,0.25);font-family:monospace">زعتر AI</span>
       </div>
       <div class="mindgame-card-btn" style="background:rgba(0,229,255,0.15);color:#00e5ff;border:1px solid rgba(0,229,255,0.4);position:relative;z-index:1;">تشغيل المحاكي ▶</div>
+    </div>
+    <div class="mindgame-card disabled">
+      <div class="mindgame-card-icon">🧩</div>
+      <div class="mindgame-card-title">ألعاب قادمة</div>
+      <div class="mindgame-card-sub">المزيد من الألعاب الذهنية هتتضاف هنا قريباً</div>
+      <div class="mindgame-card-btn" style="opacity:.4">تحت التطوير</div>
     </div>
   </div>
 </div>
@@ -3434,43 +3434,37 @@ const CE_HTML_B64 = 'PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImFyIiBkaXI9InJ0bCI+Cjx
 function openCyberSimulator() {
   const container = document.getElementById('cyber-sim-container');
   if (!container) return;
-
-  if (_ceLoaded) return; // مفتوح بالفعل
+  if (_ceLoaded) return;
   _ceLoaded = true;
 
   const badge = document.getElementById('cyber-sim-ai-badge');
+  if (badge) { badge.textContent = '⏳ جاري التحميل...'; }
 
-  // فك تشفير HTML
+  // فك تشفير HTML وحقنه في srcdoc مباشرة (أموثوق من Blob URL)
   const ceHtml = atob(CE_HTML_B64);
-  const blob = new Blob([ceHtml], { type: 'text/html' });
-  _ceBlobUrl = URL.createObjectURL(blob);
-
   const iframe = document.createElement('iframe');
   iframe.id = 'cyber-sim-iframe';
-  iframe.src = _ceBlobUrl;
+  iframe.srcdoc = ceHtml;
   iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
   iframe.allow = 'camera; microphone';
   container.appendChild(iframe);
 
-  // إرسال مفتاح API من زعتر للـ iframe بعد التحميل
-  iframe.addEventListener('load', async () => {
-    if (badge) { badge.textContent = '🤖 زعتر AI ✓'; badge.style.color = '#00ff9d'; }
-    // انتظر رسالة CE_READY من الـ iframe
-    const sendKey = async () => {
-      try {
-        const key = await getAnthropicKey();
-        if (key && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ type: 'CE_SET_KEY', key }, '*');
-        }
-      } catch(e) { console.warn('CE key inject error:', e); }
-    };
-    // أرسل فوراً وكمان استنى رسالة CE_READY
-    await sendKey();
-    window.addEventListener('message', async (e) => {
-      if (e.data && e.data.type === 'CE_READY') {
-        await sendKey();
+  // إرسال مفتاح API بعد تحميل الـ iframe
+  const sendKey = async () => {
+    try {
+      const key = await getAnthropicKey();
+      if (key && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'CE_SET_KEY', key }, '*');
       }
-    });
+      if (badge) { badge.textContent = '🤖 زعتر AI ✓'; badge.style.color = '#00ff9d'; }
+    } catch(e) { console.warn('CE key inject error:', e); }
+  };
+
+  iframe.addEventListener('load', () => sendKey());
+
+  // استقبل CE_READY وأرسل الـ key مرة ثانية للتأكيد
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'CE_READY') sendKey();
   });
 }
 
@@ -3478,7 +3472,6 @@ function closeCyberSimulator() {
   _ceLoaded = false;
   const container = document.getElementById('cyber-sim-container');
   if (container) container.innerHTML = '';
-  if (_ceBlobUrl) { URL.revokeObjectURL(_ceBlobUrl); _ceBlobUrl = null; }
 }
 
 </script>
