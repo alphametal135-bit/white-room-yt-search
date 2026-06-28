@@ -4,6 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CYBER DEFENSE — منظومة الأمن السيبراني</title>
+<script>
+// ── Firebase Safety Shim ── يمنع خطأ firebase is not defined لو CDN تأخر أو فشل
+if (typeof window.firebase === "undefined") {
+  var _authStub = function() {
+    return {
+      setPersistence: function(){ return Promise.resolve(); },
+      onAuthStateChanged: function(){},
+      signInWithEmailAndPassword: function(){ return Promise.reject(new Error("firebase not loaded")); },
+      createUserWithEmailAndPassword: function(){ return Promise.reject(new Error("firebase not loaded")); },
+      signOut: function(){ return Promise.resolve(); }
+    };
+  };
+  _authStub.Auth = { Persistence: { LOCAL: "local", SESSION: "session", NONE: "none" } };
+
+  var _fsStub = function() { return null; };
+  _fsStub.FieldValue = {
+    increment: function(){ return 0; },
+    arrayUnion: function(){ return []; },
+    arrayRemove: function(){ return []; }
+  };
+
+  window.firebase = {
+    initializeApp: function(){},
+    auth: _authStub,
+    firestore: _fsStub
+  };
+}
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
 
@@ -4303,18 +4331,22 @@ function toggleChip(el){ el.classList.toggle('active'); }
 /* ── View Manager ── */
 const viewInits = {};
 
+// نحصر كل selectors المحاكي داخل ce-wrapper فقط لتجنب التعارض مع الصفحة الرئيسية
+const ceRoot = document.getElementById('ce-wrapper') || document;
+
 function goView(id) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  const btn=document.querySelector(`.tab-btn[data-view="${id}"]`);
+  ceRoot.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const viewEl = ceRoot.querySelector('#view-'+id) || document.getElementById('view-'+id);
+  if(viewEl) viewEl.classList.add('active');
+  ceRoot.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const btn = ceRoot.querySelector(`.tab-btn[data-view="${id}"]`);
   if(btn) btn.classList.add('active');
   // Use requestAnimationFrame to ensure the view is visible before init
   requestAnimationFrame(()=>{ if(viewInits[id]) viewInits[id](); });
 }
 
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>goView(btn.dataset.view));
+ceRoot.querySelectorAll('.tab-btn').forEach(btn=>{
+  if(btn.dataset.view) btn.addEventListener('click',()=>goView(btn.dataset.view));
 });
 
 /* ── Three.js Scene Factory ── */
@@ -14208,12 +14240,14 @@ function rkSaveStats() {
   try { localStorage.setItem('rubik_stats_v1', JSON.stringify(rkStats)); } catch(e) {}
 
   // حفظ في Firebase لو متاح
-  if (typeof dbFs !== 'undefined' && typeof mySysId !== 'undefined' && mySysId) {
-    dbFs.collection('users').doc(mySysId).update({
-      rubikSolves: firebase.firestore.FieldValue.increment(1),
-      rubikBestTime: rkStats.bestTime,
-      rubikTotalMoves: firebase.firestore.FieldValue.increment(rk.moveCount),
-    }).catch(() => {});
+  if (typeof dbFs !== 'undefined' && typeof firebase !== 'undefined' && typeof mySysId !== 'undefined' && mySysId) {
+    try {
+      dbFs.collection('users').doc(mySysId).update({
+        rubikSolves: firebase.firestore.FieldValue.increment(1),
+        rubikBestTime: rkStats.bestTime,
+        rubikTotalMoves: firebase.firestore.FieldValue.increment(rk.moveCount),
+      }).catch(() => {});
+    } catch(e) {}
   }
   rkUpdateStatsDisplay();
 }
