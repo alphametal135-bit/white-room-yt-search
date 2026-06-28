@@ -1,10 +1,17 @@
-// مكانه على الفيرسل: /api/image-to-3d-status.js
-// وظيفته: يسأل Meshy "خلصت ولا لسه؟" وعند الانتهاء يرجّع رابط ملف الـ GLB.
+// /api/image-to-3d-status.js
+// يتحقق من حالة مهمة WaveSpeed ويرجّع رابط الـ GLB
 
 export default async function handler(req, res) {
-  const MESHY_API_KEY = process.env.MESHY_API_KEY;
-  if (!MESHY_API_KEY) {
-    return res.status(500).json({ error: 'MESHY_API_KEY غير موجود في إعدادات Vercel' });
+  // ── CORS ──
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY;
+  if (!WAVESPEED_API_KEY) {
+    return res.status(500).json({ error: 'WAVESPEED_API_KEY غير موجود في إعدادات Vercel' });
   }
 
   const { taskId } = req.query;
@@ -13,20 +20,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    const meshyRes = await fetch(`https://api.meshy.ai/openapi/v1/image-to-3d/${taskId}`, {
-      headers: { Authorization: `Bearer ${MESHY_API_KEY}` },
+    const pollRes = await fetch(`https://api.wavespeed.ai/api/v3/predictions/${taskId}/result`, {
+      headers: { Authorization: `Bearer ${WAVESPEED_API_KEY}` },
     });
-    const data = await meshyRes.json();
-    if (!meshyRes.ok) {
-      return res.status(meshyRes.status).json({ error: data.message || 'Meshy error' });
+
+    const data = await pollRes.json();
+    if (!pollRes.ok) {
+      return res.status(pollRes.status).json({ error: data.message || 'WaveSpeed error' });
     }
 
+    // status: pending | processing | completed | failed
+    const status = data.data?.status || data.status;
+    const outputs = data.data?.outputs || data.outputs || [];
+    const glbUrl = outputs[0] || null;
+
+    // تحويل status لنفس format الـ HTML اللي بيتوقعه
+    let mappedStatus = 'IN_PROGRESS';
+    if (status === 'completed') mappedStatus = 'SUCCEEDED';
+    if (status === 'failed')    mappedStatus = 'FAILED';
+    if (status === 'pending')   mappedStatus = 'PENDING';
+
     return res.status(200).json({
-      status: data.status, // PENDING | IN_PROGRESS | SUCCEEDED | FAILED
-      progress: data.progress,
-      glbUrl: data.model_urls ? data.model_urls.glb : null,
-      thumbnailUrl: data.thumbnail_url || null,
+      status: mappedStatus,
+      progress: status === 'completed' ? 100 : status === 'processing' ? 50 : 0,
+      glbUrl,
+      thumbnailUrl: null,
     });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

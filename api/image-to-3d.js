@@ -1,46 +1,75 @@
-// مكانه على الفيرسل: /api/image-to-3d.js
-// وظيفته: يستقبل الصورة (base64) من الموقع، ويبعتها لـ Meshy عشان يولّد مجسم 3D حقيقي،
-// وده لازم يحصل من السيرفر (Vercel function) لأن Meshy ما بيسمحش بنداء مباشر من المتصفح.
+// /api/image-to-3d.js
+// يستقبل صورة base64 ويبعتها لـ WaveSpeed (Hunyuan3D V3.1 Rapid)
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  // ── CORS ──
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const MESHY_API_KEY = process.env.MESHY_API_KEY;
-  if (!MESHY_API_KEY) {
-    return res.status(500).json({ error: 'MESHY_API_KEY غير موجود في إعدادات Vercel' });
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY;
+  if (!WAVESPEED_API_KEY) {
+    return res.status(500).json({ error: 'WAVESPEED_API_KEY غير موجود في إعدادات Vercel' });
   }
 
   try {
-    const { imageDataUrl } = req.body; // "data:image/png;base64,...."
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { imageDataUrl } = body;
+
     if (!imageDataUrl) {
       return res.status(400).json({ error: 'لازم تبعت imageDataUrl' });
     }
 
-    const meshyRes = await fetch('https://api.meshy.ai/openapi/v1/image-to-3d', {
+    // ── رفع الصورة على WaveSpeed Storage أولاً ──
+    // تحويل base64 dataURL لـ blob
+    const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const mimeMatch = imageDataUrl.match(/data:(image\/\w+);base64/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+
+    // بعت الصورة كـ binary لـ WaveSpeed upload
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const formData = new FormData();
+    const blob = new Blob([imageBuffer], { type: mimeType });
+    formData.append('file', blob, 'image.jpg');
+
+    const uploadRes = await fetch('https://api.wavespeed.ai/api/v3/files/upload', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${MESHY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image_url: imageDataUrl, // Meshy بيقبل data URI مباشرة
-        enable_pbr: true,
-        should_remesh: true,
-        should_texture: true,
-        target_polycount: 30000,
-        // pose_mode: 'a-pose', // مفيد لو الصورة شخص/شخصية وعايز وضعية موحدة للريغ بعدين
-      }),
+      headers: { Authorization: `Bearer ${WAVESPEED_API_KEY}` },
+      body: formData,
     });
 
-    const data = await meshyRes.json();
-    if (!meshyRes.ok) {
-      return res.status(meshyRes.status).json({ error: data.message || 'Meshy error' });
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) {
+      return res.status(uploadRes.status).json({ error: uploadData.message || 'فشل رفع الصورة' });
     }
 
-    // data = { result: "task_id" }
-    return res.status(200).json({ taskId: data.result });
+    const imageUrl = uploadData.data?.url || uploadData.url;
+    if (!imageUrl) {
+      return res.status(500).json({ error: 'مش لاقي رابط الصورة بعد الرفع' });
+    }
+
+    // ── إرسال طلب الـ 3D ──
+    const genRes = await fetch('https://api.wavespeed.ai/api/v3/wavespeed-ai/hunyuan-3d-v3.1/image-to-3d-rapid', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${WAVESPEED_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image: imageUrl }),
+    });
+
+    const genData = await genRes.json();
+    if (!genRes.ok) {
+      return res.status(genRes.status).json({ error: genData.message || 'WaveSpeed error' });
+    }
+
+    // رجّع الـ taskId (prediction id)
+    const taskId = genData.data?.id || genData.id;
+    return res.status(200).json({ taskId });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
