@@ -4276,7 +4276,9 @@ async function callAIEngine(prompt, imageBase64, mimeType) {
     });
     const data = await res.json();
     if (data?.error) throw new Error(data.error);
-    return data?.text ?? '';
+    // تأكد إن الـ return دايماً string
+    const txt = data?.text;
+    return typeof txt === 'string' ? txt : JSON.stringify(txt ?? '');
   } catch(e) {
     throw new Error('AI غير متاح: ' + e.message);
   }
