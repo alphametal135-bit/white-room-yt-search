@@ -4261,38 +4261,25 @@ window.addEventListener('message', (e) => {
 });
 if (_inIframe) window.parent.postMessage({ type: 'CE_READY' }, '*');
 
-/* دالة AI موحدة — يستخدم Anthropic API مباشرة */
+/* دالة AI موحدة — بتستخدم الـ Proxy على Vercel (Gemini / Anthropic / Cloudflare) */
 async function callAIEngine(prompt, imageBase64, mimeType) {
-  const key = getApiKey();
-  const headers = {
-    'Content-Type':'application/json',
-    'anthropic-version':'2023-06-01',
-    'anthropic-dangerous-direct-browser-access':'true'
-  };
-  if (key) headers['x-api-key'] = key;
+  // لو فيه صورة — نضيف وصفها في الـ prompt عشان الـ proxy يفهم السياق
+  const fullPrompt = imageBase64
+    ? `[صورة مرفقة — حللها]\n${prompt}`
+    : prompt;
 
-  let msgContent;
-  if (imageBase64) {
-    msgContent = [
-      {type:'image', source:{type:'base64', media_type: mimeType||'image/jpeg', data: imageBase64}},
-      {type:'text', text: prompt}
-    ];
-  } else {
-    msgContent = prompt;
+  try {
+    const res = await fetch('/api/ai-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: fullPrompt })
+    });
+    const data = await res.json();
+    if (data?.error) throw new Error(data.error);
+    return data?.text ?? '';
+  } catch(e) {
+    throw new Error('AI غير متاح: ' + e.message);
   }
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: msgContent }]
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.content.map(i => i.text || '').join('');
 }
 
 /* stubs للحفاظ على التوافق مع أي مكان يستدعي هذه الدوال */
