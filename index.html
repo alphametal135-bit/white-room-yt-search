@@ -5777,12 +5777,21 @@ document.getElementById('btn-ai-script').addEventListener('click',async()=>{
   btn.disabled=true;btn.textContent='جاري...';
   logLine('[AI] Generating script...','#9d4edd');
   try{
-    const _scriptText = await callAIEngine(`Write a creative JavaScript script for a 3D game character. Use these async methods:
-character.walk(n), character.run(n), character.jump(), character.roll()
-character.attack(), character.kick(), character.punch(), character.block()
-character.magic(), character.dance(), character.say("arabic text", ms), character.heal(n)
+    const _scriptText = await callAIEngine(`أنت مبرمج ألعاب. اكتب سكريبت JavaScript يستخدم المتغير الجاهز "character" مباشرة.
 
-Write 8-12 lines showing an exciting battle sequence with Arabic dialogue. Return ONLY the code, no markdown.`);
+القواعد الصارمة:
+- لا تعرّف class أو function جديدة أبداً
+- استخدم "character" مباشرة (موجود مسبقاً)
+- كل سطر يبدأ بـ await character.
+- الأوامر المتاحة فقط: walk(n), run(n), jump(), roll(), attack(), kick(), punch(), block(), magic(), dance(), say("نص عربي", ms), heal(n)
+
+مثال صحيح:
+await character.say("مرحباً!", 1000);
+await character.walk(2);
+await character.attack();
+await character.jump();
+
+اكتب 8-10 أسطر معركة مثيرة مع حوار عربي. أرجع الكود فقط بدون أي شرح أو markdown.`);
     codeEditor.value=_scriptText.replace(/\`\`\`[\w]*/g,'').replace(/\`\`\`/g,'').trim();
     logLine('[AI] ✓ Script ready!','#00ff9d');
   }catch(e){logLine('[AI] Error: '+e.message,'#ff3860');}
