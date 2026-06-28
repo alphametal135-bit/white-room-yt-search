@@ -194,33 +194,18 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
     <button class="tab-btn" data-view="editor">③ المحرر</button>
     <button class="tab-btn" data-view="script">④ برمجة</button>
     <button class="tab-btn" data-view="ai">⑤ الذكاء</button>
+    <button class="tab-btn" data-view="control">⑥ التحكم الكامل</button>
+    <button class="tab-btn" data-view="training">⑦ التدريب</button>
   </div>
   <div class="topbar-right">
     <div class="status-dot"></div>
     <button class="btn btn-amber" id="btn-mocap-open" style="font-size:10px;padding:5px 11px">📷 Mo-Cap</button>
     <button class="btn btn-green" id="btn-export-open" style="font-size:10px;padding:5px 11px">↗ تصدير</button>
-    <button class="btn" id="btn-api-key" style="font-size:10px;padding:5px 11px;border-color:var(--purple);color:var(--purple)" onclick="openApiKeyModal()">🔑 API Key</button>
+    <div id="zaatar-status" style="font-family:var(--f-code);font-size:10px;color:var(--green);border:1px solid var(--green);border-radius:6px;padding:4px 10px;background:var(--green-dim)">🤖 زعتر AI</div>
   </div>
 </div>
 
-<!-- API Key Modal -->
-<div id="api-key-modal" style="display:none;position:fixed;inset:0;background:rgba(2,4,8,.92);z-index:9998;align-items:center;justify-content:center">
-  <div style="background:var(--bg-1);border:1px solid var(--purple);border-radius:16px;padding:28px;width:min(420px,90vw);display:flex;flex-direction:column;gap:14px">
-    <div style="font-family:var(--f-disp);font-size:13px;color:var(--purple);letter-spacing:.1em">🔑 ANTHROPIC API KEY</div>
-    <div style="font-size:11px;color:var(--dim);line-height:1.7">
-      محتاج Anthropic API key عشان الذكاء الاصطناعي يشتغل.<br>
-      احصل عليه من <a href="https://console.anthropic.com" target="_blank" style="color:var(--cyan)">console.anthropic.com</a><br>
-      <span style="color:var(--amber)">⚠ الـ key بيتحفظ في المتصفح فقط (localStorage)</span>
-    </div>
-    <input id="api-key-input" type="password" placeholder="sk-ant-api03-..." 
-      style="background:var(--bg-0);border:1px solid var(--purple);color:var(--white);border-radius:8px;padding:10px 14px;font-family:var(--f-code);font-size:11px;outline:none;width:100%">
-    <div style="display:flex;gap:8px">
-      <button onclick="saveApiKey()" class="btn btn-cyan" style="flex:1">حفظ ✓</button>
-      <button onclick="closeApiKeyModal()" class="btn btn-ghost" style="flex:1">إلغاء</button>
-    </div>
-    <div id="api-key-status" style="font-size:10px;font-family:var(--f-code);color:var(--dim);min-height:14px"></div>
-  </div>
-</div>
+<!-- API Key handled by Zaatar internally -->
 
 <div class="app-layout">
   <div class="sidebar">
@@ -614,6 +599,93 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
   </div>
 </div>
 
+<!-- ══ VIEW: FULL CONTROL ══ -->
+<div class="view" id="view-control" style="flex-direction:row;overflow:hidden;">
+
+  <!-- 3D Viewport -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+    <div style="background:var(--bg-1);border-bottom:var(--border);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <span style="font-family:var(--f-code);font-size:10px;color:var(--cyan);letter-spacing:.12em;">⚙ FULL RIG CONTROL</span>
+      <div id="ctrl-anim-status" style="font-family:var(--f-code);font-size:9px;color:var(--green);background:var(--green-dim);border:1px solid var(--green);padding:2px 8px;border-radius:10px;">Idle</div>
+      <div style="margin-right:auto;display:flex;gap:6px;">
+        <button class="btn btn-ghost" id="ctrl-btn-skeleton" style="font-size:10px;padding:4px 10px;">🦴 إظهار Skeleton</button>
+        <button class="btn btn-ghost" id="ctrl-btn-reset-pose" style="font-size:10px;padding:4px 10px;">↺ Pose مبدئي</button>
+        <button class="btn btn-ghost" id="ctrl-btn-stopAnim" style="font-size:10px;padding:4px 10px;">⏹ إيقاف</button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative;overflow:hidden;">
+      <canvas id="control-canvas" style="width:100%;height:100%;display:block;"></canvas>
+      <!-- HUD overlay -->
+      <div style="position:absolute;top:10px;right:10px;font-family:var(--f-code);font-size:10px;color:var(--cyan-soft);line-height:2;">
+        <div id="ctrl-hud-anim">▶ Animation: Idle</div>
+        <div id="ctrl-hud-bone">🦴 Bone: —</div>
+        <div id="ctrl-hud-fps2">— FPS</div>
+      </div>
+      <!-- Eye direction visualizer -->
+      <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(6,11,18,.85);border:var(--border);border-radius:12px;padding:8px 20px;display:flex;align-items:center;gap:14px;">
+        <span style="font-family:var(--f-code);font-size:9px;color:var(--dim);">👁 العينان</span>
+        <div style="position:relative;width:44px;height:44px;border-radius:50%;background:rgba(0,229,255,.07);border:1px solid var(--cyan-dim);">
+          <div id="eye-indicator" style="position:absolute;width:12px;height:12px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);top:50%;left:50%;transform:translate(-50%,-50%);transition:top .1s,left .1s;"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Animation buttons strip -->
+    <div style="background:var(--bg-1);border-top:var(--border);padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;" id="ctrl-anim-strip"></div>
+  </div>
+
+  <!-- Right control panel -->
+  <div style="width:280px;flex-shrink:0;background:var(--bg-0);border-right:var(--border);overflow-y:auto;display:flex;flex-direction:column;">
+
+    <!-- Eye control -->
+    <div style="border-bottom:var(--border);padding:10px 12px;">
+      <div style="font-family:var(--f-code);font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">👁 تحكم العينين</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <label style="font-size:10px;color:var(--dim);width:70px;flex-shrink:0;">يمين/يسار</label>
+          <input type="range" min="-1" max="1" step="0.01" value="0" id="ctrl-eye-x" style="flex:1;">
+          <span id="ctrl-eye-x-val" style="font-family:var(--f-code);font-size:10px;color:var(--white);width:32px;text-align:right;">0.0</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <label style="font-size:10px;color:var(--dim);width:70px;flex-shrink:0;">أعلى/أسفل</label>
+          <input type="range" min="-1" max="1" step="0.01" value="0" id="ctrl-eye-y" style="flex:1;">
+          <span id="ctrl-eye-y-val" style="font-family:var(--f-code);font-size:10px;color:var(--white);width:32px;text-align:right;">0.0</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
+          <button onclick="ctrlEyePreset(0,0)" class="btn btn-ghost" style="font-size:9px;padding:3px 8px;">مركز</button>
+          <button onclick="ctrlEyePreset(-0.8,0)" class="btn btn-ghost" style="font-size:9px;padding:3px 8px;">← يسار</button>
+          <button onclick="ctrlEyePreset(0.8,0)" class="btn btn-ghost" style="font-size:9px;padding:3px 8px;">يمين →</button>
+          <button onclick="ctrlEyePreset(0,-0.6)" class="btn btn-ghost" style="font-size:9px;padding:3px 8px;">↑ فوق</button>
+          <button onclick="ctrlEyePreset(0,0.6)" class="btn btn-ghost" style="font-size:9px;padding:3px 8px;">↓ تحت</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bone controls -->
+    <div style="border-bottom:var(--border);padding:10px 12px;">
+      <div style="font-family:var(--f-code);font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">🦴 تحكم العظام (Rig)</div>
+      <div id="ctrl-bone-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+
+    <!-- Body scale controls -->
+    <div style="border-bottom:var(--border);padding:10px 12px;">
+      <div style="font-family:var(--f-code);font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">📐 نسب الجسم</div>
+      <div id="ctrl-scale-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+
+    <!-- Speed controls -->
+    <div style="padding:10px 12px;">
+      <div style="font-family:var(--f-code);font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">⚡ سرعة الحركة</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-size:10px;color:var(--dim);width:60px;flex-shrink:0;">السرعة</label>
+        <input type="range" min="0.2" max="3" step="0.1" value="1" id="ctrl-speed" style="flex:1;">
+        <span id="ctrl-speed-val" style="font-family:var(--f-code);font-size:10px;color:var(--white);width:32px;text-align:right;">1.0x</span>
+      </div>
+    </div>
+
+  </div>
+</div><!-- end view-control -->
+</div><!-- end app-layout -->
+
 <div class="progress-wrap" id="progress-wrap" style="display:none">
   <div style="font-family:var(--f-code);font-size:10px;color:var(--cyan);min-width:140px" id="progress-task">Processing...</div>
   <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
@@ -659,8 +731,7 @@ window.goView = function(id){ if(window.__goView) window.__goView(id); };
 window.closeExport = function(){ if(window.__closeExport) window.__closeExport(); };
 
 
-/* ── CharacterData ── */
-/* ══ API KEY MANAGEMENT + ZAATAR BRIDGE ══ */
+/* ══ ZAATAR AI BRIDGE — no API key needed ══ */
 function getApiKey(){ return localStorage.getItem('ce_anthropic_key')||''; }
 function getHeaders(){
   return {'Content-Type':'application/json','x-api-key':getApiKey(),
@@ -674,9 +745,9 @@ let _pendingAI = {}, _aiReqId = 0;
 window.addEventListener('message', (e) => {
   if (e.data.type === 'CE_SET_KEY' && e.data.key) {
     localStorage.setItem('ce_anthropic_key', e.data.key);
-    const b = document.getElementById('btn-api-key');
-    if (b) { b.textContent = '🔑 زعتر ✓'; b.style.color = 'var(--green)'; b.style.borderColor = 'var(--green)'; }
-    notify('✓ تم استلام Key من زعتر', 'var(--green)');
+    const s = document.getElementById('zaatar-status');
+    if (s) { s.textContent = '🤖 زعتر AI ✓'; }
+    notify('✓ تم الاتصال بزعتر AI', 'var(--green)');
   }
   if (e.data.type === 'CE_AI_RESPONSE') {
     const cb = _pendingAI[e.data.id];
@@ -685,58 +756,44 @@ window.addEventListener('message', (e) => {
 });
 if (_inIframe) window.parent.postMessage({ type: 'CE_READY' }, '*');
 
-/* دالة AI موحدة — iframe يستخدم parent، standalone يستخدم key محلي */
-async function callAIEngine(prompt) {
-  if (_inIframe) {
-    return new Promise((resolve, reject) => {
-      const id = ++_aiReqId;
-      _pendingAI[id] = (res) => res.error ? reject(new Error(res.error)) : resolve(res.text);
-      window.parent.postMessage({ type: 'CE_AI_REQUEST', id, prompt }, '*');
-      setTimeout(() => { if (_pendingAI[id]) { delete _pendingAI[id]; reject(new Error('timeout')); } }, 30000);
-    });
-  }
+/* دالة AI موحدة — يستخدم Anthropic API مباشرة */
+async function callAIEngine(prompt, imageBase64, mimeType) {
   const key = getApiKey();
-  if (!key) throw new Error('x-api-key header is required');
+  const headers = {
+    'Content-Type':'application/json',
+    'anthropic-version':'2023-06-01',
+    'anthropic-dangerous-direct-browser-access':'true'
+  };
+  if (key) headers['x-api-key'] = key;
+
+  let msgContent;
+  if (imageBase64) {
+    msgContent = [
+      {type:'image', source:{type:'base64', media_type: mimeType||'image/jpeg', data: imageBase64}},
+      {type:'text', text: prompt}
+    ];
+  } else {
+    msgContent = prompt;
+  }
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST', headers: getHeaders(),
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }] })
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: msgContent }]
+    })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.content.map(i => i.text || '').join('');
 }
 
-function openApiKeyModal(){
-  if (_inIframe) { notify('الـ Key بييجي من زعتر تلقائياً ✓', 'var(--green)'); return; }
-  const modal=document.getElementById('api-key-modal');
-  modal.style.display='flex';
-  const input=document.getElementById('api-key-input');
-  const saved=getApiKey();
-  input.value=saved;
-  document.getElementById('api-key-status').textContent=saved?'// ✓ Key محفوظ':'// لا يوجد Key محفوظ';
-  document.getElementById('api-key-status').style.color=saved?'var(--green)':'var(--dim)';
-}
-function closeApiKeyModal(){ document.getElementById('api-key-modal').style.display='none'; }
-function saveApiKey(){
-  const val=document.getElementById('api-key-input').value.trim();
-  if(!val||!val.startsWith('sk-')){
-    document.getElementById('api-key-status').textContent='✗ Key غير صحيح';
-    document.getElementById('api-key-status').style.color='var(--red)'; return;
-  }
-  localStorage.setItem('ce_anthropic_key',val);
-  document.getElementById('api-key-status').textContent='✓ تم الحفظ';
-  document.getElementById('api-key-status').style.color='var(--green)';
-  const b=document.getElementById('btn-api-key');
-  if(b){b.style.borderColor='var(--green)';b.style.color='var(--green)';b.textContent='🔑 Key ✓';}
-  setTimeout(closeApiKeyModal,900);
-}
-(()=>{
-  if (_inIframe) return;
-  const k=getApiKey();
-  if(k){const b=document.getElementById('btn-api-key');if(b){b.style.borderColor='var(--green)';b.style.color='var(--green)';b.textContent='🔑 Key ✓';}}
-  else { setTimeout(()=>{ if(!getApiKey()) openApiKeyModal(); },800); }
-})();
+/* stubs للحفاظ على التوافق مع أي مكان يستدعي هذه الدوال */
+function openApiKeyModal(){ notify('AI زعتر يعمل تلقائياً ✓','var(--green)'); }
+function closeApiKeyModal(){}
+function saveApiKey(){}
 
 const CD = {
   name:'Hero_01',
@@ -1545,7 +1602,6 @@ function _autoMat(hex, region='body', metal=0, rough=0.8, emit=0){
   return _mkMat(hex, metal, rough, emit);
 }
 async function runAIVisionAnalysis(dataUrl){
-  if(!getApiKey()){ openApiKeyModal(); notify('أدخل API Key أولاً','var(--red)'); return; }
   const scanOverlay=document.getElementById('img-scan-overlay');
   scanOverlay.style.display='block';
   document.getElementById('ai-color-status').textContent='// جاري التحليل...';
@@ -1554,41 +1610,26 @@ async function runAIVisionAnalysis(dataUrl){
   // Build region textures first (instant, no API needed)
   await buildTexturesFromImage(dataUrl);
   addImgLog('// ✓ Textures: وجه + جسم + أرجل','system');
-  addImgLog('// إرسال للـ AI Vision...','system');
+  addImgLog('// إرسال للـ AI Vision (زعتر)...','system');
 
   const b64=dataUrl.split(',')[1];
   const mimeMatch=dataUrl.match(/data:([^;]+);/);
   const mimeType=(mimeMatch&&mimeMatch[1])||'image/jpeg';
 
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:getHeaders(),
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:mimeType,data:b64}},
-            {type:'text',text:`You are a 3D character artist AI. Analyze this character image and extract:
+  const aiPrompt = `You are a 3D character artist AI. Analyze this character image and extract:
 - Colors for each body part
 - Body proportions
 - Character type (warrior/ninja/mage/robot/hero/archer/samurai/monster — pick closest)
 
 Respond ONLY with valid JSON, no markdown:
-{"skinColor":"#hex","hairColor":"#hex","outfitColor":"#hex","legColor":"#hex","eyeColor":"#hex","heightScale":1.0,"widthScale":1.0,"metallic":0.0,"roughness":0.6,"characterType":"warrior","characterName":"Hero","descriptionAr":"وصف قصير بالعربي"}`}
-          ]
-        }]
-      })
-    });
-    const data=await res.json();
-    if(data.error) throw new Error(data.error.message);
-    const text=data.content.map(i=>i.text||'').join('');
+{"skinColor":"#hex","hairColor":"#hex","outfitColor":"#hex","legColor":"#hex","eyeColor":"#hex","heightScale":1.0,"widthScale":1.0,"metallic":0.0,"roughness":0.6,"characterType":"warrior","characterName":"Hero","descriptionAr":"وصف قصير بالعربي"}`;
+
+  try{
+    const text = await callAIEngine(aiPrompt, b64, mimeType);
     const result=JSON.parse(text.replace(/```json|```/g,'').trim());
 
     scanOverlay.style.display='none';
-    addImgLog('// AI: تحليل ناجح ✓','system');
+    addImgLog('// AI زعتر: تحليل ناجح ✓','system');
     addImgLog('> '+result.descriptionAr,'ai');
     addImgLog('> نوع: '+result.characterType,'ai');
 
@@ -1675,7 +1716,6 @@ function addDesc(text){const ta=document.getElementById('char-description');ta.v
 document.getElementById('btn-text-to-3d').addEventListener('click',async()=>{
   const desc=document.getElementById('char-description').value.trim();
   if(!desc){notify('اكتب وصف الشخصية أولاً','var(--red)');return;}
-  if(!getApiKey()){ openApiKeyModal(); notify('أدخل API Key أولاً','var(--red)'); return; }
   const log=document.getElementById('ai-text-log');
   const addLog=(txt,cls)=>{const d=document.createElement('div');d.className='ai-line '+cls;d.textContent=txt;log.appendChild(d);log.scrollTop=log.scrollHeight;};
   const btn=document.getElementById('btn-text-to-3d');
@@ -2426,6 +2466,901 @@ console.log('[Character Engine PRO] v3.2 — Fixed canvas resize bug.');
   window.__addDesc = addDesc;
   window.__goView = goView;
   window.__closeExport = closeExport;
+
+/* ══════════════════════════════════════════════════════
+   FULL RIG CONTROL SYSTEM — v1.0
+   تحكم كامل بالشخصية: عظام، عيون، حركة، Skeleton مرئي
+   ══════════════════════════════════════════════════════ */
+
+let ctrlCtx = null, ctrlMesh = null, ctrlSkeletonGroup = null;
+let ctrlAnimRAF = null, ctrlAnimRunning = false;
+let ctrlShowSkeleton = true;
+let ctrlAnimSpeed = 1.0;
+let ctrlCurrentAnim = 'idle';
+let ctrlEyeX = 0, ctrlEyeY = 0;
+
+// تعريف العظام مع حدودها
+const CTRL_BONES = [
+  { id:'head',    label:'الرأس',          axis:'z',  min:-45, max:45,  icon:'👤' },
+  { id:'neck',    label:'الرقبة',         axis:'x',  min:-30, max:30,  icon:'🔗' },
+  { id:'spine',   label:'العمود الفقري',  axis:'x',  min:-35, max:35,  icon:'🦴' },
+  { id:'armL',    label:'الذراع الأيسر',  axis:'x',  min:-120,max:90,  icon:'💪' },
+  { id:'armLz',   label:'ذراع أيسر (دوران)', axis:'z', min:-90, max:90, icon:'🔄' },
+  { id:'armR',    label:'الذراع الأيمن',  axis:'x',  min:-120,max:90,  icon:'💪' },
+  { id:'armRz',   label:'ذراع أيمن (دوران)', axis:'z', min:-90, max:90, icon:'🔄' },
+  { id:'legL',    label:'الساق اليسرى',   axis:'x',  min:-90, max:45,  icon:'🦵' },
+  { id:'legLz',   label:'ساق يسرى (جانب)', axis:'z', min:-30, max:30,  icon:'↔' },
+  { id:'legR',    label:'الساق اليمنى',   axis:'x',  min:-90, max:45,  icon:'🦵' },
+  { id:'legRz',   label:'ساق يمنى (جانب)', axis:'z', min:-30, max:30,  icon:'↔' },
+  { id:'bodyY',   label:'دوران الجسم',    axis:'y',  min:-180,max:180, icon:'🔃' },
+  { id:'tilt',    label:'ميل الجسم',      axis:'z',  min:-25, max:25,  icon:'↗' },
+];
+
+const CTRL_SCALES = [
+  { id:'height', label:'الطول',    min:70, max:140, def:100, prop:'heightScale', div:100 },
+  { id:'width',  label:'العرض',    min:50, max:150, def:100, prop:'widthScale',  div:100 },
+  { id:'head',   label:'حجم الرأس',min:70, max:140, def:100, prop:'headSize',    div:100 },
+  { id:'legLen', label:'طول الأرجل',min:70,max:130, def:100, prop:'legLength',   div:100 },
+];
+
+const CTRL_ANIMS = [
+  {id:'idle',   label:'وقوف', icon:'🧍'},
+  {id:'walk',   label:'مشي',  icon:'🚶'},
+  {id:'run',    label:'جري',  icon:'🏃'},
+  {id:'sprint', label:'سرعة', icon:'💨'},
+  {id:'jump',   label:'قفز',  icon:'⬆️'},
+  {id:'attack', label:'هجوم', icon:'⚔️'},
+  {id:'kick',   label:'ركلة', icon:'🦵'},
+  {id:'punch',  label:'لكمة', icon:'👊'},
+  {id:'block',  label:'دفاع', icon:'🛡️'},
+  {id:'magic',  label:'سحر',  icon:'🪄'},
+  {id:'dance',  label:'رقص',  icon:'💃'},
+  {id:'death',  label:'سقوط', icon:'💀'},
+];
+
+// حالة العظام الحالية
+const boneState = {};
+CTRL_BONES.forEach(b => { boneState[b.id] = 0; });
+
+// بناء قائمة العظام في البانل
+function buildCtrlBonePanel() {
+  const list = document.getElementById('ctrl-bone-list');
+  if (!list) return;
+  list.innerHTML = '';
+  CTRL_BONES.forEach(bone => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    row.innerHTML = `
+      <span style="font-size:12px;flex-shrink:0;">${bone.icon}</span>
+      <label style="font-size:10px;color:var(--dim);width:88px;flex-shrink:0;">${bone.label}</label>
+      <input type="range" min="${bone.min}" max="${bone.max}" step="1" value="0" id="ctrl-bone-${bone.id}" style="flex:1;accent-color:var(--cyan);">
+      <span id="ctrl-bone-${bone.id}-val" style="font-family:var(--f-code);font-size:9px;color:var(--white);width:28px;text-align:right;">0°</span>`;
+    list.appendChild(row);
+
+    // ربط الـ slider
+    const slider = row.querySelector('input');
+    slider.addEventListener('input', e => {
+      const deg = +e.target.value;
+      boneState[bone.id] = deg;
+      row.querySelector(`#ctrl-bone-${bone.id}-val`).textContent = deg + '°';
+      applyBoneState();
+      document.getElementById('ctrl-hud-bone').textContent = '🦴 ' + bone.label + ': ' + deg + '°';
+    });
+  });
+}
+
+// بناء قائمة النسب
+function buildCtrlScalePanel() {
+  const list = document.getElementById('ctrl-scale-list');
+  if (!list) return;
+  list.innerHTML = '';
+  CTRL_SCALES.forEach(sc => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    row.innerHTML = `
+      <label style="font-size:10px;color:var(--dim);width:88px;flex-shrink:0;">${sc.label}</label>
+      <input type="range" min="${sc.min}" max="${sc.max}" step="1" value="${sc.def}" id="ctrl-sc-${sc.id}" style="flex:1;accent-color:var(--amber);">
+      <span id="ctrl-sc-${sc.id}-val" style="font-family:var(--f-code);font-size:9px;color:var(--white);width:32px;text-align:right;">${sc.def}%</span>`;
+    list.appendChild(row);
+
+    row.querySelector('input').addEventListener('input', e => {
+      const v = +e.target.value;
+      row.querySelector(`#ctrl-sc-${sc.id}-val`).textContent = v + '%';
+      CD[sc.prop] = v / sc.div;
+      rebuildCtrlMesh();
+    });
+  });
+}
+
+// بناء شريط الحركات
+function buildCtrlAnimStrip() {
+  const strip = document.getElementById('ctrl-anim-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  CTRL_ANIMS.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'anim-btn';
+    btn.id = 'ctrl-anim-' + a.id;
+    btn.innerHTML = `<span style="font-size:16px">${a.icon}</span><span style="font-size:9px;display:block">${a.label}</span>`;
+    btn.style.cssText = 'padding:6px 10px;min-width:52px;';
+    btn.addEventListener('click', () => ctrlPlayAnim(a.id));
+    strip.appendChild(btn);
+  });
+}
+
+// تطبيق حالة العظام على الـ mesh
+function applyBoneState() {
+  if (!ctrlMesh) return;
+  const u = ctrlMesh.userData;
+  const deg = v => v * Math.PI / 180;
+
+  if (u.head) {
+    u.head.rotation.z = deg(boneState.head);
+    u.head.rotation.x = deg(boneState.neck);
+  }
+  if (u.armL) {
+    u.armL.rotation.x = deg(boneState.armL);
+    u.armL.rotation.z = deg(boneState.armLz);
+  }
+  if (u.armR) {
+    u.armR.rotation.x = deg(boneState.armR);
+    u.armR.rotation.z = deg(-boneState.armRz);
+  }
+  if (u.legL) {
+    u.legL.rotation.x = deg(boneState.legL);
+    u.legL.rotation.z = deg(boneState.legLz);
+  }
+  if (u.legR) {
+    u.legR.rotation.x = deg(boneState.legR);
+    u.legR.rotation.z = deg(-boneState.legRz);
+  }
+  // Spine = rotate whole group slightly
+  ctrlMesh.rotation.y = deg(boneState.bodyY);
+  ctrlMesh.rotation.z = deg(boneState.tilt);
+
+  // Eye direction
+  applyEyeDir();
+
+  // Rebuild skeleton overlay
+  if (ctrlShowSkeleton) rebuildCtrlSkeleton();
+}
+
+// تطبيق اتجاه العينين
+function applyEyeDir() {
+  if (!ctrlMesh) return;
+  const u = ctrlMesh.userData;
+  if (!u.head) return;
+  // حرك الرأس قليلاً مع العيون للإيهام بالنظر
+  u.head.rotation.y = ctrlEyeX * 0.3;
+  // نقطة الإشارة
+  const indicator = document.getElementById('eye-indicator');
+  if (indicator) {
+    const cx = 50 + ctrlEyeX * 38;
+    const cy = 50 + ctrlEyeY * 38;
+    indicator.style.left = cx + '%';
+    indicator.style.top  = cy + '%';
+    indicator.style.transform = 'translate(-50%,-50%)';
+  }
+}
+
+window.ctrlEyePreset = function(x, y) {
+  ctrlEyeX = x; ctrlEyeY = y;
+  const ex = document.getElementById('ctrl-eye-x');
+  const ey = document.getElementById('ctrl-eye-y');
+  if (ex) { ex.value = x; document.getElementById('ctrl-eye-x-val').textContent = x.toFixed(2); }
+  if (ey) { ey.value = y; document.getElementById('ctrl-eye-y-val').textContent = y.toFixed(2); }
+  applyEyeDir();
+};
+
+// بناء / إعادة بناء Skeleton مرئي (عظام برتقالية)
+function rebuildCtrlSkeleton() {
+  if (!ctrlCtx || !ctrlMesh) return;
+  if (ctrlSkeletonGroup) ctrlCtx.scene.remove(ctrlSkeletonGroup);
+  if (!ctrlShowSkeleton) { ctrlSkeletonGroup = null; return; }
+
+  const sg = new THREE.Group();
+  const boneMat = new THREE.MeshBasicMaterial({ color: 0xff8800, depthTest: false, transparent: true, opacity: 0.85 });
+  const jointMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, depthTest: false });
+
+  function addBone(p1, p2, radius = 0.018) {
+    const dir = new THREE.Vector3().subVectors(p2, p1);
+    const len = dir.length();
+    if (len < 0.01) return;
+    const geo = new THREE.CylinderGeometry(radius * 0.6, radius, len, 6);
+    geo.translate(0, len / 2, 0);
+    const mesh = new THREE.Mesh(geo, boneMat);
+    mesh.position.copy(p1);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    sg.add(mesh);
+    // Joint sphere
+    const jGeo = new THREE.SphereGeometry(radius * 1.5, 6, 6);
+    const j = new THREE.Mesh(jGeo, jointMat);
+    j.position.copy(p1);
+    sg.add(j);
+  }
+
+  // حسب الشخصية — الإحداثيات التقريبية
+  const u = ctrlMesh.userData;
+  const py = ctrlMesh.position.y;
+  const hs = CD.heightScale || 1;
+  const ws = CD.widthScale || 1;
+  const ll = (CD.legLength || 1) * 0.72 * hs;
+
+  // Spine chain
+  const pelvis   = new THREE.Vector3(0, 0.15 + py, 0);
+  const spine1   = new THREE.Vector3(0, 0.55 + py, 0);
+  const chest    = new THREE.Vector3(0, 0.95 + py, 0);
+  const neck     = new THREE.Vector3(0, 1.38 * hs + py, 0);
+  const head     = new THREE.Vector3(0, 1.56 * hs + py, 0);
+  const headTop  = new THREE.Vector3(0, 1.78 * hs + py, 0);
+
+  addBone(pelvis, spine1);
+  addBone(spine1, chest);
+  addBone(chest, neck);
+  addBone(neck, head);
+  addBone(head, headTop, 0.025);
+
+  // Arms
+  const shoulderL = new THREE.Vector3(-0.28 * ws, 1.28 * hs + py, 0);
+  const elbowL    = new THREE.Vector3(-0.28 * ws, 1.28 * hs - 0.32 * hs + py, 0);
+  const wristL    = new THREE.Vector3(-0.28 * ws, 1.28 * hs - 0.62 * hs + py, 0);
+  const shoulderR = new THREE.Vector3(0.28 * ws, 1.28 * hs + py, 0);
+  const elbowR    = new THREE.Vector3(0.28 * ws, 1.28 * hs - 0.32 * hs + py, 0);
+  const wristR    = new THREE.Vector3(0.28 * ws, 1.28 * hs - 0.62 * hs + py, 0);
+
+  // Apply arm rotations to bone positions
+  if (u.armL) {
+    const armLPos = u.armL.position.clone().add(ctrlMesh.position);
+    const rx = u.armL.rotation.x;
+    const rz = u.armL.rotation.z;
+    const elbowOffset = new THREE.Vector3(rz * 0.32 * hs, -0.32 * hs * Math.cos(rx), -0.32 * hs * Math.sin(rx));
+    const elbowLr = armLPos.clone().add(elbowOffset);
+    const wristOffset = new THREE.Vector3(rz * 0.62 * hs, -0.62 * hs * Math.cos(rx), -0.62 * hs * Math.sin(rx));
+    const wristLr = armLPos.clone().add(wristOffset);
+    addBone(armLPos, elbowLr);
+    addBone(elbowLr, wristLr);
+  } else {
+    addBone(chest, shoulderL, 0.02);
+    addBone(shoulderL, elbowL);
+    addBone(elbowL, wristL);
+  }
+
+  if (u.armR) {
+    const armRPos = u.armR.position.clone().add(ctrlMesh.position);
+    const rx = u.armR.rotation.x;
+    const rz = u.armR.rotation.z;
+    const elbowOffset = new THREE.Vector3(-rz * 0.32 * hs, -0.32 * hs * Math.cos(rx), -0.32 * hs * Math.sin(rx));
+    const elbowRr = armRPos.clone().add(elbowOffset);
+    const wristOffset = new THREE.Vector3(-rz * 0.62 * hs, -0.62 * hs * Math.cos(rx), -0.62 * hs * Math.sin(rx));
+    const wristRr = armRPos.clone().add(wristOffset);
+    addBone(armRPos, elbowRr);
+    addBone(elbowRr, wristRr);
+  } else {
+    addBone(chest, shoulderR, 0.02);
+    addBone(shoulderR, elbowR);
+    addBone(elbowR, wristR);
+  }
+
+  // Legs
+  if (u.legL) {
+    const legLPos = u.legL.position.clone().add(ctrlMesh.position);
+    const rx = u.legL.rotation.x;
+    const rz = u.legL.rotation.z;
+    const kneeOffset = new THREE.Vector3(rz * ll * 0.5, -ll * 0.5 * Math.cos(rx), -ll * 0.5 * Math.sin(rx));
+    const kneeL = legLPos.clone().add(kneeOffset);
+    const footOffset = new THREE.Vector3(rz * ll, -ll * Math.cos(rx), -ll * Math.sin(rx));
+    const footL = legLPos.clone().add(footOffset);
+    addBone(pelvis, legLPos, 0.02);
+    addBone(legLPos, kneeL);
+    addBone(kneeL, footL);
+  }
+  if (u.legR) {
+    const legRPos = u.legR.position.clone().add(ctrlMesh.position);
+    const rx = u.legR.rotation.x;
+    const rz = u.legR.rotation.z;
+    const kneeOffset = new THREE.Vector3(-rz * ll * 0.5, -ll * 0.5 * Math.cos(rx), -ll * 0.5 * Math.sin(rx));
+    const kneeR = legRPos.clone().add(kneeOffset);
+    const footOffset = new THREE.Vector3(-rz * ll, -ll * Math.cos(rx), -ll * Math.sin(rx));
+    const footR = legRPos.clone().add(footOffset);
+    addBone(pelvis, legRPos, 0.02);
+    addBone(legRPos, kneeR);
+    addBone(kneeR, footR);
+  }
+
+  // Collarbone
+  addBone(chest, shoulderL, 0.015);
+  addBone(chest, shoulderR, 0.015);
+
+  ctrlSkeletonGroup = sg;
+  ctrlCtx.scene.add(sg);
+}
+
+// إعادة بناء الشخصية في الـ control view
+function rebuildCtrlMesh() {
+  if (!ctrlCtx) return;
+  if (ctrlMesh) ctrlCtx.scene.remove(ctrlMesh);
+  if (ctrlSkeletonGroup) ctrlCtx.scene.remove(ctrlSkeletonGroup);
+  ctrlMesh = buildCharacter(CD);
+  applyImageTextures(ctrlMesh);
+  ctrlCtx.scene.add(ctrlMesh);
+  applyBoneState();
+  rebuildCtrlSkeleton();
+}
+
+// تشغيل animation في الـ control view
+function ctrlPlayAnim(id) {
+  if (ctrlAnimRAF) cancelAnimationFrame(ctrlAnimRAF);
+  document.querySelectorAll('#ctrl-anim-strip .anim-btn').forEach(b => b.classList.remove('playing'));
+  const btn = document.getElementById('ctrl-anim-' + id);
+  if (btn) btn.classList.add('playing');
+  ctrlCurrentAnim = id;
+  ctrlAnimRunning = true;
+
+  const statusEl = document.getElementById('ctrl-anim-status');
+  const hudEl = document.getElementById('ctrl-hud-anim');
+  const label = CTRL_ANIMS.find(a => a.id === id)?.label || id;
+  if (statusEl) statusEl.textContent = label;
+  if (hudEl) hudEl.textContent = '▶ Animation: ' + label;
+
+  const char = ctrlMesh;
+  if (!char) return;
+  const u = char.userData;
+  let t = 0;
+
+  function loop() {
+    if (!ctrlAnimRunning) return;
+    ctrlAnimRAF = requestAnimationFrame(loop);
+    t += 0.05 * ctrlAnimSpeed;
+    const s = Math.sin(t), c = Math.cos(t);
+
+    // Reset
+    if (u.armL) u.armL.rotation.set(0, 0, 0);
+    if (u.armR) u.armR.rotation.set(0, 0, 0);
+    if (u.legL) u.legL.rotation.set(0, 0, 0);
+    if (u.legR) u.legR.rotation.set(0, 0, 0);
+    char.position.y = 0; char.rotation.z = 0; char.position.x = 0;
+
+    switch (id) {
+      case 'idle':
+        if (u.armL) u.armL.rotation.z = s * 0.05;
+        if (u.armR) u.armR.rotation.z = -s * 0.05;
+        char.position.y = s * 0.015;
+        break;
+      case 'walk':
+        if (u.legL) u.legL.rotation.x = s * 0.55;
+        if (u.legR) u.legR.rotation.x = -s * 0.55;
+        if (u.armL) u.armL.rotation.x = -s * 0.4;
+        if (u.armR) u.armR.rotation.x = s * 0.4;
+        char.position.y = Math.abs(s) * 0.04;
+        break;
+      case 'run':
+        if (u.legL) u.legL.rotation.x = s * 1.0;
+        if (u.legR) u.legR.rotation.x = -s * 1.0;
+        if (u.armL) { u.armL.rotation.x = -s * 0.8; u.armL.rotation.z = s * 0.1; }
+        if (u.armR) { u.armR.rotation.x = s * 0.8; u.armR.rotation.z = -s * 0.1; }
+        char.position.y = Math.abs(s) * 0.08;
+        if (u.head) u.head.rotation.x = -0.15;
+        break;
+      case 'sprint':
+        if (u.legL) u.legL.rotation.x = s * 1.4;
+        if (u.legR) u.legR.rotation.x = -s * 1.4;
+        if (u.armL) { u.armL.rotation.x = -s * 1.1; u.armL.rotation.z = s * 0.15; }
+        if (u.armR) { u.armR.rotation.x = s * 1.1; u.armR.rotation.z = -s * 0.15; }
+        char.position.y = Math.abs(s) * 0.12;
+        if (u.head) u.head.rotation.x = -0.25;
+        break;
+      case 'jump':
+        char.position.y = Math.max(0, Math.sin(t * 0.5) * 0.9);
+        if (u.legL) u.legL.rotation.x = -0.35 + s * 0.2;
+        if (u.legR) u.legR.rotation.x = -0.35 - s * 0.2;
+        if (u.armL) u.armL.rotation.x = -0.6;
+        if (u.armR) u.armR.rotation.x = -0.6;
+        break;
+      case 'attack':
+        if (u.armR) u.armR.rotation.x = -Math.max(0, Math.sin(t * 2)) * 1.5;
+        if (u.armL) u.armL.rotation.x = 0.3;
+        if (u.legL) u.legL.rotation.x = s * 0.1;
+        break;
+      case 'kick':
+        if (u.legR) u.legR.rotation.x = -Math.max(0, Math.sin(t * 2)) * 1.3;
+        if (u.armL) u.armL.rotation.x = 0.2;
+        if (u.armR) u.armR.rotation.x = -0.2;
+        break;
+      case 'punch':
+        if (u.armL) u.armL.rotation.x = -Math.max(0, Math.sin(t * 2)) * 1.3;
+        if (u.armR) u.armR.rotation.x = Math.max(0, Math.sin(t * 2 + 1)) * 0.9;
+        if (u.legL) u.legL.rotation.x = s * 0.08;
+        break;
+      case 'block':
+        if (u.armL) { u.armL.rotation.x = -0.8; u.armL.rotation.z = 0.45; }
+        if (u.armR) { u.armR.rotation.x = -0.8; u.armR.rotation.z = -0.45; }
+        if (u.head) u.head.rotation.x = -0.2;
+        break;
+      case 'magic':
+        if (u.armL) { u.armL.rotation.x = -0.9 + s * 0.25; u.armL.rotation.z = 0.35 + s * 0.2; }
+        if (u.armR) u.armR.rotation.x = -0.9 - s * 0.25;
+        char.position.y = Math.sin(t * 0.3) * 0.06;
+        if (u.head) u.head.rotation.x = s * 0.1;
+        break;
+      case 'dance':
+        char.position.y = Math.abs(s) * 0.1;
+        char.rotation.y += 0.04 * ctrlAnimSpeed;
+        if (u.armL) u.armL.rotation.x = s * 0.9;
+        if (u.armR) u.armR.rotation.x = -s * 0.9;
+        if (u.armL) u.armL.rotation.z = c * 0.4;
+        if (u.armR) u.armR.rotation.z = -c * 0.4;
+        if (u.legL) u.legL.rotation.x = c * 0.35;
+        if (u.legR) u.legR.rotation.x = -c * 0.35;
+        break;
+      case 'death':
+        char.rotation.z = Math.min(Math.PI / 2, t * 0.25);
+        char.position.y = -Math.min(0.5, t * 0.08);
+        if (u.armL) u.armL.rotation.z = t * 0.5;
+        if (u.armR) u.armR.rotation.z = -t * 0.5;
+        if (t > Math.PI * 2.5) { cancelAnimationFrame(ctrlAnimRAF); ctrlAnimRunning = false; }
+        break;
+    }
+
+    // Rebuild skeleton every few frames
+    if (Math.round(t * 20) % 3 === 0 && ctrlShowSkeleton) {
+      rebuildCtrlSkeleton();
+    }
+  }
+  loop();
+}
+
+// إيقاف Animation ورجوع للـ pose اليدوي
+function ctrlStopAnim() {
+  if (ctrlAnimRAF) cancelAnimationFrame(ctrlAnimRAF);
+  ctrlAnimRunning = false;
+  document.querySelectorAll('#ctrl-anim-strip .anim-btn').forEach(b => b.classList.remove('playing'));
+  const statusEl = document.getElementById('ctrl-anim-status');
+  if (statusEl) statusEl.textContent = 'Manual';
+  if (!ctrlMesh) return;
+  // Reset rotations
+  const u = ctrlMesh.userData;
+  if (u.armL) u.armL.rotation.set(0, 0, 0);
+  if (u.armR) u.armR.rotation.set(0, 0, 0);
+  if (u.legL) u.legL.rotation.set(0, 0, 0);
+  if (u.legR) u.legR.rotation.set(0, 0, 0);
+  ctrlMesh.position.set(0, 0, 0);
+  ctrlMesh.rotation.set(0, 0, 0);
+  applyBoneState();
+  rebuildCtrlSkeleton();
+}
+
+// reset الـ pose
+function ctrlResetPose() {
+  ctrlStopAnim();
+  CTRL_BONES.forEach(b => {
+    boneState[b.id] = 0;
+    const sl = document.getElementById('ctrl-bone-' + b.id);
+    const vl = document.getElementById('ctrl-bone-' + b.id + '-val');
+    if (sl) sl.value = 0;
+    if (vl) vl.textContent = '0°';
+  });
+  ctrlEyeX = 0; ctrlEyeY = 0;
+  ctrlEyePreset(0, 0);
+}
+
+// تهيئة الـ view عند أول فتح
+viewInits.control = function () {
+  const canvas = document.getElementById('control-canvas');
+  if (!ctrlCtx) {
+    ctrlCtx = createScene(canvas);
+    const orbit = attachOrbit(canvas, ctrlCtx.camera, new THREE.Vector3(0, 0.8, 0), 4);
+    ctrlCtx.resize();
+
+    let fps2 = 0, lastT2 = performance.now();
+    (function loop() {
+      requestAnimationFrame(loop);
+      ctrlCtx.renderer.render(ctrlCtx.scene, ctrlCtx.camera);
+      fps2++;
+      const now = performance.now();
+      if (now - lastT2 > 1000) {
+        const el = document.getElementById('ctrl-hud-fps2');
+        if (el) el.textContent = fps2 + ' FPS';
+        fps2 = 0; lastT2 = now;
+      }
+    })();
+  } else {
+    ctrlCtx.resize();
+  }
+
+  // بناء الشخصية
+  rebuildCtrlMesh();
+
+  // ربط Eye sliders
+  const exSlider = document.getElementById('ctrl-eye-x');
+  const eySlider = document.getElementById('ctrl-eye-y');
+  if (exSlider) exSlider.addEventListener('input', e => {
+    ctrlEyeX = +e.target.value;
+    document.getElementById('ctrl-eye-x-val').textContent = ctrlEyeX.toFixed(2);
+    applyEyeDir();
+  });
+  if (eySlider) eySlider.addEventListener('input', e => {
+    ctrlEyeY = +e.target.value;
+    document.getElementById('ctrl-eye-y-val').textContent = ctrlEyeY.toFixed(2);
+    applyEyeDir();
+  });
+
+  // ربط Speed slider
+  const spSlider = document.getElementById('ctrl-speed');
+  if (spSlider) spSlider.addEventListener('input', e => {
+    ctrlAnimSpeed = +e.target.value;
+    document.getElementById('ctrl-speed-val').textContent = ctrlAnimSpeed.toFixed(1) + 'x';
+  });
+
+  // أزرار
+  const btnSk = document.getElementById('ctrl-btn-skeleton');
+  if (btnSk) btnSk.addEventListener('click', () => {
+    ctrlShowSkeleton = !ctrlShowSkeleton;
+    btnSk.textContent = ctrlShowSkeleton ? '🦴 إخفاء Skeleton' : '🦴 إظهار Skeleton';
+    if (!ctrlShowSkeleton && ctrlSkeletonGroup) {
+      ctrlCtx.scene.remove(ctrlSkeletonGroup);
+      ctrlSkeletonGroup = null;
+    } else {
+      rebuildCtrlSkeleton();
+    }
+  });
+
+  document.getElementById('ctrl-btn-reset-pose')?.addEventListener('click', ctrlResetPose);
+  document.getElementById('ctrl-btn-stopAnim')?.addEventListener('click', ctrlStopAnim);
+
+  // تشغيل idle تلقائياً
+  setTimeout(() => ctrlPlayAnim('idle'), 200);
+
+  setTimeout(() => ctrlCtx.resize(), 100);
+};
+
+// بناء UI الـ control
+buildCtrlBonePanel();
+buildCtrlScalePanel();
+buildCtrlAnimStrip();
+
+/* ══════════════════════════════════════════════════════
+   ⑦ تاب التدريب — المحاكي السيبراني
+   ══════════════════════════════════════════════════════ */
+
+// إضافة view-training للـ DOM
+(function(){
+  const trainingHTML = `
+  <div class="view" id="view-training" style="flex-direction:column;overflow:hidden;background:var(--bg-0);">
+
+    <!-- كارت تسمية المحاكي السيبراني -->
+    <div style="padding:18px 20px 10px;flex-shrink:0;">
+      <div style="
+        background:linear-gradient(135deg,rgba(0,229,255,0.07) 0%,rgba(157,78,221,0.10) 100%);
+        border:1px solid rgba(0,229,255,0.22);
+        border-radius:14px;
+        padding:16px 20px;
+        display:flex;align-items:center;gap:16px;
+        box-shadow:0 4px 24px rgba(0,229,255,0.08);
+        position:relative;overflow:hidden;
+      ">
+        <!-- خلفية scan line -->
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,229,255,0.03) 3px,rgba(0,229,255,0.03) 4px);pointer-events:none;border-radius:14px"></div>
+        <!-- أيقونة -->
+        <div style="
+          width:52px;height:52px;border-radius:12px;flex-shrink:0;
+          background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(157,78,221,0.2));
+          border:1px solid rgba(0,229,255,0.3);
+          display:flex;align-items:center;justify-content:center;font-size:26px;
+          box-shadow:0 0 20px rgba(0,229,255,0.18);
+        ">🧠</div>
+        <!-- نص -->
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--f-disp);font-size:14px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:3px">المحاكي السيبراني</div>
+          <div style="font-size:11px;color:var(--dim);font-family:var(--f-code);line-height:1.6">CYBER SIMULATOR · AI Character Training Engine</div>
+          <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-family:var(--f-code);font-size:9px;padding:2px 8px;border-radius:8px;background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,229,255,0.2)">v2.0 PRO</span>
+            <span style="font-family:var(--f-code);font-size:9px;padding:2px 8px;border-radius:8px;background:var(--green-dim);color:var(--green);border:1px solid rgba(0,255,157,0.2)">🟢 AI زعتر متصل</span>
+            <span style="font-family:var(--f-code);font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(157,78,221,0.1);color:var(--purple);border:1px solid rgba(157,78,221,0.25)">Vision + Chat</span>
+          </div>
+        </div>
+        <!-- حالة AI live -->
+        <div style="text-align:center;flex-shrink:0;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin:0 auto 4px;animation:pulse 2s infinite"></div>
+          <div style="font-family:var(--f-code);font-size:8px;color:var(--dim)">LIVE</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div style="display:flex;flex:1;overflow:hidden;gap:0;">
+
+      <!-- يسار: محادثة AI المدرِّب -->
+      <div style="flex:1;display:flex;flex-direction:column;border-left:var(--border);min-width:0;">
+
+        <div style="padding:10px 16px;border-bottom:var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:var(--f-disp);font-size:11px;color:var(--cyan);letter-spacing:.1em">AI TRAINING ASSISTANT</div>
+            <div style="font-size:10px;color:var(--dim);font-family:var(--f-code);margin-top:2px">مساعد تدريب الشخصية — يتحدث معك لتحسين شخصيتك</div>
+          </div>
+          <button id="btn-training-reset" class="btn btn-ghost" style="font-size:9px;padding:4px 10px;">↺ محادثة جديدة</button>
+        </div>
+
+        <!-- سجل المحادثة -->
+        <div id="training-chat-log" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;">
+          <!-- رسالة ترحيب أولية -->
+          <div style="align-self:flex-start;background:var(--bg-2);border:1px solid var(--purple);border-radius:10px;padding:12px 14px;max-width:85%;font-size:12px;line-height:1.7;color:var(--white);">
+            <span style="color:var(--purple);font-family:var(--f-code);font-size:10px;display:block;margin-bottom:4px">🧠 المحاكي السيبراني ·</span>
+            مرحباً! أنا مساعد التدريب المدمج مع زعتر AI. يمكنني مساعدتك في:<br>
+            <span style="color:var(--cyan)">① برمجة شخصيتك</span> — اشرح لي الشخصية وسأولّد لك كود تلقائياً<br>
+            <span style="color:var(--green)">② تحليل الصور</span> — ارفع صورة وسأستخرج منها الشخصية<br>
+            <span style="color:var(--amber)">③ تحسين الأنيميشن</span> — أخبرني أي حركة تريد تطويرها<br>
+            ابدأ بسؤالك أو ارفع صورة من الأسفل 👇
+          </div>
+        </div>
+
+        <!-- صندوق الإدخال -->
+        <div style="padding:10px 12px;border-top:var(--border);flex-shrink:0;">
+          <!-- رفع صورة للتدريب -->
+          <div id="training-img-preview" style="display:none;margin-bottom:8px;position:relative;">
+            <img id="training-img-thumb" style="max-height:80px;border-radius:8px;border:1px solid var(--cyan-dim);">
+            <button onclick="clearTrainingImage()" style="position:absolute;top:2px;right:2px;background:rgba(2,4,8,.8);border:1px solid var(--red);color:var(--red);border-radius:4px;padding:1px 6px;font-size:10px;cursor:pointer">✕</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="cursor:pointer;flex-shrink:0;" title="ارفع صورة للتحليل">
+              <input type="file" id="training-img-input" accept="image/*" style="display:none">
+              <div style="width:36px;height:36px;border:1px solid var(--cyan-dim);border-radius:8px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--cyan-dim)'">🖼</div>
+            </label>
+            <input id="training-chat-input" type="text" placeholder="اسأل عن برمجة الشخصية، أو اطلب تحليل صورة..." 
+              style="flex:1;background:var(--bg-2);border:var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-family:var(--f-ui);font-size:12px;outline:none;direction:rtl">
+            <button class="btn btn-cyan" id="btn-training-send" style="font-size:11px;padding:9px 14px;flex-shrink:0;">إرسال</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- يمين: أدوات تدريب سريعة -->
+      <div style="width:240px;flex-shrink:0;background:var(--bg-0);border-right:var(--border);overflow-y:auto;display:flex;flex-direction:column;">
+
+        <!-- إحصائيات الشخصية -->
+        <div style="padding:10px 12px;border-bottom:var(--border);">
+          <div style="font-family:var(--f-code);font-size:9px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;">📊 حالة الشخصية</div>
+          <div style="display:flex;flex-direction:column;gap:6px;" id="training-stats-panel"></div>
+        </div>
+
+        <!-- اقتراحات سريعة -->
+        <div style="padding:10px 12px;border-bottom:var(--border);">
+          <div style="font-family:var(--f-code);font-size:9px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">⚡ أسئلة سريعة</div>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="training-quick-btns"></div>
+        </div>
+
+        <!-- توليد كود AI -->
+        <div style="padding:10px 12px;border-bottom:var(--border);">
+          <div style="font-family:var(--f-code);font-size:9px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">🤖 توليد فوري</div>
+          <button class="btn btn-cyan" id="btn-training-gen-script" style="width:100%;font-size:10px;margin-bottom:6px;">⚡ ولّد سكريبت للشخصية</button>
+          <button class="btn btn-ghost" id="btn-training-improve" style="width:100%;font-size:10px;margin-bottom:6px;">✨ اقترح تحسينات</button>
+          <button class="btn btn-ghost" id="btn-training-describe" style="width:100%;font-size:10px;">📝 اشرح الشخصية الحالية</button>
+        </div>
+
+        <!-- كود مُولَّد -->
+        <div style="padding:10px 12px;flex:1;display:flex;flex-direction:column;">
+          <div style="font-family:var(--f-code);font-size:9px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">💾 كود مُولَّد</div>
+          <div id="training-code-output" style="flex:1;min-height:100px;background:var(--bg-1);border:var(--border);border-radius:8px;padding:8px;font-family:var(--f-code);font-size:9px;color:var(--dim);overflow-y:auto;direction:ltr;line-height:1.7;">// في انتظار الكود...</div>
+          <button class="btn btn-ghost" id="btn-training-copy-code" style="font-size:9px;padding:4px;margin-top:6px;width:100%;">📋 نسخ للمحرر</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  `;
+  document.querySelector('.app-layout').insertAdjacentHTML('beforeend', trainingHTML);
+})();
+
+/* ── Training Logic ── */
+const trainingHistory = [];
+let trainingImageB64 = null, trainingImageMime = null;
+
+// أسئلة سريعة
+const QUICK_QUESTIONS = [
+  {label:'🎮 كيف أبرمج القفز؟', q:'كيف أبرمج حركة القفز للشخصية؟'},
+  {label:'⚔️ اعمل هجوم متعدد', q:'اكتب سكريبت لهجوم متعدد المراحل مع حوار عربي'},
+  {label:'🧙 سكريبت سحر', q:'اكتب سكريبت يجعل الشخصية تستخدم السحر بشكل درامي'},
+  {label:'🏃 حركة دورية', q:'اكتب حلقة تكرارية تجعل الشخصية تمشي وتهاجم بالتناوب'},
+  {label:'💬 حوار AI', q:'اجعل الشخصية تتحدث مع اللاعب بعدة جمل بالعربي'},
+  {label:'📸 تحليل صورتي', q:'حلل الصورة التي رفعتها وأخبرني ماذا ترى'},
+];
+
+function buildTrainingQuickBtns() {
+  const el = document.getElementById('training-quick-btns');
+  if (!el) return;
+  el.innerHTML = '';
+  QUICK_QUESTIONS.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost';
+    btn.style.cssText = 'font-size:9px;padding:5px 8px;text-align:right;width:100%;';
+    btn.textContent = q.label;
+    btn.addEventListener('click', () => {
+      document.getElementById('training-chat-input').value = q.q;
+      sendTrainingMessage();
+    });
+    el.appendChild(btn);
+  });
+}
+
+function buildTrainingStats() {
+  const el = document.getElementById('training-stats-panel');
+  if (!el) return;
+  const stats = [
+    {label:'HP', val:CD.hp, max:CD.maxHp, color:'#ff3860'},
+    {label:'MP', val:CD.mp, max:CD.maxMp, color:'#9d4edd'},
+    {label:'XP', val:CD.experience, max:100, color:'#00e5ff'},
+    {label:'ATK', val:CD.attack, max:100, color:'#ffb700'},
+  ];
+  el.innerHTML = stats.map(s => `
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-family:var(--f-code);font-size:9px;color:var(--dim)">${s.label}</span>
+        <span style="font-family:var(--f-code);font-size:9px;color:var(--white)">${s.val}/${s.max}</span>
+      </div>
+      <div style="height:3px;background:var(--bg-2);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${(s.val/s.max*100)}%;background:${s.color};border-radius:2px;transition:width .4s;"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addTrainingMsg(text, role='ai') {
+  const log = document.getElementById('training-chat-log');
+  if (!log) return;
+  const d = document.createElement('div');
+  d.style.cssText = `align-self:${role==='user'?'flex-end':'flex-start'};max-width:87%;`;
+  d.innerHTML = `<div style="background:${role==='user'?'var(--cyan-dim)':'var(--bg-2)'};border:1px solid ${role==='user'?'rgba(0,229,255,0.3)':'var(--purple)'};border-radius:10px;padding:10px 14px;font-size:12px;line-height:1.7;color:var(--white);">
+    ${role!=='user'?`<span style="color:var(--purple);font-family:var(--f-code);font-size:10px;display:block;margin-bottom:4px">🧠 المحاكي السيبراني ·</span>`:''}
+    ${text.replace(/\n/g,'<br>')}
+  </div>`;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
+
+function addTrainingThinking() {
+  const log = document.getElementById('training-chat-log');
+  if (!log) return null;
+  const d = document.createElement('div');
+  d.style.cssText = 'align-self:flex-start;';
+  d.innerHTML = `<div style="background:var(--bg-2);border:1px solid var(--purple);border-radius:10px;padding:10px 14px;"><span class="spinner"></span> <span style="font-family:var(--f-code);font-size:10px;color:var(--dim)">زعتر AI يفكر...</span></div>`;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+
+async function sendTrainingMessage() {
+  const input = document.getElementById('training-chat-input');
+  const msg = input.value.trim();
+  if (!msg && !trainingImageB64) return;
+  input.value = '';
+
+  if (msg) addTrainingMsg(msg, 'user');
+  const thinking = addTrainingThinking();
+
+  // بناء السياق
+  const sysCtx = `أنت مساعد تدريب متخصص في محرك شخصيات 3D يسمى "Character Engine PRO". 
+اسمك "المحاكي السيبراني". تساعد المستخدم في:
+1. برمجة الشخصية باستخدام JavaScript API (character.walk, character.run, character.jump, character.attack, character.magic, character.say, character.dance, character.heal...)
+2. تحليل صور الشخصيات واستخراج خصائصها
+3. تحسين الأنيميشن والسلوك
+الشخصية الحالية: اسمها "${CD.name}"، نوعها ${CD.characterType||'محارب'}، HP=${CD.hp}، MP=${CD.mp}.
+رد بالعربي بشكل واضح ومفصل. إذا أعطيت كوداً، ضعه في بلوك جافاسكريبت.`;
+
+  const history = trainingHistory.map(m => (m.role==='user'?'المستخدم: ':'المساعد: ')+m.content).join('\n');
+  const fullPrompt = sysCtx + '\n---\n' + history + (history?'\n':'') + 'المستخدم: ' + msg;
+
+  try {
+    let reply;
+    if (trainingImageB64) {
+      reply = await callAIEngine(fullPrompt, trainingImageB64, trainingImageMime);
+    } else {
+      reply = await callAIEngine(fullPrompt);
+    }
+    thinking && thinking.remove();
+    trainingHistory.push({role:'user', content: msg});
+    trainingHistory.push({role:'assistant', content: reply});
+    addTrainingMsg(reply, 'ai');
+
+    // استخراج كود من الرد
+    const codeMatch = reply.match(/```(?:javascript|js)?\n?([\s\S]*?)```/);
+    if (codeMatch) {
+      const codeEl = document.getElementById('training-code-output');
+      if (codeEl) { codeEl.textContent = codeMatch[1].trim(); codeEl.style.color = 'var(--cyan)'; }
+    }
+
+    // مسح الصورة بعد الإرسال
+    clearTrainingImage();
+    buildTrainingStats();
+  } catch(err) {
+    thinking && thinking.remove();
+    addTrainingMsg('عذراً، حدث خطأ: ' + err.message + '\n\nتأكد من الاتصال بالإنترنت وحاول مرة أخرى.', 'ai');
+  }
+}
+
+function clearTrainingImage() {
+  trainingImageB64 = null; trainingImageMime = null;
+  const prev = document.getElementById('training-img-preview');
+  if (prev) prev.style.display = 'none';
+  const inp = document.getElementById('training-img-input');
+  if (inp) inp.value = '';
+}
+
+// أحداث تاب التدريب
+viewInits.training = function() {
+  buildTrainingQuickBtns();
+  buildTrainingStats();
+
+  // ربط الإدخالات
+  const sendBtn = document.getElementById('btn-training-send');
+  const chatInput = document.getElementById('training-chat-input');
+  const resetBtn = document.getElementById('btn-training-reset');
+  const imgInput = document.getElementById('training-img-input');
+  const genScript = document.getElementById('btn-training-gen-script');
+  const improve = document.getElementById('btn-training-improve');
+  const describe = document.getElementById('btn-training-describe');
+  const copyCode = document.getElementById('btn-training-copy-code');
+
+  if (sendBtn && !sendBtn._bound) {
+    sendBtn._bound = true;
+    sendBtn.addEventListener('click', sendTrainingMessage);
+    chatInput.addEventListener('keydown', e => { if(e.key==='Enter') sendTrainingMessage(); });
+
+    resetBtn.addEventListener('click', () => {
+      trainingHistory.length = 0;
+      trainingImageB64 = null; trainingImageMime = null;
+      const log = document.getElementById('training-chat-log');
+      log.innerHTML = `<div style="align-self:flex-start;background:var(--bg-2);border:1px solid var(--purple);border-radius:10px;padding:12px 14px;max-width:85%;font-size:12px;line-height:1.7;color:var(--white);">
+        <span style="color:var(--purple);font-family:var(--f-code);font-size:10px;display:block;margin-bottom:4px">🧠 المحاكي السيبراني ·</span>
+        تم إعادة تعيين المحادثة. كيف يمكنني مساعدتك؟
+      </div>`;
+    });
+
+    imgInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const dataUrl = ev.target.result;
+        trainingImageB64 = dataUrl.split(',')[1];
+        trainingImageMime = file.type || 'image/jpeg';
+        const thumb = document.getElementById('training-img-thumb');
+        const prev = document.getElementById('training-img-preview');
+        if (thumb) thumb.src = dataUrl;
+        if (prev) prev.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    genScript.addEventListener('click', async () => {
+      genScript.disabled = true; genScript.textContent = 'جاري التوليد...';
+      const q = `اكتب سكريبت JavaScript إبداعي لشخصية "${CD.name}" من نوع "${CD.characterType||'محارب'}". استخدم character.walk/run/jump/attack/magic/say/dance/heal. اكتب 10-15 سطر مثيرة مع حوار عربي. أرجع الكود فقط بدون شرح.`;
+      chatInput.value = q;
+      await sendTrainingMessage();
+      genScript.disabled = false; genScript.textContent = '⚡ ولّد سكريبت للشخصية';
+    });
+
+    improve.addEventListener('click', () => {
+      chatInput.value = `شخصيتي الحالية: ${CD.name}، نوعها ${CD.characterType||'محارب'}، HP=${CD.hp}، ATK=${CD.attack}. اقترح لي 5 تحسينات لجعلها أقوى وأكثر تشويقاً.`;
+      sendTrainingMessage();
+    });
+
+    describe.addEventListener('click', () => {
+      chatInput.value = `اشرح لي شخصيتي الحالية: الاسم "${CD.name}"، نوع ${CD.characterType||'محارب'}، HP=${CD.hp}، MP=${CD.mp}، ATK=${CD.attack}. اعمل لها وصفاً ملحمياً بالعربي.`;
+      sendTrainingMessage();
+    });
+
+    copyCode.addEventListener('click', () => {
+      const codeEl = document.getElementById('training-code-output');
+      if (!codeEl || codeEl.textContent.includes('في انتظار')) { notify('لا يوجد كود للنسخ بعد','var(--amber)'); return; }
+      const codeEditor = document.getElementById('code-editor');
+      if (codeEditor) {
+        codeEditor.value = codeEl.textContent;
+        notify('✓ تم نسخ الكود للمحرر','var(--green)');
+        goView('script');
+      } else {
+        navigator.clipboard.writeText(codeEl.textContent).then(()=>notify('✓ تم النسخ','var(--green)')).catch(()=>notify('فشل النسخ','var(--red)'));
+      }
+    });
+  }
+};
 
 } // end __initEngine
 </script>
