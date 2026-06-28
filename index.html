@@ -5252,8 +5252,52 @@ async function generateRealMeshFromImage(dataUrl){
   btn.disabled=false;
 }
 
-document.getElementById('btn-real-3d').addEventListener('click',()=>{
+/* ── حد استخدام يومي: 5 مرات لكل مستخدم — Meshy ── */
+const MESHY_DAILY_LIMIT = 5;
+function todayKeyMeshy(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+async function checkAndConsumeMeshyQuota(){
+  const today=todayKeyMeshy();
+  // ── مستخدم مسجّل (Firestore) ──
+  if(typeof dbFs!=='undefined' && typeof mySysId!=='undefined' && mySysId){
+    try{
+      const ref=dbFs.collection('users').doc(mySysId);
+      const snap=await ref.get();
+      const data=snap.exists?snap.data():{};
+      const usage=data.meshyUsage||{};
+      const count=(usage.date===today)?(usage.count||0):0;
+      if(count>=MESHY_DAILY_LIMIT) return false;
+      await ref.update({meshyUsage:{date:today,count:count+1}});
+      return true;
+    }catch(e){
+      // لو فشل الاتصال بـ Firestore، نرجع لـ localStorage كحل احتياطي
+    }
+  }
+  // ── ضيف / لا يوجد Firestore: localStorage ──
+  try{
+    const raw=localStorage.getItem('meshy_usage');
+    const usage=raw?JSON.parse(raw):{date:today,count:0};
+    const count=(usage.date===today)?(usage.count||0):0;
+    if(count>=MESHY_DAILY_LIMIT) return false;
+    localStorage.setItem('meshy_usage',JSON.stringify({date:today,count:count+1}));
+    return true;
+  }catch(e){
+    return true; // لو حتى localStorage فشل، نسمح بالمحاولة بدل ما نوقف المستخدم بالكامل
+  }
+}
+
+document.getElementById('btn-real-3d').addEventListener('click',async()=>{
   if(!uploadedImageBase64){notify('ارفع صورة أولاً','var(--red)');return;}
+  const allowed=await checkAndConsumeMeshyQuota();
+  if(!allowed){
+    notify('😅 خلصت محاولاتك النهارده (5 محاولات) — حاول تاني بكرا','var(--amber)');
+    const statusEl=document.getElementById('real3d-status');
+    statusEl.style.display='block';
+    statusEl.textContent='// آسف، خلصت 5 محاولات النهارده — حاول بكرا 🙏';
+    return;
+  }
   generateRealMeshFromImage(uploadedImageBase64);
 });
 
