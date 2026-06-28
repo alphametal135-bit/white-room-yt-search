@@ -11,22 +11,14 @@ function setHeaders(res, origin) {
   res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  // ❌ حذفنا Allow-Credentials — كانت invalid مع Allow-Origin: *
 }
 
-// timeout = 8s عشان Vercel Hobby plan الحد الأقصى 10s
 function fetchWithTimeout(url, options, timeoutMs = 8000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-// ── 1) Anthropic — بيجرب كل المفاتيح بالترتيب ────────
-// الأولوية:
-//   1. ANTHROPIC_API_KEY  (الرئيسي)
-//   2. zaatar             (الثاني)
-//   3. ANTHROPIC_KEY_1, ANTHROPIC_KEY_2, ... (أي مفتاح تضيفه على Vercel باسم ANTHROPIC_KEY_*)
-// عشان تضيف مفتاح جديد: روح Vercel Dashboard وضيف env var اسمه ANTHROPIC_KEY_3 مثلاً — بيتلاقى تلقائياً
 async function tryAnthropic(prompt) {
   const extraKeys = Object.entries(process.env)
     .filter(([k]) => k.startsWith('ANTHROPIC_KEY_'))
@@ -64,25 +56,28 @@ async function tryAnthropic(prompt) {
         return text ? { text, model: 'claude-haiku' } : null;
       }
 
-      // لو quota أو rate limit → جرب المفتاح الجاي
       const errMsg = data?.error?.message || '';
+
+      // ✅ الآن بيشمل credit/balance/low عشان ينتقل لـ Gemini
       const isQuota = res.status === 429
+        || res.status === 529
         || errMsg.includes('quota')
         || errMsg.includes('rate')
-        || errMsg.includes('overloaded');
+        || errMsg.includes('overloaded')
+        || errMsg.includes('credit')
+        || errMsg.includes('balance')
+        || errMsg.includes('low');
 
       if (isQuota) {
-        console.warn('Anthropic key quota exceeded, trying next key...');
+        console.warn('Anthropic key quota/credit exceeded, trying next key...');
         continue;
       }
 
-      // أي error تاني (مفتاح غلط، etc.) → وقف
       console.warn('Anthropic error:', res.status, errMsg);
       return null;
 
     } catch(e) {
       console.warn('Anthropic fetch error:', e.message);
-      // timeout أو network error → جرب المفتاح الجاي
       continue;
     }
   }
@@ -90,7 +85,6 @@ async function tryAnthropic(prompt) {
   return null;
 }
 
-// ── 2) Gemini ──────────────────────────────────────────
 async function tryGemini(prompt) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
@@ -127,7 +121,6 @@ async function tryGemini(prompt) {
   return null;
 }
 
-// ── 3) Cloudflare Workers AI ───────────────────────────
 async function tryCloudflare(prompt) {
   const token = process.env.CLOUDFLARE_AI_TOKEN;
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -159,7 +152,6 @@ async function tryCloudflare(prompt) {
   }
 }
 
-// ── Handler الرئيسي ────────────────────────────────────
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '*';
   setHeaders(res, origin);
