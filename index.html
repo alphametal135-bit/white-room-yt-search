@@ -2280,6 +2280,9 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
         <button class="btn btn-ghost" id="btn-wireframe">Wireframe</button>
         <button class="btn btn-ghost" id="btn-skeleton-view">Skeleton</button>
         <button class="btn btn-ghost" id="btn-reset-camera">إعادة الكاميرا</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" id="btn-zoom-out-preview" title="تصغير الشاشة">🔍−</button>
+        <button class="btn btn-ghost" id="btn-zoom-in-preview" title="تكبير الشاشة">🔍+</button>
       </div>
     </div>
 
@@ -2351,6 +2354,9 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
         <button class="btn btn-cyan" onclick="goView('script')">البرمجة →</button>
         <div class="sep"></div>
         <button class="btn btn-ghost" id="btn-random-char">🎲 شخصية عشوائية</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" id="btn-zoom-out-editor" title="تصغير الشاشة">🔍−</button>
+        <button class="btn btn-ghost" id="btn-zoom-in-editor" title="تكبير الشاشة">🔍+</button>
         <div class="sep"></div>
         <span class="badge green">Live Preview</span>
       </div>
@@ -4730,7 +4736,7 @@ function attachOrbit(canvas,camera,target,initDist){
     lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; place(); e.preventDefault();
   },{passive:false});
   canvas.addEventListener('touchend',()=>dragging=false);
-  return {place,setDist:d=>{dist=d;place();}};
+  return {place,setDist:d=>{dist=d;place();},zoom:delta=>{dist=Math.max(1.5,Math.min(12,dist+delta));place();}};
 }
 
 /* ── DRAW MODULE ── */
@@ -4889,6 +4895,7 @@ function handleImageUpload(file){
 
 window.resetUpload=function(){
   uploadedImageBase64=null;
+  CD.fromImage=false;
   uploadedTexture=null; faceTexture=null; bodyTexture=null; legsTexture=null;
   document.getElementById('upload-preview').src='';
   document.getElementById('img-preview-wrap').style.display='none';
@@ -5131,6 +5138,7 @@ Respond ONLY with valid JSON, no markdown:
     addImgLog('> نوع: '+result.characterType,'ai');
 
     Object.assign(CD,result);
+    CD.fromImage=true;
     if(result.characterName) CD.name=result.characterName;
     document.getElementById('ai-color-status').textContent='// ✓ Textures + ألوان مطبقة';
     applyColorsToPanel(result);
@@ -5185,6 +5193,7 @@ function analyzeImageColors(dataUrl){
       descriptionAr:'شخصية تم تحليل ألوانها محلياً'
     };
     Object.assign(CD,colors);
+    CD.fromImage=true;
     applyColorsToPanel(colors);
     document.getElementById('ai-color-status').textContent='// ✓ Textures محلية';
     addImgLog('> تم استخراج الألوان والـ Textures محلياً','ai');
@@ -5307,15 +5316,17 @@ document.getElementById('btn-skeleton-view').addEventListener('click',()=>{
   if(previewMesh) previewMesh.traverse(c=>{if(c.isMesh)c.visible=!skeletonMode;});
 });
 document.getElementById('btn-reset-camera').addEventListener('click',()=>{if(previewOrbit)previewOrbit.setDist(4);});
+document.getElementById('btn-zoom-in-preview').addEventListener('click',()=>{if(previewOrbit)previewOrbit.zoom(-0.7);});
+document.getElementById('btn-zoom-out-preview').addEventListener('click',()=>{if(previewOrbit)previewOrbit.zoom(0.7);});
 
 /* ── EDITOR SCENE ── */
-let editorCtx=null, editorMesh=null;
+let editorCtx=null, editorMesh=null, editorOrbit=null;
 
 viewInits.editor = function(){
   const canvas=document.getElementById('editor-canvas');
   if(!editorCtx){
     editorCtx=createScene(canvas);
-    attachOrbit(canvas,editorCtx.camera,new THREE.Vector3(0,.8,0),3.5);
+    editorOrbit=attachOrbit(canvas,editorCtx.camera,new THREE.Vector3(0,.8,0),3.5);
     editorCtx.resize();
     (function loop(){requestAnimationFrame(loop);editorCtx.renderer.render(editorCtx.scene,editorCtx.camera);})();
   } else {
@@ -5362,7 +5373,14 @@ document.getElementById('rig-head').addEventListener('input',e=>{if(editorMesh&&
 document.getElementById('rig-arml').addEventListener('input',e=>{if(editorMesh&&editorMesh.userData.armL)editorMesh.userData.armL.rotation.x=+e.target.value*Math.PI/180;});
 document.getElementById('rig-armr').addEventListener('input',e=>{if(editorMesh&&editorMesh.userData.armR)editorMesh.userData.armR.rotation.x=+e.target.value*Math.PI/180;});
 
+document.getElementById('btn-zoom-in-editor').addEventListener('click',()=>{if(editorOrbit)editorOrbit.zoom(-0.7);});
+document.getElementById('btn-zoom-out-editor').addEventListener('click',()=>{if(editorOrbit)editorOrbit.zoom(0.7);});
+
 document.getElementById('btn-random-char').addEventListener('click',()=>{
+  if(CD.fromImage){
+    notify('⚠ هذه الشخصية مولّدة من صورتك — اضغط "حذف" بصفحة رفع الصورة لو عايز شخصية عشوائية جديدة','var(--amber)');
+    return;
+  }
   const rh=()=>'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
   CD.skinColor=rh();CD.hairColor=rh();CD.outfitColor=rh();CD.legColor=rh();
   CD.heightScale=.85+Math.random()*.5;CD.widthScale=.8+Math.random()*.6;
