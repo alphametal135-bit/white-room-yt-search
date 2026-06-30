@@ -9260,6 +9260,14 @@ function openFriendChat(id) { activeChatTab = 'pm_' + id; showPage('chat', docum
 
 // ════════════════ 🏆 لوحة المحللين (عبر Firestore) ════════════════
 
+function lbOpenProfile(targetId) {
+  if (typeof isAdmin === 'function' && isAdmin()) {
+    viewStudentDetail(targetId);
+  } else {
+    viewStudentProfile(targetId);
+  }
+}
+
 async function renderLeaderboard() {
   const cont = document.getElementById('leaderboard-list-container');
   cont.innerHTML = '<div style="font-size:11px; color:var(--text3); padding:14px;">⏳ يتم تحميل 🏆 لوحة المحللين...</div>';
@@ -9307,8 +9315,8 @@ async function renderLeaderboard() {
       actionsHtml += `<button class="lb-btn view" onclick="viewStudentProfile('${u.id}')">👁 الملف</button>`;
 
       const lbPhotoHtml = u.photoURL
-        ? `<img src="${u.photoURL}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;">`
-        : `<div style="width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">👤</div>`;
+        ? `<img src="${u.photoURL}" onclick="lbOpenProfile('${u.id}')" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;cursor:pointer;">`
+        : `<div onclick="lbOpenProfile('${u.id}')" style="width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;cursor:pointer;">👤</div>`;
 
       const isFounderRow = u.id === 'WR-3512-7926';
       const row = document.createElement('div');
