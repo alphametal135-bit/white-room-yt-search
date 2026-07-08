@@ -7972,7 +7972,17 @@ function checkAuth() {
   auth.onAuthStateChanged(async (user) => {
     if (registrationPending) return; // لسه واقفين في خطوة تأكيد التسجيل
     if (!user) { document.getElementById('auth-overlay').classList.remove('hidden'); return; }
+    loadUserSession(user, 3);
+  });
+}
 
+// ── تحميل بيانات جلسة المستخدم بعد تأكيد تسجيل الدخول (بإعادة محاولة تلقائية) ──
+// مهم جداً: لو فشلت هذه الدالة (مشكلة شبكة/فايرستور مؤقتة)، المستخدم يبقى
+// مسجّل دخول فعلياً في Firebase Auth. إرجاعه لشاشة تسجيل الدخول في هذه الحالة
+// كان يعطي انطباعاً خاطئاً بأن الجلسة انتهت، فيضطر لتسجيل الدخول من جديد كل
+// مرة تحصل فيها هذه الأخطاء المؤقتة. الحل: نعيد المحاولة تلقائياً، وإن استمر
+// الفشل نعرض بانر اتصال بسيط (بدون التعرض لشاشة الدخول) مع زر إعادة محاولة يدوي.
+async function loadUserSession(user, attemptsLeft) {
     try {
       mySysId = await getSysIdForUid(user.uid);
       const doc = await dbFs.collection('users').doc(mySysId).get();
@@ -8098,11 +8108,35 @@ function checkAuth() {
             '-' + dailyResult.pts);
         }
       }
+      hideReconnectBanner();
     } catch (e) {
-      document.getElementById('auth-overlay').classList.remove('hidden');
-      console.error(e);
+      console.error('فشل تحميل بيانات الجلسة (المستخدم لسه مسجل دخول):', e);
+      if (attemptsLeft > 1) {
+        setTimeout(() => loadUserSession(user, attemptsLeft - 1), 1500);
+      } else {
+        // ما بنرجعوش لشاشة تسجيل الدخول هنا — هو مسجل دخول فعلاً في Firebase،
+        // المشكلة في تحميل بياناته بس (شبكة/فايرستور)، وإعادة إدخال الباسورد
+        // مش هتحل حاجة وهتلخبطه.
+        showReconnectBanner(user);
+      }
     }
-  });
+}
+
+// ── بانر بسيط لو فشل تحميل بيانات الحساب بعد كل المحاولات (المستخدم Authenticated فعلاً) ──
+function showReconnectBanner(user) {
+  let banner = document.getElementById('reconnect-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'reconnect-banner';
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:9999; background:#3a1a1a; color:#ffb3b3; padding:10px 16px; text-align:center; font-size:12.5px; border-bottom:1px solid rgba(255,80,80,.4);';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = '⚠️ تعذر تحميل بياناتك (تأكد من اتصال الإنترنت). أنت لسه مسجل دخول. ' +
+    '<button style="margin-right:8px; padding:3px 12px; border:1px solid #ffb3b3; background:transparent; color:#ffb3b3; border-radius:4px; cursor:pointer; font-size:12px;" onclick="loadUserSession(auth.currentUser, 3)">إعادة المحاولة</button>';
+}
+function hideReconnectBanner() {
+  const banner = document.getElementById('reconnect-banner');
+  if (banner) banner.remove();
 }
 
 // حذف نهائي وكامل للحساب من Firebase (Auth + كل وثائق Firestore المرتبطة)
@@ -9778,6 +9812,26 @@ async function getAnthropicKey() {
 // رابط الـ AI Proxy على Vercel
 const AI_PROXY_URL = 'https://white-room-yt-search.vercel.app/api/ai-proxy';
 
+// ── استخراج نص خام بأمان من رد الـ AI / البروكسي مهما كان شكله ──
+// المفروض إن البروكسي يرجع { text: "..." } كنص عادي، لكن لو رجع شكل تاني
+// بالغلط (زي مصفوفة content الخام بتاعة Anthropic { content:[{type:'text',text:'...'}] }
+// أو { text:[{...}] })، كان الكود القديم بيكسر بخطأ "rawText.replace is not a function"
+// لأنه بيحاول يعمل .replace على حاجة مش string. الدالة دي بتدور على النص
+// في أي شكل من الأشكال دي بدل ما تكسر.
+function normalizeAIText(data) {
+  if (data == null) return '';
+  if (typeof data === 'string') return data;
+  const extractFromBlocks = (blocks) => Array.isArray(blocks)
+    ? blocks.map(b => (b && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : '')).join('')
+    : '';
+  if (typeof data === 'object') {
+    if (typeof data.text === 'string') return data.text;
+    if (Array.isArray(data.text)) return extractFromBlocks(data.text);
+    if (Array.isArray(data.content)) return extractFromBlocks(data.content);
+  }
+  return '';
+}
+
 async function callAI(prompt) {
   // ── أولاً: نجرب الـ Proxy على Vercel ──
   let proxyFailed = false;
@@ -9795,7 +9849,7 @@ async function callAI(prompt) {
         console.warn('Proxy returned error:', data.error);
         proxyFailed = true;
       } else {
-        return data?.text ?? '';
+        return normalizeAIText(data);
       }
     } else {
       console.warn('Proxy HTTP error:', res.status);
@@ -9829,7 +9883,7 @@ async function callAI(prompt) {
     throw new Error('HTTP ' + res2.status + ': ' + (errData?.error?.message || ''));
   }
   const data2 = await res2.json();
-  return data2.content?.[0]?.text ?? '';
+  return normalizeAIText(data2);
 }
 // ════ تحديد نوع الرابط ════
 function detectLinkType(url) {
@@ -10048,12 +10102,16 @@ async function startAiQuiz(subjectId) {
   try {
     let parsed;
     let usedFallback = false;
+    let fallbackReason = '';
     try {
       parsed = await attemptAIGeneration(prompt);
     } catch(aiErr) {
-      // الـ AI فشل — نستخدم البنك المحلي فوراً
+      // الـ AI فشل — نستخدم البنك المحلي فوراً، لكن نحتفظ بسبب الفشل الحقيقي
+      // عشان نعرضه للمستخدم بدل ما يختفي بصمت جوه الـ console بس
+      console.warn('⚠️ توليد أسئلة AI فشل، تم استخدام البنك المحلي. السبب:', aiErr);
       parsed = buildFallbackQuestions(s.name, s.cat);
       usedFallback = true;
+      fallbackReason = (aiErr && aiErr.message) ? aiErr.message : 'خطأ غير معروف';
     }
 
     // نحوّل صيغة الـ AI لصيغة موحدة (options + answer) ونملأ aiQuizState كامل
@@ -10079,6 +10137,7 @@ async function startAiQuiz(subjectId) {
       <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
         <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">🤖 اختبار AI — ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
         <div style="font-size:12px; color:var(--text2); line-height:1.6">تم توليد <strong style="color:var(--green)">${currentQuizSessionQuestions.length} أسئلة</strong> ${usedFallback ? 'من بنك الأسئلة المحلي' : 'بالذكاء الاصطناعي'} على مادة <strong style="color:var(--green)">${escapeHtml(s.name)}</strong>. كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
+        ${usedFallback ? `<div style="font-size:11px; color:var(--red); margin-top:8px; padding-top:8px; border-top:1px dashed var(--border2);">⚠️ لم يتم توليد أسئلة مخصصة بالذكاء الاصطناعي — السبب: ${escapeHtml(fallbackReason)}</div>` : ''}
       </div>
       <div id="quiz-workspace"></div>
     `;
