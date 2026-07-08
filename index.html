@@ -1803,7 +1803,7 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
 </div>
 
 <div class="page active" id="page-subjects">
-  <div class="eyebrow">إدارة وتخصيص المسارات التعليمية المفتوحة</div>
+  <div class="eyebrow">إدارة وتخصيص المسارات التعليمية المفتوحة <span class="pts-pill" id="ai-quiz-daily-badge" style="display:none; font-size:10px;"></span></div>
   <div class="list-header">
     <div>رمز</div>
     <div>اسم الوحدة المنهجية المخصصة / التصنيف</div>
@@ -2806,6 +2806,27 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
       <div style="font-size:10px;color:#5a4a7a;margin-bottom:8px;font-family:monospace;letter-spacing:1px;">المفاتيح المحفوظة حالياً</div>
       <div id="admin-saved-keys-list" style="display:flex;flex-direction:column;gap:6px;">
         <div style="font-size:10px;color:#3a2a5a;">⏳ جاري التحميل...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ إدارة موسيقى الخلفية ══ -->
+  <div id="admin-music-panel" style="background:rgba(8,26,38,0.7);border:1px solid rgba(62,166,255,0.30);border-right:3px solid #3ea6ff;border-radius:12px;padding:16px 18px;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:bold;color:#3ea6ff;margin-bottom:4px;">🎵 إدارة موسيقى الخلفية</div>
+    <div style="font-size:10px;color:#4a6a80;margin-bottom:14px;">ارفع ملف موسيقى ليشتغل تلقائياً كموسيقى خلفية لكل المحللين بعد تسجيل الدخول (بديل عن buried-theme.mp3). الملف بيتحفظ في قاعدة البيانات، فالحجم الأقصى تقريباً <b>700 كيلوبايت</b> — يفضّل مقطع قصير أو مضغوط بجودة أقل.</div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <input id="admin-music-file-input" type="file" accept="audio/*"
+        style="flex:1;min-width:220px;background:rgba(10,10,20,0.9);border:1px solid rgba(62,166,255,0.4);border-radius:8px;color:#e8f4ff;font-size:12px;padding:8px 10px;outline:none;">
+      <button onclick="adminSaveMusic()" style="background:#3ea6ff;color:#000;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-weight:bold;font-size:12px;white-space:nowrap;">💾 حفظ الموسيقى</button>
+    </div>
+    <div id="admin-music-status" style="font-size:11px;color:#4a6a80;margin-top:8px;"></div>
+
+    <!-- الموسيقى الحالية -->
+    <div style="margin-top:14px;border-top:1px solid rgba(62,166,255,0.15);padding-top:12px;">
+      <div style="font-size:10px;color:#4a6a80;margin-bottom:8px;font-family:monospace;letter-spacing:1px;">الموسيقى الحالية</div>
+      <div id="admin-current-music" style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:10px;color:#3a5a70;">⏳ جاري التحميل...</div>
       </div>
     </div>
   </div>
@@ -7121,6 +7142,13 @@ viewInits.training = function() {
     <div class="auth-info-row"><span class="auth-info-dot">›</span><span>الحفاظ على الدخول اليومي للنظام شرط أساسي لتفادي خصومات الغياب والدخول في فترة الإنذار</span></div>
   </div>
 
+  <div class="auth-info-section">
+    <div class="auth-info-section-title">🤖 حد اختبارات الذكاء الاصطناعي اليومي</div>
+    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>أقصى عدد لاختبارات AI المولّدة تلقائياً لكل محلل: <strong class="auth-info-warn">15 اختبار / يوم</strong></span></div>
+    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>الحد يتجدد تلقائياً مع بداية كل يوم جديد</span></div>
+    <div class="auth-info-row"><span class="auth-info-dot">›</span><span>بعد الوصول للحد يظل بإمكانك خوض <strong class="auth-info-gain">الاختبار الاعتيادي</strong> بدون أي قيود</span></div>
+  </div>
+
   <div class="auth-info-new-year">
     <div class="auth-info-new-year-title">🎆 تصفير بداية كل سنة جديدة</div>
     في أول يناير من كل سنة، يتم تصفير كل الحسابات تلقائياً:
@@ -7281,6 +7309,8 @@ let activeChatTab = 'global';
 let mySysId = null;
 let myName = null;
 let myPhotoURL = null;
+let aiQuizDailyDate = '';
+let aiQuizDailyCount = 0;
 let registrationPending = false;
 let pendingRegistrationInfo = null;
 
@@ -7686,10 +7716,15 @@ function clearSession() {
 }
 
 // ════════════════ موسيقى الخلفية (تشتغل بس جوه الغرفة بعد الدخول) ════════════════
-function startBgMusic() {
+async function startBgMusic() {
   const music = document.getElementById('bg-theme-music');
   const btn = document.getElementById('bg-music-toggle');
   if (!music || !btn) return;
+  // لو فيه موسيقى مخصصة رفعها الأدمن (محفوظة في config/music)، استخدمها بدل الملف الافتراضي
+  try {
+    const musicDoc = await dbFs.collection('config').doc('music').get();
+    if (musicDoc.exists && musicDoc.data().dataUrl) music.src = musicDoc.data().dataUrl;
+  } catch(e) { /* أي خطأ (أو عدم وجود موسيقى مخصصة) → يفضل يشتغل الملف الافتراضي buried-theme.mp3 */ }
   btn.style.display = 'flex';
   music.volume = 0.35;
   music.play().then(() => { btn.textContent = '🔊'; }).catch(() => {
@@ -7869,6 +7904,7 @@ const PROBATION_RESTART_POINTS = 500;   // النقاط اللي بترجعله 
 const PROBATION_MONTHLY_BONUS = 100;    // مكافأة شهرية أثناء الإنذار
 const RETRO_DAY_PENALTY = 50;           // خصم تعويض يوم فات بأثر رجعي
 const TODAY_CONFIRM_REWARD = 20;        // مكافأة تأكيد يوم النهاردة
+const AI_QUIZ_DAILY_LIMIT = 15;         // أقصى عدد اختبارات AI يومياً لكل محلل (يتجدد كل يوم جديد)
 
 function daysBetween(d1, d2) {
   return Math.floor((new Date(d2) - new Date(d1)) / 86400000);
@@ -8005,6 +8041,10 @@ async function loadUserSession(user, attemptsLeft) {
       myName = me.name;
       myPhotoURL = me.photoURL || null;
 
+      // ── تحميل عداد اختبارات AI اليومي (يتصفر تلقائياً لو اليوم اتغيّر) ──
+      aiQuizDailyDate = me.aiQuizDailyDate || '';
+      aiQuizDailyCount = (aiQuizDailyDate === todayStr()) ? (parseInt(me.aiQuizDailyCount) || 0) : 0;
+
       // ── تصفير السنة الجديدة تلقائياً ──
       const currentYear = new Date().getFullYear();
       const lastReset = me.lastYearReset || me.yearCreated || currentYear;
@@ -8070,6 +8110,7 @@ async function loadUserSession(user, attemptsLeft) {
       updateStatusBar();
       updateTierDisplay();
       renderSubjectsList();
+      updateAiQuizBadge();
 
       const dailyResult = await applyDailyCheck();
       if (dailyResult) {
@@ -8979,7 +9020,7 @@ function showPage(name, btn) {
   if (name === 'profile') renderProfile();
   if (name === 'friends') renderFriends();
   if (name === 'leaderboard') renderLeaderboard();
-  if (name === 'admin') { renderAdmin(); if(typeof adminLoadSavedKeys==='function') adminLoadSavedKeys(); }
+  if (name === 'admin') { renderAdmin(); if(typeof adminLoadSavedKeys==='function') adminLoadSavedKeys(); if(typeof adminLoadMusicStatus==='function') adminLoadMusicStatus(); }
   if (name === 'chat') { renderChat(); startChatPolling(); }
   if (name === 'quiz') renderQuiz();
   if (name === 'chess') chessOnPageShown();
@@ -9794,6 +9835,17 @@ function closeAiQuiz() {
   document.getElementById('ai-quiz-modal-bg').classList.remove('open');
 }
 
+// ── تحديث شارة "متبقي اليوم" لاختبارات AI فوق قائمة المسارات ──
+function updateAiQuizBadge() {
+  const el = document.getElementById('ai-quiz-daily-badge');
+  if (!el) return;
+  const today = todayStr();
+  if (aiQuizDailyDate !== today) { aiQuizDailyDate = today; aiQuizDailyCount = 0; }
+  const remaining = Math.max(0, AI_QUIZ_DAILY_LIMIT - aiQuizDailyCount);
+  el.style.display = 'inline-flex';
+  el.textContent = `🤖 اختبار AI — متبقي اليوم: ${remaining}/${AI_QUIZ_DAILY_LIMIT}`;
+}
+
 // ════ استدعاء الـ AI عبر Vercel Serverless Function (بيحل CORS نهائياً) ════
 // ── مفتاح Anthropic API (يُجلب من Firestore مرة واحدة) ──
 let _anthropicKey = null;
@@ -9813,14 +9865,17 @@ async function getAnthropicKey() {
 const AI_PROXY_URL = 'https://white-room-yt-search.vercel.app/api/ai-proxy';
 
 // ── استخراج نص خام بأمان من رد الـ AI / البروكسي مهما كان شكله ──
-// المفروض إن البروكسي يرجع { text: "..." } كنص عادي، لكن لو رجع شكل تاني
-// بالغلط (زي مصفوفة content الخام بتاعة Anthropic { content:[{type:'text',text:'...'}] }
-// أو { text:[{...}] })، كان الكود القديم بيكسر بخطأ "rawText.replace is not a function"
-// لأنه بيحاول يعمل .replace على حاجة مش string. الدالة دي بتدور على النص
-// في أي شكل من الأشكال دي بدل ما تكسر.
-function normalizeAIText(data) {
+// المفروض إن البروكسي يرجع { text: "..." } كنص عادي، لكن شكل الرد ممكن
+// يختلف (زي مصفوفة content الخام بتاعة Anthropic { content:[{type:'text',text:'...'}] }،
+// أو أشكال شائعة تانية زي { message }, { result }, { response }, { completion },
+// { answer }, أو شكل OpenAI-style { choices:[{message:{content:'...'}}] })،
+// أو حتى الـ JSON المطلوب نفسه راجع مباشرة من غير أي غلاف نصي.
+// الدالة دي بتدور على النص في أي شكل من الأشكال دي بدل ما تكسر أو ترجع فاضية.
+function normalizeAIText(data, _depth) {
+  _depth = _depth || 0;
   if (data == null) return '';
   if (typeof data === 'string') return data;
+  if (_depth > 3) return ''; // حماية من أي تكرار غريب في حالة أشكال متداخلة كتير
   const extractFromBlocks = (blocks) => Array.isArray(blocks)
     ? blocks.map(b => (b && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : '')).join('')
     : '';
@@ -9828,8 +9883,63 @@ function normalizeAIText(data) {
     if (typeof data.text === 'string') return data.text;
     if (Array.isArray(data.text)) return extractFromBlocks(data.text);
     if (Array.isArray(data.content)) return extractFromBlocks(data.content);
+    if (typeof data.message === 'string') return data.message;
+    if (typeof data.result === 'string') return data.result;
+    if (typeof data.response === 'string') return data.response;
+    if (typeof data.output === 'string') return data.output;
+    if (typeof data.completion === 'string') return data.completion;
+    if (typeof data.answer === 'string') return data.answer;
+    // شكل OpenAI-style: { choices:[{message:{content:'...'}}]} أو { choices:[{text:'...'}]}
+    if (Array.isArray(data.choices) && data.choices[0]) {
+      const c = data.choices[0];
+      if (c.message && typeof c.message.content === 'string') return c.message.content;
+      if (typeof c.text === 'string') return c.text;
+    }
+    // لو الرد فيه أصلاً مصفوفة questions/tasks جاهزة من غير أي غلاف نصي، رجّعها JSON مباشرة
+    // (محصور في المفتاحين دول تحديداً — مش أي كائن عشوائي — عشان منرجعش ميتاداتا
+    // مش متعلقة بالموضوع على إنها "رد صحيح" فيبقى فيه questions فاضية بالغلط)
+    if (Array.isArray(data.questions) || Array.isArray(data.tasks)) {
+      try { return JSON.stringify(data); } catch(e) { /* تجاهل */ }
+    }
+    // لو الرد متغلف جوه مفتاح شائع زي data/result/payload/body/response، دور جوّاه
+    // بنفس الطريقة (بعض الـ proxies بترجع {success:true, data:{...}} مثلاً)
+    const wrapperKeys = ['data', 'result', 'payload', 'body', 'response'];
+    for (const wk of wrapperKeys) {
+      if (data[wk] && typeof data[wk] === 'object') {
+        const inner = normalizeAIText(data[wk], _depth + 1);
+        if (inner && inner.trim()) return inner;
+      }
+    }
   }
   return '';
+}
+
+// ── محاولة استرجاع أكبر عدد ممكن من عناصر مصفوفة كاملة حتى لو الرد اتقطع فجأة ──
+// (بيحصل لو رد الـ AI وصل لحد الطول المسموح (max_tokens) قبل ما يخلص توليد كل
+// العناصر، فبيفضل آخر عنصر ناقص وده بيكسر JSON.parse العادي. الدالة دي بتدور
+// على كل { ... } كامل ومتوازن جوه المصفوفة وتتجاهل أي جزء ناقص في الآخر
+// بدل ما ترفض الرد كله وتضطر تروح على بنك الأسئلة/المهام المحلي)
+function recoverArrayItems(jsonStr, arrayKey) {
+  const keyIdx = jsonStr.indexOf('"' + arrayKey + '"');
+  if (keyIdx === -1) return null;
+  const arrStart = jsonStr.indexOf('[', keyIdx);
+  if (arrStart === -1) return null;
+  let depth = 0, objStart = -1;
+  const items = [];
+  for (let i = arrStart; i < jsonStr.length; i++) {
+    const ch = jsonStr[i];
+    if (ch === '{') { if (depth === 0) objStart = i; depth++; }
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0 && objStart !== -1) {
+        try { items.push(JSON.parse(jsonStr.slice(objStart, i + 1))); } catch(e) { /* عنصر ناقص — تجاهله */ }
+        objStart = -1;
+      }
+    } else if (ch === ']' && depth === 0) {
+      break;
+    }
+  }
+  return items.length ? items : null;
 }
 
 async function callAI(prompt) {
@@ -9842,14 +9952,21 @@ async function callAI(prompt) {
       body: JSON.stringify({ prompt })
     });
     if (res.ok) {
-      // الـ proxy رد بنجاح — نعتمد على رده ونوقف هنا سواء text فاضي أو لا
       const data = await res.json();
       if (data?.error) {
         // الـ proxy نفسه بيقول فيه error — نكمل للـ fallback
         console.warn('Proxy returned error:', data.error);
         proxyFailed = true;
       } else {
-        return normalizeAIText(data);
+        const normalized = normalizeAIText(data);
+        if (normalized && normalized.trim()) {
+          return normalized;
+        }
+        // الـ proxy رد 200 لكن من غير أي نص مفهوم — نعتبره فشل ونكمل
+        // على المسار المباشر بدل ما نرجّع نص فاضي يتسبب في خطأ "no JSON"
+        // بدون ما تتاح فرصة تانية للمحاولة المباشرة
+        console.warn('Proxy رد 200 لكن بدون نص مفهوم، شكل الرد:', data);
+        proxyFailed = true;
       }
     } else {
       console.warn('Proxy HTTP error:', res.status);
@@ -9874,7 +9991,7 @@ async function callAI(prompt) {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 4096, // كان 1024 وده كان بيقطع رد الـ JSON نص كلمة لما يطلب 10 أسئلة عربي كاملة
       messages: [{ role: 'user', content: prompt }]
     })
   });
@@ -9883,7 +10000,9 @@ async function callAI(prompt) {
     throw new Error('HTTP ' + res2.status + ': ' + (errData?.error?.message || ''));
   }
   const data2 = await res2.json();
-  return normalizeAIText(data2);
+  const normalized2 = normalizeAIText(data2);
+  if (!normalized2 || !normalized2.trim()) throw new Error('رد Anthropic المباشر كان فاضي بدون نص');
+  return normalized2;
 }
 // ════ تحديد نوع الرابط ════
 function detectLinkType(url) {
@@ -9901,6 +10020,32 @@ function detectLinkType(url) {
 async function startAiQuiz(subjectId) {
   const s = subjects.find(x => x.id === subjectId);
   if (!s) return;
+
+  // ══ الحد اليومي لاختبارات AI (15/يوم لكل محلل — يتجدد تلقائياً مع يوم جديد) ══
+  const todayForQuiz = todayStr();
+  if (aiQuizDailyDate !== todayForQuiz) { aiQuizDailyDate = todayForQuiz; aiQuizDailyCount = 0; }
+  if (aiQuizDailyCount >= AI_QUIZ_DAILY_LIMIT) {
+    const limitTabBtn = document.querySelector('.tab-btn[onclick*="quiz"]');
+    showPage('quiz', limitTabBtn);
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    if (limitTabBtn) limitTabBtn.classList.add('active');
+    document.getElementById('quiz-container').innerHTML = `
+      <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
+        <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">⏳ وصلت للحد اليومي من اختبارات AI</div>
+        <div style="font-size:12px; color:var(--text2); line-height:1.8;">
+          استخدمت بالفعل <strong style="color:var(--gold)">${AI_QUIZ_DAILY_LIMIT}</strong> اختبار AI المسموح بهم اليوم.
+          الحد بيتجدد تلقائياً مع بداية يوم جديد — جرّب تاني بكرة.
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="auth-btn" style="width:auto; padding:0 20px;" onclick="renderQuiz()">📝 🔍 اختبار الاختراق العام بدلاً</button>
+      </div>
+    `;
+    return;
+  }
+  aiQuizDailyCount++;
+  if (mySysId) dbFs.collection('users').doc(mySysId).update({ aiQuizDailyDate: aiQuizDailyDate, aiQuizDailyCount: aiQuizDailyCount }).catch(()=>{});
+  updateAiQuizBadge();
 
   const btn = document.getElementById('ai-quiz-btn-' + subjectId);
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التوليد...'; }
@@ -10087,9 +10232,19 @@ async function startAiQuiz(subjectId) {
         try { parsed = JSON.parse(jsonStr); }
         catch(jsonErr) {
           const fixed = jsonStr.replace(/,\s*([}\]])/g, '$1').replace(/([{,])\s*,/g, '$1');
-          parsed = JSON.parse(fixed);
+          try { parsed = JSON.parse(fixed); }
+          catch(jsonErr2) {
+            // الرد اتقطع قبل ما يخلص (على الأغلب وصل لحد الطول المسموح) — نحاول
+            // ننقذ الأسئلة الكاملة اللي فعلاً اتولدت بدل ما نرفض الرد كله
+            const recovered = recoverArrayItems(clean, 'questions');
+            if (recovered && recovered.length) { parsed = { questions: recovered }; }
+            else throw jsonErr2;
+          }
         }
-        if (!parsed.questions || parsed.questions.length === 0) throw new Error('empty');
+        if (!parsed.questions || parsed.questions.length === 0) {
+          console.warn('⚠️ الـ JSON اتقرا صح بس من غير مصفوفة questions — الشكل اللي رجع:', parsed);
+          throw new Error('empty');
+        }
         return parsed;
       } catch(err) {
         lastErr = err;
@@ -10133,11 +10288,13 @@ async function startAiQuiz(subjectId) {
     quizScore = 0;
 
     const container2 = document.getElementById('quiz-container');
+    const aiQuizRemaining = Math.max(0, AI_QUIZ_DAILY_LIMIT - aiQuizDailyCount);
     container2.innerHTML = `
       <div class="profile-card" style="border-right:4px solid var(--gold); margin-bottom:14px;">
         <div style="font-size:14px; font-weight:bold; color:var(--gold); margin-bottom:6px;">🤖 اختبار AI — ${escapeHtml(s.emoji)} ${escapeHtml(s.name)}</div>
         <div style="font-size:12px; color:var(--text2); line-height:1.6">تم توليد <strong style="color:var(--green)">${currentQuizSessionQuestions.length} أسئلة</strong> ${usedFallback ? 'من بنك الأسئلة المحلي' : 'بالذكاء الاصطناعي'} على مادة <strong style="color:var(--green)">${escapeHtml(s.name)}</strong>. كل إجابة صحيحة = <strong style="color:var(--green)">+15 نقطة</strong>.</div>
-        ${usedFallback ? `<div style="font-size:11px; color:var(--red); margin-top:8px; padding-top:8px; border-top:1px dashed var(--border2);">⚠️ لم يتم توليد أسئلة مخصصة بالذكاء الاصطناعي — السبب: ${escapeHtml(fallbackReason)}</div>` : ''}
+        <div style="font-size:10.5px; color:var(--text3); margin-top:4px;">🤖 متبقي لك اليوم: ${aiQuizRemaining}/${AI_QUIZ_DAILY_LIMIT} اختبار AI</div>
+        ${usedFallback ? `<div style="font-size:11px; color:var(--red); margin-top:8px; padding-top:8px; border-top:1px dashed var(--border2);">⚠️ لم يتم توليد أسئلة مخصصة بالذكاء الاصطناعي${(typeof isAdmin === 'function' && isAdmin()) ? ' — السبب: ' + escapeHtml(fallbackReason) : ' حالياً، فتم استخدام بنك الأسئلة المحلي بدلاً'}</div>` : ''}
       </div>
       <div id="quiz-workspace"></div>
     `;
@@ -11694,6 +11851,96 @@ async function adminLoadSavedKeys() {
   }
 }
 
+// ── إدارة موسيقى الخلفية المخصصة (تُحفظ Base64 داخل Firestore: config/music) ──
+const MUSIC_MAX_BYTES = 700 * 1024; // ~700KB — عشان تفضل جوه حد حجم مستند Firestore (1MB) بعد ترميز Base64
+
+async function adminSaveMusic() {
+  if (!isAdmin()) return;
+  const inp = document.getElementById('admin-music-file-input');
+  const statusEl = document.getElementById('admin-music-status');
+  const file = inp && inp.files && inp.files[0];
+  if (!file) { statusEl.style.color = '#f87171'; statusEl.textContent = '⚠ اختر ملف موسيقى أولاً'; return; }
+  if (!file.type.startsWith('audio/')) { statusEl.style.color = '#f87171'; statusEl.textContent = '⚠ الملف المختار مش ملف صوتي'; return; }
+  if (file.size > MUSIC_MAX_BYTES) {
+    statusEl.style.color = '#f87171';
+    statusEl.textContent = `⚠ الملف كبير (${Math.round(file.size/1024)} كيلوبايت) — الحد الأقصى تقريباً 700 كيلوبايت. جرب ملف أقصر أو بجودة/بتريت أقل`;
+    return;
+  }
+  statusEl.style.color = '#4a6a80';
+  statusEl.textContent = '⏳ جاري الرفع والحفظ...';
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('فشلت قراءة الملف'));
+      reader.readAsDataURL(file);
+    });
+    await dbFs.collection('config').doc('music').set({
+      dataUrl, fileName: file.name, size: file.size, updatedAt: Date.now()
+    });
+    // تحديث فوري للموسيقى الشغالة دلوقتي بدون الحاجة لإعادة تحميل الصفحة
+    const music = document.getElementById('bg-theme-music');
+    if (music) {
+      const wasPlaying = !music.paused;
+      music.src = dataUrl;
+      if (wasPlaying) music.play().catch(()=>{});
+    }
+    statusEl.style.color = '#3ea6ff';
+    statusEl.textContent = '✓ تم حفظ الموسيقى بنجاح!';
+    inp.value = '';
+    adminLoadMusicStatus();
+  } catch(e) {
+    statusEl.style.color = '#f87171';
+    statusEl.textContent = 'فشل الحفظ: ' + e.message;
+  }
+}
+
+async function adminDeleteMusic() {
+  if (!isAdmin()) return;
+  if (!confirm('هل تريد حذف الموسيقى المخصصة والرجوع للموسيقى الافتراضية؟')) return;
+  try {
+    await dbFs.collection('config').doc('music').delete();
+    const music = document.getElementById('bg-theme-music');
+    if (music) {
+      const wasPlaying = !music.paused;
+      music.src = 'buried-theme.mp3';
+      if (wasPlaying) music.play().catch(()=>{});
+    }
+    const statusEl = document.getElementById('admin-music-status');
+    if (statusEl) { statusEl.style.color = '#3ea6ff'; statusEl.textContent = '✓ تم الحذف — رجعت الموسيقى الافتراضية'; }
+    adminLoadMusicStatus();
+  } catch(e) { alert('فشل الحذف: ' + e.message); }
+}
+
+async function adminLoadMusicStatus() {
+  const el = document.getElementById('admin-current-music');
+  if (!el) return;
+  el.innerHTML = '<div style="font-size:10px;color:#3a5a70;">⏳ جاري التحميل...</div>';
+  try {
+    const doc = await dbFs.collection('config').doc('music').get();
+    if (!doc.exists || !doc.data().dataUrl) {
+      el.innerHTML = '<div style="font-size:10px;color:#3a5a70;">لا توجد موسيقى مخصصة حالياً — الموسيقى الافتراضية (buried-theme.mp3) شغالة</div>';
+      return;
+    }
+    const d = doc.data();
+    const date = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('ar-SA') : '';
+    const sizeKb = d.size ? Math.round(d.size/1024) : '?';
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(10,10,20,0.6);border:1px solid rgba(62,166,255,0.18);border-radius:8px;padding:8px 12px;">
+      <span style="font-size:13px;">🎵</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:bold;color:#3ea6ff;">${escapeHtml(d.fileName || 'موسيقى مخصصة')}</div>
+        <div style="font-size:10px;font-family:monospace;color:#4a6a80;">${sizeKb} KB ${date ? '· ' + date : ''}</div>
+      </div>
+      <button onclick="adminDeleteMusic()"
+        style="background:transparent;border:1px solid rgba(248,113,113,0.4);color:#f87171;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:10px;flex-shrink:0;">
+        🗑 حذف
+      </button>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:10px;color:#f87171;">فشل التحميل: ' + e.message + '</div>';
+  }
+}
+
 async function adminCheckApiKey() {
   const statusEl = document.getElementById('admin-api-key-status');
   statusEl.style.color = '#5a4a7a';
@@ -11974,7 +12221,14 @@ async function adminGenerateAllDailyTasks() {
       let clean = rawText.replace(/```json[\s\S]*?```|```/g, '').trim();
       const fb = clean.indexOf('{'), lb = clean.lastIndexOf('}');
       if (fb === -1 || lb === -1) throw new Error('no JSON');
-      const parsed = JSON.parse(clean.slice(fb, lb+1));
+      let parsed;
+      try { parsed = JSON.parse(clean.slice(fb, lb+1)); }
+      catch(jsonErr) {
+        // اتقطع الرد قبل ما يخلص — ننقذ المهام الكاملة اللي اتولدت فعلاً
+        const recovered = recoverArrayItems(clean, 'tasks');
+        if (recovered && recovered.length) { parsed = { tasks: recovered }; }
+        else throw jsonErr;
+      }
       const tasks = (parsed.tasks || []).map((t, i) => ({
         id: i+1, title: t.title, desc: t.desc,
         difficulty: t.difficulty || 'medium',
@@ -12630,7 +12884,14 @@ Labs المكتملة: ${labsDone}
     let text = rawText.replace(/```json|```/g, '').trim();
     const fb = text.indexOf('{'), lb = text.lastIndexOf('}');
     if (fb !== -1 && lb !== -1) text = text.slice(fb, lb + 1);
-    const parsed = JSON.parse(text);
+    let parsed;
+    try { parsed = JSON.parse(text); }
+    catch(jsonErr) {
+      // اتقطع الرد قبل ما يخلص — ننقذ المهام الكاملة اللي اتولدت فعلاً
+      const recovered = recoverArrayItems(text, 'tasks');
+      if (recovered && recovered.length) { parsed = { tasks: recovered }; }
+      else throw jsonErr;
+    }
     dailyTasks = (parsed.tasks || []).map((t, i) => ({
       id: i + 1, title: t.title, desc: t.desc,
       difficulty: t.difficulty || 'medium',
