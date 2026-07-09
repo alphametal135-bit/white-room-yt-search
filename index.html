@@ -1018,6 +1018,19 @@ body::after {
 .chess-promo-row{display:flex; gap:6px; justify-content:center; margin-top:10px;}
 .chess-promo-btn{font-size:26px; background:var(--bg2); border:1px solid var(--border); cursor:pointer; width:46px; height:46px;}
 .chess-promo-btn:hover{border-color:var(--gold);}
+/* ══ CHESS ONLINE CHAT ══ */
+.chess-chat-wrap{background:var(--surface); border:1px solid var(--border); margin-top:10px; display:flex; flex-direction:column;}
+.chess-chat-header{font-size:10.5px; font-family:var(--mono); color:var(--text3); padding:8px 12px; border-bottom:1px solid var(--border); letter-spacing:1px;}
+.chess-chat-log{height:150px; overflow-y:auto; padding:8px 10px; font-size:11.5px; line-height:1.5; display:flex; flex-direction:column; gap:6px;}
+.chess-chat-msg{max-width:85%; padding:6px 10px; border-radius:10px; word-break:break-word;}
+.chess-chat-msg.me{align-self:flex-end; background:var(--green-dim); color:var(--green); border-bottom-left-radius:2px;}
+.chess-chat-msg.opp{align-self:flex-start; background:var(--bg2); color:var(--text2); border-bottom-right-radius:2px;}
+.chess-chat-msg .chess-chat-name{font-size:9px; opacity:.65; margin-bottom:2px; font-family:var(--mono);}
+.chess-chat-input-row{display:flex; gap:6px; padding:8px; border-top:1px solid var(--border);}
+.chess-chat-input{flex:1; background:var(--bg2); border:1px solid var(--border); color:var(--text2); padding:7px 10px; font-size:12px; outline:none; min-width:0;}
+.chess-chat-input:focus{border-color:var(--green);}
+.chess-chat-send{background:var(--green); color:#0A0A0C; border:none; padding:7px 14px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;}
+.chess-chat-send:hover{opacity:.9;}
 @media (max-width:560px){
   .chess-board{grid-template-columns:repeat(8, 42px); grid-template-rows:repeat(8, 42px);}
   .chess-sq{width:42px; height:42px;}
@@ -2573,7 +2586,7 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
       </div>
     </div>
     <div id="chess-online-wrap" style="display:none; margin-top:14px;">
-      <div style="font-size:11px; color:var(--text3); margin-bottom:6px;">أدخل System ID الخصم (مثال: WR-1234-5678)</div>
+      <div style="font-size:11px; color:var(--text3); margin-bottom:6px;">أدخل System ID الخصم (مثال: CS-1234-5678)</div>
       <input id="chess-online-id" class="modal-input" placeholder="CS-XXXX-XXXX" style="font-family:var(--mono); letter-spacing:1px; text-align:center;">
       <div id="chess-online-err" style="color:var(--red); font-size:11px; margin-top:6px; display:none;"></div>
     </div>
@@ -2597,6 +2610,14 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
       <div class="chess-status" id="chess-status">دور: <b>الأبيض</b></div>
       <div id="chess-online-badge" style="display:none; font-size:11px; font-family:var(--mono); color:var(--text3); margin-bottom:6px;"></div>
       <div class="chess-log" id="chess-log"></div>
+      <div class="chess-chat-wrap" id="chess-chat-wrap" style="display:none">
+        <div class="chess-chat-header">💬 شات مباشر مع الخصم</div>
+        <div class="chess-chat-log" id="chess-chat-log"></div>
+        <div class="chess-chat-input-row">
+          <input id="chess-chat-input" class="chess-chat-input" placeholder="اكتب رسالة..." maxlength="300" onkeydown="if(event.key==='Enter'){chessSendChatMsg();}">
+          <button class="chess-chat-send" onclick="chessSendChatMsg()">إرسال</button>
+        </div>
+      </div>
       <div class="chess-controls">
         <button class="chess-btn" onclick="chessNewGame()">🔄 لعبة جديدة</button>
         <button class="chess-btn" onclick="chessBackToSetup()">⚙ تغيير الإعدادات</button>
@@ -7552,7 +7573,7 @@ function loadUnitData(userData) {
 // ── أدوات Firestore المساعدة ──
 function genSysId() {
   const r = () => Math.floor(1000 + Math.random() * 9000);
-  return `WR-${r()}-${r()}`;
+  return `CS-${r()}-${r()}`;
 }
 function pairKey(a, b) { return [a, b].sort().join('_'); }
 function todayStr() {
@@ -7826,8 +7847,8 @@ async function login() {
   err.classList.remove('show');
   err.style.color = '';
 
-  if (!id || !id.startsWith('WR-')) {
-    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: WR-XXXX-XXXX";
+  if (!id || !/^(WR|CS)-\d{4}-\d{4}$/.test(id)) {
+    err.textContent = "يرجى إدخال SYSTEM ID بالشكل الصحيح: CS-XXXX-XXXX";
     err.classList.add('show');
     return;
   }
@@ -7863,8 +7884,8 @@ async function forgotPassword() {
     document.getElementById('login-id').focus();
     return;
   }
-  if (!id.startsWith('WR-') || id.length < 12) {
-    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: WR-XXXX-XXXX';
+  if (!/^(WR|CS)-\d{4}-\d{4}$/.test(id)) {
+    err.textContent = '⚠ SYSTEM ID يجب أن يكون بالشكل: CS-XXXX-XXXX';
     err.classList.add('show');
     document.getElementById('login-id').focus();
     return;
@@ -10510,12 +10531,16 @@ function chessStartGame() {
 }
 function chessNewGame() {
   if (chessOnlineUnsub) { chessOnlineUnsub(); chessOnlineUnsub = null; }
+  chessStopChatListener();
+  document.getElementById('chess-chat-wrap').style.display = 'none';
   chessOnlineGameId = null;
   chessOnlineMyColor = null;
   chessStartGame();
 }
 function chessBackToSetup() {
   if (chessOnlineUnsub) { chessOnlineUnsub(); chessOnlineUnsub = null; }
+  chessStopChatListener();
+  document.getElementById('chess-chat-wrap').style.display = 'none';
   chessOnlineGameId = null;
   chessOnlineMyColor = null;
   document.getElementById('chess-setup').style.display = 'block';
@@ -11085,6 +11110,8 @@ function chessAiMove() {
 let chessOnlineGameId = null;
 let chessOnlineMyColor = null;
 let chessOnlineUnsub = null;
+let chessChatUnsub = null;
+let chessChatLastCount = 0;
 
 async function chessStartOnline() {
   const rawId = (document.getElementById('chess-online-id').value || '').trim().toUpperCase();
@@ -11175,10 +11202,71 @@ function chessOnlineLoadGame(d) {
     '🌐 أونلاين — أنت: ' + (chessOnlineMyColor === 'w' ? '⚪ أبيض' : '⚫ أسود') + ' | ضد: ' + oppName;
   document.getElementById('chess-resign-btn').style.display = 'inline-block';
   document.getElementById('chess-draw-btn').style.display = 'inline-block';
+  document.getElementById('chess-chat-wrap').style.display = 'flex';
+  chessStartChatListener(chessOnlineGameId);
   chessRenderBoard();
   chessUpdateStatus();
   if (d.drawOffer && d.drawOffer !== chessOnlineMyColor) chessHandleDrawOffer(d.drawOffer);
   if (d.status === 'finished') chessOnlineHandleFinish(d);
+}
+
+// ══ شات لايف بين اللاعبين أثناء المباراة الأونلاين ══
+function chessStartChatListener(gameId) {
+  chessStopChatListener();
+  const logEl = document.getElementById('chess-chat-log');
+  if (logEl) logEl.innerHTML = '';
+  chessChatLastCount = 0;
+  chessChatUnsub = dbFs.collection('chessGames').doc(gameId).collection('messages')
+    .orderBy('ts', 'asc')
+    .onSnapshot(snap => {
+      const msgs = snap.docs.map(d => d.data());
+      chessRenderChatMsgs(msgs);
+    }, err => { console.warn('chess chat listener error:', err.message); });
+}
+
+function chessStopChatListener() {
+  if (chessChatUnsub) { chessChatUnsub(); chessChatUnsub = null; }
+}
+
+function chessRenderChatMsgs(msgs) {
+  const logEl = document.getElementById('chess-chat-log');
+  if (!logEl) return;
+  const wasNearBottom = (logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight) < 40;
+  logEl.innerHTML = msgs.map(m => {
+    const mine = m.from === mySysId;
+    const safeName = escapeHtml(m.fromName || m.from || '');
+    const safeText = escapeHtml(m.text || '');
+    return `<div class="chess-chat-msg ${mine ? 'me' : 'opp'}">
+      <div class="chess-chat-name">${mine ? 'أنت' : safeName}</div>
+      ${safeText}
+    </div>`;
+  }).join('');
+  if (msgs.length > chessChatLastCount && wasNearBottom) {
+    logEl.scrollTop = logEl.scrollHeight;
+  } else if (chessChatLastCount === 0) {
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  chessChatLastCount = msgs.length;
+}
+
+async function chessSendChatMsg() {
+  const inp = document.getElementById('chess-chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!chessOnlineGameId || !mySysId) return;
+  inp.value = '';
+  inp.focus();
+  try {
+    await dbFs.collection('chessGames').doc(chessOnlineGameId).collection('messages').add({
+      from: mySysId,
+      fromName: myName || mySysId,
+      text: text.slice(0, 300),
+      ts: Date.now()
+    });
+  } catch(e) {
+    console.warn('فشل إرسال رسالة الشات:', e.message);
+  }
 }
 
 async function chessExecuteOnlineMove(fromR, fromC, move) {
@@ -11357,6 +11445,8 @@ function chessResultExit() {
 
   // إيقاف المراقبة وتنظيف الحالة
   if (chessOnlineUnsub) { chessOnlineUnsub(); chessOnlineUnsub = null; }
+  chessStopChatListener();
+  document.getElementById('chess-chat-wrap').style.display = 'none';
   chessStopListeningForInvites();
   chessInviteShowingId = null;
   chessOnlineGameId = null;
@@ -11502,6 +11592,7 @@ async function chessCancelOnline() {
     await dbFs.collection('chessGames').doc(chessOnlineGameId).update({ status: 'cancelled' }).catch(()=>{});
   }
   if (chessOnlineUnsub) { chessOnlineUnsub(); chessOnlineUnsub = null; }
+  chessStopChatListener();
   chessOnlineGameId = null;
   chessOnlineMyColor = null;
   document.getElementById('chess-waiting-screen').style.display = 'none';
