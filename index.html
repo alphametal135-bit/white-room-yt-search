@@ -9945,18 +9945,23 @@ function recoverArrayItems(jsonStr, arrayKey) {
 async function callAI(prompt) {
   // ── أولاً: نجرب الـ Proxy على Vercel ──
   let proxyFailed = false;
+  let proxyFailReason = '';
   try {
     const res = await fetch(AI_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt })
     });
+    // نقرأ نص الرد كـ text أولاً (مش json مباشرة) عشان لو الرد مش JSON صالح
+    // أصلاً (زي صفحة خطأ HTML من Vercel) منكسرش هنا من غير ما نمسك أي تفاصيل
+    const rawBodyText = await res.text().catch(() => '');
+    let data = null;
+    try { data = rawBodyText ? JSON.parse(rawBodyText) : null; } catch(parseErr) { /* مش JSON */ }
+
     if (res.ok) {
-      const data = await res.json();
       if (data?.error) {
-        // الـ proxy نفسه بيقول فيه error — نكمل للـ fallback
-        console.warn('Proxy returned error:', data.error);
         proxyFailed = true;
+        proxyFailReason = 'Proxy رجّع error: ' + (typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
       } else {
         const normalized = normalizeAIText(data);
         if (normalized && normalized.trim()) {
@@ -9964,44 +9969,51 @@ async function callAI(prompt) {
         }
         // الـ proxy رد 200 لكن من غير أي نص مفهوم — نعتبره فشل ونكمل
         // على المسار المباشر بدل ما نرجّع نص فاضي يتسبب في خطأ "no JSON"
-        // بدون ما تتاح فرصة تانية للمحاولة المباشرة
-        console.warn('Proxy رد 200 لكن بدون نص مفهوم، شكل الرد:', data);
         proxyFailed = true;
+        proxyFailReason = 'Proxy رد 200 بدون نص مفهوم — شكل الرد: ' + (rawBodyText ? rawBodyText.slice(0, 200) : '(فاضي تماماً)');
       }
     } else {
-      console.warn('Proxy HTTP error:', res.status);
+      // حتى لو HTTP مش ok، لو الجسم فيه رسالة خطأ مفيدة (error/message) نمسكها
+      const bodyMsg = (data && (data.error || data.message)) || (rawBodyText ? rawBodyText.slice(0, 200) : '');
       proxyFailed = true;
+      proxyFailReason = 'Proxy HTTP ' + res.status + (bodyMsg ? (': ' + (typeof bodyMsg === 'string' ? bodyMsg : JSON.stringify(bodyMsg))) : '');
     }
   } catch(e) {
-    console.warn('Proxy غير متاح:', e.message);
     proxyFailed = true;
+    proxyFailReason = 'تعذر الوصول للـ Proxy أصلاً (شبكة/CORS): ' + e.message;
   }
+  console.warn('⚠️ AI Proxy فشل:', proxyFailReason);
 
   // ── ثانياً: fallback — اتصال مباشر بـ Anthropic (بس لو الـ proxy فشل فعلاً) ──
   if (!proxyFailed) throw new Error('callAI: حالة غير متوقعة');
   const key = await getAnthropicKey();
-  if (!key) throw new Error('مفتاح API غير متاح — تواصل مع المشرف');
-  const res2 = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096, // كان 1024 وده كان بيقطع رد الـ JSON نص كلمة لما يطلب 10 أسئلة عربي كاملة
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
+  if (!key) throw new Error(proxyFailReason + ' || وأيضاً لا يوجد مفتاح Anthropic احتياطي محفوظ (config/anthropic) — راجع لوحة الأدمن');
+  let res2;
+  try {
+    res2 = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4096, // كان 1024 وده كان بيقطع رد الـ JSON نص كلمة لما يطلب 10 أسئلة عربي كاملة
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+  } catch(netErr) {
+    throw new Error(proxyFailReason + ' || وأيضاً تعذر الاتصال المباشر بـ Anthropic (شبكة/CORS): ' + netErr.message);
+  }
   if (!res2.ok) {
     const errData = await res2.json().catch(() => ({}));
-    throw new Error('HTTP ' + res2.status + ': ' + (errData?.error?.message || ''));
+    throw new Error(proxyFailReason + ' || وأيضاً Anthropic المباشر رجّع HTTP ' + res2.status + ': ' + (errData?.error?.message || 'بدون تفاصيل'));
   }
   const data2 = await res2.json();
   const normalized2 = normalizeAIText(data2);
-  if (!normalized2 || !normalized2.trim()) throw new Error('رد Anthropic المباشر كان فاضي بدون نص');
+  if (!normalized2 || !normalized2.trim()) throw new Error(proxyFailReason + ' || وأيضاً رد Anthropic المباشر كان فاضي بدون نص');
   return normalized2;
 }
 // ════ تحديد نوع الرابط ════
@@ -11943,23 +11955,20 @@ async function adminLoadMusicStatus() {
 
 async function adminCheckApiKey() {
   const statusEl = document.getElementById('admin-api-key-status');
-  statusEl.style.color = '#5a4a7a';
-  if (_adminCurrentKeyType === 'vercel') {
-    statusEl.textContent = 'ℹ مفتاح Vercel — لا يوجد اختبار تلقائي، تأكد من صحته من لوحة تحكم Vercel';
-    return;
+  if (_adminCurrentKeyType === 'vercel' || _adminCurrentKeyType === 'custom') {
+    statusEl.style.color = '#5a4a7a';
+    statusEl.textContent = 'ℹ ملحوظة: التبويب المحدد حالياً ("' + (_adminCurrentKeyType === 'vercel' ? 'Vercel' : 'مخصص') + '") مش هو اللي بيشغّل اختبارات AI — ده منفصل. جاري اختبار نظام AI الفعلي (Proxy + مفتاح Anthropic الاحتياطي)...';
+  } else {
+    statusEl.style.color = '#5a4a7a';
+    statusEl.textContent = '⏳ جاري الاختبار...';
   }
-  if (_adminCurrentKeyType === 'custom') {
-    statusEl.textContent = 'ℹ مفتاح مخصص — لا يوجد اختبار تلقائي';
-    return;
-  }
-  statusEl.textContent = '⏳ جاري الاختبار...';
   try {
     const reply = await callAI('قل "زعتر جاهز" بالعربية فقط');
     statusEl.style.color = '#b06ef3';
     statusEl.textContent = '✓ ' + reply;
   } catch(e) {
     statusEl.style.color = '#f87171';
-    statusEl.textContent = '✗ المفتاح لا يعمل: ' + e.message;
+    statusEl.textContent = '✗ فشل: ' + e.message;
   }
 }
 
