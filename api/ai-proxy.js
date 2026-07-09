@@ -19,6 +19,14 @@ function fetchWithTimeout(url, options, timeoutMs = 8000) {
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
+// ── يدور على أول content block من نوع "text" بدل ما يفترض إنه content[0] دايماً ──
+// (لو الموديل رجّع أكتر من block، أو أول block مش نصي لأي سبب، القديم كان بيرجّع فاضي)
+function extractAnthropicText(data) {
+  const blocks = Array.isArray(data?.content) ? data.content : [];
+  const textBlock = blocks.find(b => b && b.type === 'text' && typeof b.text === 'string' && b.text.trim());
+  return textBlock ? textBlock.text : '';
+}
+
 async function tryAnthropic(prompt) {
   const extraKeys = Object.entries(process.env)
     .filter(([k]) => k.startsWith('ANTHROPIC_KEY_'))
@@ -33,6 +41,8 @@ async function tryAnthropic(prompt) {
 
   if (!keys.length) return null;
 
+  let lastErr = '';
+
   for (const key of keys) {
     try {
       const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
@@ -44,23 +54,27 @@ async function tryAnthropic(prompt) {
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
+          max_tokens: 4096, // كان 1024 وده كان بيقطع رد الـ JSON لو الأسئلة كتير
           messages: [{ role: 'user', content: prompt }],
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
       if (res.ok) {
-        const text = data?.content?.[0]?.text || '';
-        return text ? { text, model: 'claude-haiku' } : null;
+        const text = extractAnthropicText(data);
+        if (text) return { text, model: 'claude-haiku' };
+        // نجح الطلب لكن مفيش نص — نسجل السبب ونكمل على المفتاح اللي بعده
+        lastErr = 'رد ناجح لكن من غير نص (شكل content غير متوقع)';
+        continue;
       }
 
-      const errMsg = data?.error?.message || '';
+      const errMsg = data?.error?.message || `HTTP ${res.status}`;
+      lastErr = errMsg;
 
-      // ✅ الآن بيشمل credit/balance/low عشان ينتقل لـ Gemini
       const isQuota = res.status === 429
         || res.status === 529
+        || res.status === 400 // ✅ credit balance too low بيرجع كـ 400 مش 429
         || errMsg.includes('quota')
         || errMsg.includes('rate')
         || errMsg.includes('overloaded')
@@ -69,19 +83,22 @@ async function tryAnthropic(prompt) {
         || errMsg.includes('low');
 
       if (isQuota) {
-        console.warn('Anthropic key quota/credit exceeded, trying next key...');
-        continue;
+        console.warn('Anthropic key quota/credit exceeded, trying next key...', errMsg);
+        continue; // ✅ يجرب المفتاح اللي بعده بدل ما يوقف على أول مفتاح فاضي
       }
 
       console.warn('Anthropic error:', res.status, errMsg);
+      // خطأ مش متعلق بالكوتة (زي prompt غلط) — مفيش داعي نكمل بمفاتيح تانية
       return null;
 
     } catch(e) {
+      lastErr = e.message;
       console.warn('Anthropic fetch error:', e.message);
       continue;
     }
   }
 
+  console.warn('Anthropic: كل المفاتيح فشلت، آخر سبب:', lastErr);
   return null;
 }
 
@@ -102,11 +119,12 @@ async function tryGemini(prompt) {
           generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
       if (res.ok) {
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        return text ? { text, model } : null;
+        if (text) return { text, model };
+        continue;
       }
 
       const errMsg = data?.error?.message || '';
@@ -139,7 +157,7 @@ async function tryCloudflare(prompt) {
         max_tokens: 2048,
       }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.result?.response) {
       console.warn('Cloudflare AI failed:', data?.errors);
@@ -186,7 +204,9 @@ module.exports = async (req, res) => {
       return res.status(200).json(result);
     }
 
-    return res.status(503).json({ error: 'كل الـ AI providers مش متاحة' });
+    // ✅ بدل ما نرجع رسالة عمومية، نوضح إن كل الـ providers اتفشلوا
+    // (مفيد جداً وقت الدباجينج بدل "مش متاحة" بس)
+    return res.status(503).json({ error: 'كل الـ AI providers فشلت (Anthropic + Gemini + Cloudflare) — راجع الـ logs على Vercel لمعرفة السبب بالتفصيل لكل واحد' });
   } catch (err) {
     console.error('Proxy error:', err.message);
     return res.status(500).json({ error: 'خطأ داخلي: ' + err.message });
