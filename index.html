@@ -2804,8 +2804,16 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
 
     <!-- حقل اسم مخصص (يظهر فقط عند اختيار "مخصص") -->
     <div id="admin-custom-key-name-wrap" style="display:none;margin-bottom:10px;">
-      <input id="admin-custom-key-name" type="text" placeholder="اسم المفتاح (مثال: openai، stripe، ...)"
+      <input id="admin-custom-key-name" type="text" placeholder="اسم المفتاح (مثال: openai، ollama، ...)"
         style="width:100%;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
+      <!-- لو دخّلت رابط + موديل، المنظومة هتستخدم المفتاح ده كمزوّد AI احتياطي (بعد الـ Proxy ومفتاح Anthropic) -->
+      <input id="admin-custom-key-endpoint" type="text" dir="ltr" placeholder="رابط API (اختياري) — مثال: http://localhost:11434/v1/chat/completions"
+        style="width:100%;margin-top:8px;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
+      <input id="admin-custom-key-model" type="text" dir="ltr" placeholder="اسم الموديل (مطلوب لو دخّلت رابط) — مثال: llama3.1"
+        style="width:100%;margin-top:8px;background:rgba(10,10,20,0.9);border:1px solid rgba(176,110,243,0.4);border-radius:8px;color:#f0eaff;font-family:monospace;font-size:12px;padding:9px 14px;outline:none;">
+      <div style="font-size:10px;color:#5a4a7a;margin-top:6px;line-height:1.7;">
+        الرابط لازم يكون <code>/v1/chat/completions</code> (متوافق مع OpenAI) أو <code>/api/chat</code> أو <code>/api/generate</code> بتاع Ollama. المفتاح اختياري (Ollama المحلي مش بيحتاج مفتاح).
+      </div>
     </div>
 
     <!-- وصف المفتاح الحالي -->
@@ -10237,6 +10245,19 @@ const AI_PROXY_URL = 'https://white-room-yt-search.vercel.app/api/ai-proxy';
 // { answer }, أو شكل OpenAI-style { choices:[{message:{content:'...'}}] })،
 // أو حتى الـ JSON المطلوب نفسه راجع مباشرة من غير أي غلاف نصي.
 // الدالة دي بتدور على النص في أي شكل من الأشكال دي بدل ما تكسر أو ترجع فاضية.
+// لو الـ proxy رجّع مصفوفة كائنات جاهزة (أسئلة أو مهام) بدل نص — نغلّفها JSON
+// بالشكل اللي باقي الكود متوقعه ({questions:[...]} أو {tasks:[...]})
+function wrapStructuredArray(arr) {
+  if (!Array.isArray(arr) || !arr.length) return '';
+  const first = arr.find(x => x && typeof x === 'object');
+  if (!first) return '';
+  try {
+    if ('q' in first || 'question' in first) return JSON.stringify({ questions: arr });
+    if ('title' in first) return JSON.stringify({ tasks: arr });
+    return JSON.stringify(arr);
+  } catch(e) { return ''; }
+}
+
 function normalizeAIText(data, _depth) {
   _depth = _depth || 0;
   if (data == null) return '';
@@ -10245,11 +10266,26 @@ function normalizeAIText(data, _depth) {
   const extractFromBlocks = (blocks) => Array.isArray(blocks)
     ? blocks.map(b => (b && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : '')).join('')
     : '';
+  if (Array.isArray(data)) {
+    return extractFromBlocks(data) || wrapStructuredArray(data);
+  }
   if (typeof data === 'object') {
     if (typeof data.text === 'string') return data.text;
-    if (Array.isArray(data.text)) return extractFromBlocks(data.text);
-    if (Array.isArray(data.content)) return extractFromBlocks(data.content);
+    if (Array.isArray(data.text)) {
+      // الحالة اللي كانت بتكسر: { text: [ {q, options, answer}, ... ] }
+      // يعني text مصفوفة أسئلة جاهزة مش بلوكات نصية
+      return extractFromBlocks(data.text) || wrapStructuredArray(data.text);
+    }
+    if (data.text && typeof data.text === 'object') {
+      // { text: { questions:[...] } } أو أي كائن متداخل
+      const inner = normalizeAIText(data.text, _depth + 1);
+      if (inner && inner.trim()) return inner;
+      try { return JSON.stringify(data.text); } catch(e) { /* تجاهل */ }
+    }
+    if (Array.isArray(data.content)) return extractFromBlocks(data.content) || wrapStructuredArray(data.content);
     if (typeof data.message === 'string') return data.message;
+    // شكل Ollama /api/chat: { message: { role:'assistant', content:'...' } }
+    if (data.message && typeof data.message.content === 'string') return data.message.content;
     if (typeof data.result === 'string') return data.result;
     if (typeof data.response === 'string') return data.response;
     if (typeof data.output === 'string') return data.output;
@@ -10350,10 +10386,31 @@ async function callAI(prompt) {
   }
   console.warn('⚠️ AI Proxy فشل:', proxyFailReason);
 
-  // ── ثانياً: fallback — اتصال مباشر بـ Anthropic (بس لو الـ proxy فشل فعلاً) ──
+  // ── ثانياً: fallback (بس لو الـ proxy فشل فعلاً) ──
+  // الترتيب: Anthropic المباشر ← بعده أي مزوّد مخصص محفوظ برابط وموديل (Ollama / OpenAI-compatible...)
   if (!proxyFailed) throw new Error('callAI: حالة غير متوقعة');
+  const failures = [proxyFailReason];
+
   const key = await getAnthropicKey();
-  if (!key) throw new Error(proxyFailReason + ' || وأيضاً لا يوجد مفتاح Anthropic احتياطي محفوظ (config/anthropic) — راجع لوحة الأدمن');
+  if (key) {
+    try { return await callAnthropicDirect(key, prompt); }
+    catch(e) { failures.push(e.message); }
+  }
+
+  const customs = await getCustomProviders();
+  for (const p of customs) {
+    try { return await callCustomProvider(p, prompt); }
+    catch(e) { failures.push('وأيضاً المزوّد المخصص "' + p.id + '" فشل: ' + e.message); }
+  }
+
+  if (!key && !customs.length) {
+    failures.push('وأيضاً لا يوجد مفتاح Anthropic احتياطي محفوظ (config/anthropic) ولا مزوّد مخصص — راجع لوحة الأدمن');
+  }
+  throw new Error(failures.join(' || '));
+}
+
+// ── اتصال مباشر بـ Anthropic ──
+async function callAnthropicDirect(key, prompt) {
   let res2;
   try {
     res2 = await fetch('https://api.anthropic.com/v1/messages', {
@@ -10371,16 +10428,60 @@ async function callAI(prompt) {
       })
     });
   } catch(netErr) {
-    throw new Error(proxyFailReason + ' || وأيضاً تعذر الاتصال المباشر بـ Anthropic (شبكة/CORS): ' + netErr.message);
+    throw new Error('وأيضاً تعذر الاتصال المباشر بـ Anthropic (شبكة/CORS): ' + netErr.message);
   }
   if (!res2.ok) {
     const errData = await res2.json().catch(() => ({}));
-    throw new Error(proxyFailReason + ' || وأيضاً Anthropic المباشر رجّع HTTP ' + res2.status + ': ' + (errData?.error?.message || 'بدون تفاصيل'));
+    throw new Error('وأيضاً Anthropic المباشر رجّع HTTP ' + res2.status + ': ' + (errData?.error?.message || 'بدون تفاصيل'));
   }
   const data2 = await res2.json();
   const normalized2 = normalizeAIText(data2);
-  if (!normalized2 || !normalized2.trim()) throw new Error(proxyFailReason + ' || وأيضاً رد Anthropic المباشر كان فاضي بدون نص');
+  if (!normalized2 || !normalized2.trim()) throw new Error('وأيضاً رد Anthropic المباشر كان فاضي بدون نص');
   return normalized2;
+}
+
+// ── المزوّدين المخصصين: أي وثيقة في config من نوع custom ليها endpoint + model ──
+// بتتقرا مرة واحدة وتتخزن في الذاكرة، وبتتصفّر لما الأدمن يحفظ/يحذف مفتاح مخصص.
+let _customProviders = null;
+async function getCustomProviders() {
+  if (_customProviders) return _customProviders;
+  try {
+    // query بفلتر type عشان منحمّلش وثيقة الموسيقى (Base64 كبير) مع كل مرة
+    const snap = await dbFs.collection('config').where('type', '==', 'custom').get();
+    _customProviders = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.endpoint && p.model && /^https?:\/\//i.test(p.endpoint));
+    return _customProviders;
+  } catch(e) {
+    console.warn('تعذّر جلب المزوّدين المخصصين:', e);
+    return []; // مش بنخزّن الفشل، عشان المحاولة الجاية تجرب تاني
+  }
+}
+
+// ── استدعاء مزوّد مخصص: OpenAI-compatible (/chat/completions) أو Ollama (/api/chat | /api/generate) ──
+async function callCustomProvider(p, prompt) {
+  const isGenerate = /\/api\/generate\/?$/i.test(p.endpoint);
+  const body = isGenerate
+    ? { model: p.model, prompt, stream: false }
+    : { model: p.model, messages: [{ role: 'user', content: prompt }], stream: false, max_tokens: 4096 };
+  const headers = { 'Content-Type': 'application/json' };
+  if (p.key) headers['Authorization'] = 'Bearer ' + p.key;
+  let res;
+  try {
+    res = await fetch(p.endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+  } catch(netErr) {
+    throw new Error('تعذر الاتصال (شبكة/CORS/الرابط مش شغال): ' + netErr.message);
+  }
+  const raw = await res.text().catch(() => '');
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch(e) { /* مش JSON */ }
+  if (!res.ok) {
+    const msg = (data && (data.error?.message || data.error || data.message)) || raw.slice(0, 200) || 'بدون تفاصيل';
+    throw new Error('HTTP ' + res.status + ': ' + (typeof msg === 'string' ? msg : JSON.stringify(msg)));
+  }
+  const text = normalizeAIText(data);
+  if (!text || !text.trim()) throw new Error('رد فاضي أو بشكل مش مفهوم: ' + raw.slice(0, 200));
+  return text;
 }
 // ════ تحديد نوع الرابط ════
 function detectLinkType(url) {
@@ -10601,7 +10702,11 @@ async function startAiQuiz(subjectId) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const rawText = await callAI(p);
-        let clean = rawText.replace(/```json[\s\S]*?```|```/g, '').trim();
+        let clean = rawText.replace(/```(?:json)?/gi, '').trim();
+        // لو الرد مصفوفة أسئلة مباشرة [ {...}, {...} ] من غير غلاف — نغلّفها
+        if (clean.startsWith('[') && clean.lastIndexOf(']') > 0) {
+          clean = '{"questions":' + clean.slice(0, clean.lastIndexOf(']') + 1) + '}';
+        }
         const firstBrace = clean.indexOf('{');
         const lastBrace = clean.lastIndexOf('}');
         if (firstBrace === -1 || lastBrace === -1) throw new Error('no JSON');
@@ -10648,11 +10753,16 @@ async function startAiQuiz(subjectId) {
     }
 
     // نحوّل صيغة الـ AI لصيغة موحدة (options + answer) ونملأ aiQuizState كامل
-    const mappedQuestions = parsed.questions.map(q => ({
-      q:       q.q || q.question || '',
-      options: q.options || q.o || [],
-      answer:  typeof q.answer !== 'undefined' ? q.answer : (typeof q.a !== 'undefined' ? q.a : 0)
-    })).filter(q => q.q && q.options.length >= 2);
+    const mappedQuestions = parsed.questions.map(q => {
+      const options = q.options || q.o || [];
+      let answer = typeof q.answer !== 'undefined' ? q.answer : (typeof q.a !== 'undefined' ? q.a : 0);
+      // لو الإجابة جت كنص (نص الاختيار أو رقم كنص) نحوّلها لفهرس رقمي عشان التصحيح بـ === يشتغل
+      if (typeof answer === 'string') {
+        const byText = options.indexOf(answer);
+        answer = byText !== -1 ? byText : (parseInt(answer, 10) || 0);
+      }
+      return { q: q.q || q.question || '', options, answer };
+    }).filter(q => q.q && q.options.length >= 2);
 
     // نملأ aiQuizState وكمان currentQuizSessionQuestions للتوافق مع showQuestion()
     currentQuizSessionQuestions = mappedQuestions.map(q => ({ q: q.q, o: q.options, a: q.answer }));
@@ -12201,7 +12311,7 @@ function adminSelectKeyType(type, btn) {
     if (desc) desc.textContent = '▲ مفتاح Vercel — يُستخدم لنشر المشاريع وإدارة البيئات عبر Vercel API';
   } else {
     if (inp) inp.placeholder = 'أدخل المفتاح...';
-    if (desc) desc.textContent = '➕ مفتاح مخصص — يُحفظ باسم تحدده ويمكن استدعاؤه لاحقاً من الكود';
+    if (desc) desc.textContent = '➕ مفتاح مخصص — لو دخّلت الرابط والموديل بيتستخدم كمزوّد AI احتياطي بعد الـ Proxy ومفتاح Anthropic، ولو لأ بيتحفظ بس';
   }
 }
 
@@ -12210,10 +12320,28 @@ async function adminSaveApiKey() {
   const inp = document.getElementById('admin-api-key-input');
   const statusEl = document.getElementById('admin-api-key-status');
   const key = (inp ? inp.value : '').trim();
-  if (!key) {
+  // مزوّد AI مخصص: رابط + موديل (والمفتاح اختياري، زي Ollama المحلي)
+  let endpoint = '', model = '';
+  if (_adminCurrentKeyType === 'custom') {
+    endpoint = ((document.getElementById('admin-custom-key-endpoint') || {}).value || '').trim();
+    model    = ((document.getElementById('admin-custom-key-model') || {}).value || '').trim();
+  }
+  if (!key && !endpoint) {
     statusEl.style.color = '#f87171';
     statusEl.textContent = '⚠ أدخل المفتاح أولاً';
     return;
+  }
+  if (endpoint) {
+    if (!/^https?:\/\//i.test(endpoint)) {
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ الرابط لازم يبدأ بـ http:// أو https://';
+      return;
+    }
+    if (!model) {
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ أدخل اسم الموديل (مطلوب مع الرابط)';
+      return;
+    }
   }
   // تحديد اسم الوثيقة في Firestore
   let docName = _adminCurrentKeyType;
@@ -12223,6 +12351,12 @@ async function adminSaveApiKey() {
     if (!customName) {
       statusEl.style.color = '#f87171';
       statusEl.textContent = '⚠ أدخل اسماً للمفتاح المخصص';
+      return;
+    }
+    // أسماء محجوزة — عشان المفتاح المخصص ميمسحش مفتاح Anthropic/Vercel أو الموسيقى بالغلط
+    if (['anthropic', 'vercel', 'music'].includes(customName)) {
+      statusEl.style.color = '#f87171';
+      statusEl.textContent = '⚠ الاسم "' + customName + '" محجوز — اختار اسم تاني';
       return;
     }
     docName = customName;
@@ -12240,14 +12374,22 @@ async function adminSaveApiKey() {
       key,
       type: _adminCurrentKeyType,
       label: _adminCurrentKeyType === 'anthropic' ? 'Anthropic' : _adminCurrentKeyType === 'vercel' ? 'Vercel' : docName,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      ...(endpoint ? { endpoint, model } : {})
     });
     if (_adminCurrentKeyType === 'anthropic') _anthropicKey = key;
+    if (_adminCurrentKeyType === 'custom') _customProviders = null; // نجبر callAI يعيد قراءة المزوّدين
     statusEl.style.color = '#b06ef3';
-    statusEl.textContent = `✓ تم حفظ مفتاح "${docName}" بنجاح!`;
+    statusEl.textContent = endpoint
+      ? `✓ تم حفظ المزوّد "${docName}" — هيتستخدم كاحتياطي لو الـ Proxy ومفتاح Anthropic فشلوا`
+      : `✓ تم حفظ مفتاح "${docName}" بنجاح!`;
     inp.value = '';
     const nameInp = document.getElementById('admin-custom-key-name');
     if (nameInp) nameInp.value = '';
+    const epInp = document.getElementById('admin-custom-key-endpoint');
+    if (epInp) epInp.value = '';
+    const mdInp = document.getElementById('admin-custom-key-model');
+    if (mdInp) mdInp.value = '';
     // تحديث قائمة المفاتيح
     adminLoadSavedKeys();
   } catch(e) {
@@ -12262,6 +12404,7 @@ async function adminDeleteKey(docName) {
   try {
     await dbFs.collection('config').doc(docName).delete();
     if (docName === 'anthropic') _anthropicKey = null;
+    _customProviders = null;
     adminLoadSavedKeys();
   } catch(e) { alert('فشل الحذف: ' + e.message); }
 }
@@ -12272,13 +12415,16 @@ async function adminLoadSavedKeys() {
   listEl.innerHTML = '<div style="font-size:10px;color:#3a2a5a;">⏳ جاري التحميل...</div>';
   try {
     const snap = await dbFs.collection('config').get();
-    const keys = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => d.key);
+    const keys = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => d.key || d.endpoint);
     if (!keys.length) {
       listEl.innerHTML = '<div style="font-size:10px;color:#3a2a5a;">لا توجد مفاتيح محفوظة بعد</div>';
       return;
     }
     listEl.innerHTML = keys.map(k => {
-      const masked = k.key ? (k.key.slice(0,8) + '••••••••' + k.key.slice(-4)) : '---';
+      const masked = k.key ? (k.key.slice(0,8) + '••••••••' + k.key.slice(-4)) : (k.endpoint ? '(بدون مفتاح)' : '---');
+      const provInfo = k.endpoint
+        ? `<div dir="ltr" style="font-size:10px;font-family:monospace;color:#7a6aa0;word-break:break-all;">↳ ${escapeHtml(k.endpoint)} · ${escapeHtml(k.model || '')}</div>`
+        : '';
       const label = k.label || k.id;
       const icon = k.id === 'anthropic' ? '🤖' : k.id === 'vercel' ? '▲' : '🔑';
       const date = k.updatedAt ? new Date(k.updatedAt).toLocaleDateString('ar-SA') : '';
@@ -12287,6 +12433,7 @@ async function adminLoadSavedKeys() {
         <div style="flex:1;min-width:0;">
           <div style="font-size:11px;font-weight:bold;color:#b06ef3;">${label}</div>
           <div style="font-size:10px;font-family:monospace;color:#5a4a7a;">${masked} ${date ? '· ' + date : ''}</div>
+          ${provInfo}
         </div>
         <button onclick="adminDeleteKey('${k.id}')"
           style="background:transparent;border:1px solid rgba(248,113,113,0.4);color:#f87171;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:10px;flex-shrink:0;">
@@ -12663,7 +12810,7 @@ async function adminGenerateAllDailyTasks() {
 وزع: 2 سهلة، 2 متوسطة، 1 صعبة.`;
 
       const rawText = await callAI(prompt);
-      let clean = rawText.replace(/```json[\s\S]*?```|```/g, '').trim();
+      let clean = rawText.replace(/```(?:json)?/gi, '').trim();
       const fb = clean.indexOf('{'), lb = clean.lastIndexOf('}');
       if (fb === -1 || lb === -1) throw new Error('no JSON');
       let parsed;
