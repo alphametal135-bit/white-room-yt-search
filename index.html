@@ -2870,6 +2870,7 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
     <button class="admin-tab-btn" onclick="switchAdminTab('chat', this)">💬 الدردشة مع المحللين</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('actions', this)">⚖️ العقوبات والإنذارات</button>
     <button class="admin-tab-btn" onclick="switchAdminTab('reports', this)">🚨 البلاغات <span id="admin-reports-badge" style="background:var(--red);color:#fff;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:10px;display:none;margin-right:4px;">0</span></button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('settings', this)">⚙️ إعدادات النظام</button>
   </div>
   <div class="admin-section active" id="admin-sec-stats">
     <div id="admin-content"><div style="color:var(--text3);font-size:12px;padding:20px;">جاري تحميل البيانات...</div></div>
@@ -2910,6 +2911,10 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
   <div class="admin-section" id="admin-sec-reports">
     <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">بلاغات المحللين — يراجعها الذكاء الاصطناعي أولاً ثم يُقدَّم لك ملخص مع توصية</div>
     <div id="admin-reports-list"><div style="color:var(--text3);font-size:12px;">جاري تحميل البلاغات...</div></div>
+  </div>
+  <div class="admin-section" id="admin-sec-settings">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.8;">تحكّم في النقاط والرتب والدرجات وأسئلة الاختبار من هنا بدون تعديل الكود. التعديلات بتتخزّن في Firestore وبتتطبّق على كل المستخدمين عند فتح الموقع.</div>
+    <div id="admin-settings-body"></div>
   </div>
 </div>
 
@@ -7389,10 +7394,10 @@ const LINK_UNIT_PTS_MULTIPLIER = {
 };
 
 // ── نقاط الشطرنج وألعاب التفكير ──
-const CHESS_WIN_UNIT_PTS  = 150;
-const CHESS_DRAW_UNIT_PTS =  50;
-const CHESS_LOSE_UNIT_PTS =   0;
-const MINDGAME_UNIT_PTS   = 100;  // عند إتمام تحدي تفكيري
+let CHESS_WIN_UNIT_PTS  = 150;
+let CHESS_DRAW_UNIT_PTS =  50;
+let CHESS_LOSE_UNIT_PTS =   0;
+let MINDGAME_UNIT_PTS   = 100;  // عند إتمام تحدي تفكيري
 
 let lastKnownTier = null;
 
@@ -7917,15 +7922,15 @@ async function forgotPassword() {
 }
 
 // ════════ نظام النقاط: الثوابت ════════
-const MAX_POINTS = 1000;
-const DAILY_ABSENCE_PENALTY = 10;       // خصم الغياب اليومي (نقاط عادية)
-const PROBATION_DAILY_ABSENCE_PENALTY = 60; // خصم الغياب اليومي أثناء الإنذار
-const PROBATION_GRACE_DAYS = 10;        // مدة الإنذار قبل ما يرجعله 500
-const PROBATION_RESTART_POINTS = 500;   // النقاط اللي بترجعله بعد الإنذار
-const PROBATION_MONTHLY_BONUS = 100;    // مكافأة شهرية أثناء الإنذار
-const RETRO_DAY_PENALTY = 50;           // خصم تعويض يوم فات بأثر رجعي
-const TODAY_CONFIRM_REWARD = 20;        // مكافأة تأكيد يوم النهاردة
-const AI_QUIZ_DAILY_LIMIT = 15;         // أقصى عدد اختبارات AI يومياً لكل محلل (يتجدد كل يوم جديد)
+let MAX_POINTS = 1000;
+let DAILY_ABSENCE_PENALTY = 10;       // خصم الغياب اليومي (نقاط عادية)
+let PROBATION_DAILY_ABSENCE_PENALTY = 60; // خصم الغياب اليومي أثناء الإنذار
+let PROBATION_GRACE_DAYS = 10;        // مدة الإنذار قبل ما يرجعله 500
+let PROBATION_RESTART_POINTS = 500;   // النقاط اللي بترجعله بعد الإنذار
+let PROBATION_MONTHLY_BONUS = 100;    // مكافأة شهرية أثناء الإنذار
+let RETRO_DAY_PENALTY = 50;           // خصم تعويض يوم فات بأثر رجعي
+let TODAY_CONFIRM_REWARD = 20;        // مكافأة تأكيد يوم النهاردة
+let AI_QUIZ_DAILY_LIMIT = 15;         // أقصى عدد اختبارات AI يومياً لكل محلل (يتجدد كل يوم جديد)
 
 function daysBetween(d1, d2) {
   return Math.floor((new Date(d2) - new Date(d1)) / 86400000);
@@ -8025,6 +8030,345 @@ async function applyDailyCheck() {
   });
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// ⚙️ إعدادات النظام القابلة للتعديل من لوحة الأدمن (Firestore: appSettings/main)
+// القيم الافتراضية هي المكتوبة في الكود؛ لو في وثيقة محفوظة بتتطبّق فوقها عند الدخول.
+// مهم: ما تحطش أي مفاتيح API هنا — الوثيقة دي مقروءة لكل المستخدمين.
+// ════════════════════════════════════════════════════════════════════════
+let _appDefaults = null;
+let appSettingsRaw = null;
+let appEditQuestions = [];
+let _appSettingsRendered = false;
+
+const APP_Q_CATS = { programming: 'برمجة', english: 'إنجليزي', electronics: 'إلكترونيات', physics_chemistry: 'فيزياء وكيمياء' };
+const APP_INPUT_STYLE = 'background:var(--bg2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:13px;width:100%;';
+const APP_CARD_STYLE = 'background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;';
+
+const APP_NUM_FIELDS = [
+  { k: 'MAX_POINTS', l: 'الحد الأقصى للنقاط', min: 100, max: 100000, int: true, get: () => MAX_POINTS, set: v => { MAX_POINTS = v; } },
+  { k: 'DAILY_ABSENCE_PENALTY', l: 'خصم الغياب اليومي', min: 0, max: 1000, get: () => DAILY_ABSENCE_PENALTY, set: v => { DAILY_ABSENCE_PENALTY = v; } },
+  { k: 'PROBATION_DAILY_ABSENCE_PENALTY', l: 'خصم الغياب أثناء الإنذار', min: 0, max: 1000, get: () => PROBATION_DAILY_ABSENCE_PENALTY, set: v => { PROBATION_DAILY_ABSENCE_PENALTY = v; } },
+  { k: 'PROBATION_GRACE_DAYS', l: 'مدة الإنذار (أيام)', min: 1, max: 365, int: true, get: () => PROBATION_GRACE_DAYS, set: v => { PROBATION_GRACE_DAYS = v; } },
+  { k: 'PROBATION_RESTART_POINTS', l: 'نقاط البداية بعد الإنذار', min: 0, max: 100000, get: () => PROBATION_RESTART_POINTS, set: v => { PROBATION_RESTART_POINTS = v; } },
+  { k: 'PROBATION_MONTHLY_BONUS', l: 'المكافأة الشهرية أثناء الإنذار', min: 0, max: 10000, get: () => PROBATION_MONTHLY_BONUS, set: v => { PROBATION_MONTHLY_BONUS = v; } },
+  { k: 'RETRO_DAY_PENALTY', l: 'خصم تعويض يوم فات', min: 0, max: 1000, get: () => RETRO_DAY_PENALTY, set: v => { RETRO_DAY_PENALTY = v; } },
+  { k: 'TODAY_CONFIRM_REWARD', l: 'مكافأة تأكيد اليوم', min: 0, max: 1000, get: () => TODAY_CONFIRM_REWARD, set: v => { TODAY_CONFIRM_REWARD = v; } },
+  { k: 'AI_QUIZ_DAILY_LIMIT', l: 'حد اختبارات AI اليومي', min: 0, max: 500, int: true, get: () => AI_QUIZ_DAILY_LIMIT, set: v => { AI_QUIZ_DAILY_LIMIT = v; } },
+  { k: 'CHESS_WIN_UNIT_PTS', l: 'نقاط وحدة: فوز شطرنج', min: 0, max: 100000, get: () => CHESS_WIN_UNIT_PTS, set: v => { CHESS_WIN_UNIT_PTS = v; } },
+  { k: 'CHESS_DRAW_UNIT_PTS', l: 'نقاط وحدة: تعادل شطرنج', min: 0, max: 100000, get: () => CHESS_DRAW_UNIT_PTS, set: v => { CHESS_DRAW_UNIT_PTS = v; } },
+  { k: 'CHESS_LOSE_UNIT_PTS', l: 'نقاط وحدة: خسارة شطرنج', min: 0, max: 100000, get: () => CHESS_LOSE_UNIT_PTS, set: v => { CHESS_LOSE_UNIT_PTS = v; } },
+  { k: 'MINDGAME_UNIT_PTS', l: 'نقاط وحدة: تحدي تفكيري', min: 0, max: 100000, get: () => MINDGAME_UNIT_PTS, set: v => { MINDGAME_UNIT_PTS = v; } }
+];
+
+// ── لقطة من القيم الافتراضية (بتتاخد مرة واحدة قبل تطبيق أي تعديل) ──
+function appCaptureDefaults() {
+  if (_appDefaults) return _appDefaults;
+  const d = {
+    nums: {}, taskPts: { ...TASK_POINTS }, tiers: [], ranks: [], grades: [],
+    linkMult: { ...LINK_UNIT_PTS_MULTIPLIER }, customQuestions: []
+  };
+  APP_NUM_FIELDS.forEach(f => { d.nums[f.k] = f.get(); });
+  TIER_LADDER.forEach(t => d.tiers.push({ id: t.id, label: t.label, emoji: t.emoji, minPts: t.minPts }));
+  RANK_LADDER.forEach(r => d.ranks.push({ r: r.r, l: r.l, min: r.min }));
+  SUBJECT_GRADE_RULES.forEach(g => d.grades.push({ grade: g.grade, minScore: g.minScore, unitPts: g.unitPts }));
+  _appDefaults = d;
+  return d;
+}
+
+function appAscending(arr, key) {
+  for (let i = 1; i < arr.length; i++) if (!(arr[i][key] > arr[i - 1][key])) return false;
+  return true;
+}
+
+function appValidQuestion(q) {
+  return !!q && Object.prototype.hasOwnProperty.call(APP_Q_CATS, q.cat) &&
+    typeof q.q === 'string' && q.q.trim().length >= 5 &&
+    Array.isArray(q.o) && q.o.length === 4 &&
+    q.o.every(o => typeof o === 'string' && o.trim().length > 0) &&
+    Number.isInteger(q.a) && q.a >= 0 && q.a < 4;
+}
+
+function appApplyQuestions(list) {
+  Object.keys(APP_Q_CATS).forEach(c => {
+    const arr = COMPREHENSIVE_QUESTION_BANK[c];
+    if (!Array.isArray(arr)) return;
+    for (let i = arr.length - 1; i >= 0; i--) if (arr[i] && arr[i]._custom) arr.splice(i, 1);
+  });
+  (Array.isArray(list) ? list : []).forEach(q => {
+    if (!appValidQuestion(q)) return;
+    const arr = COMPREHENSIVE_QUESTION_BANK[q.cat];
+    if (!Array.isArray(arr)) return;
+    arr.push({ q: q.q.trim(), o: q.o.map(o => o.trim()), a: q.a, _custom: true });
+  });
+}
+
+// ── تطبيق الإعدادات على الثوابت الحية (بتتحقق من كل قيمة؛ أي قيمة غلط بتتجاهل) ──
+function appApplySettings(s) {
+  const D = appCaptureDefaults();
+  if (!s || typeof s !== 'object') return;
+  const num = (v, lo, hi, fb) => { const n = Number(v); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fb; };
+
+  if (s.nums && typeof s.nums === 'object') {
+    APP_NUM_FIELDS.forEach(f => {
+      if (s.nums[f.k] === undefined) return;
+      const v = num(s.nums[f.k], f.min, f.max, D.nums[f.k]);
+      f.set(f.int ? Math.round(v) : v);
+    });
+  }
+  if (s.taskPts && typeof s.taskPts === 'object') {
+    ['easy', 'medium', 'hard'].forEach(k => {
+      if (s.taskPts[k] !== undefined) TASK_POINTS[k] = num(s.taskPts[k], 0, 1000, D.taskPts[k]);
+    });
+  }
+  if (s.linkMult && typeof s.linkMult === 'object') {
+    Object.keys(LINK_UNIT_PTS_MULTIPLIER).forEach(k => {
+      if (s.linkMult[k] !== undefined) LINK_UNIT_PTS_MULTIPLIER[k] = num(s.linkMult[k], 0, 10, D.linkMult[k]);
+    });
+  }
+  if (Array.isArray(s.tiers)) {
+    const backup = TIER_LADDER.map(t => ({ ...t }));
+    s.tiers.forEach(x => {
+      const t = x && TIER_LADDER.find(y => y.id === x.id);
+      if (!t) return;
+      if (typeof x.label === 'string' && x.label.trim()) t.label = x.label.trim().slice(0, 24);
+      if (typeof x.emoji === 'string' && x.emoji.trim()) t.emoji = x.emoji.trim().slice(0, 8);
+      t.minPts = num(x.minPts, 0, 100000000, t.minPts);
+    });
+    TIER_LADDER[0].minPts = 0;
+    if (!appAscending(TIER_LADDER, 'minPts')) backup.forEach((b, i) => Object.assign(TIER_LADDER[i], b));
+  }
+  if (Array.isArray(s.ranks)) {
+    const backup = RANK_LADDER.map(r => ({ ...r }));
+    s.ranks.forEach(x => {
+      const r = x && RANK_LADDER.find(y => y.r === x.r);
+      if (!r) return;
+      if (typeof x.l === 'string' && x.l.trim()) r.l = x.l.trim().slice(0, 80);
+      r.min = num(x.min, 0, 100000000, r.min);
+    });
+    RANK_LADDER[0].min = 0;
+    if (!appAscending(RANK_LADDER, 'min')) backup.forEach((b, i) => Object.assign(RANK_LADDER[i], b));
+  }
+  if (Array.isArray(s.grades)) {
+    const backup = SUBJECT_GRADE_RULES.map(g => ({ ...g }));
+    s.grades.forEach(x => {
+      const g = x && SUBJECT_GRADE_RULES.find(y => y.grade === x.grade);
+      if (!g) return;
+      g.minScore = num(x.minScore, 0, 100, g.minScore);
+      g.unitPts = num(x.unitPts, 0, 100000, g.unitPts);
+    });
+    SUBJECT_GRADE_RULES[0].minScore = 0;
+    if (!appAscending(SUBJECT_GRADE_RULES, 'minScore')) backup.forEach((b, i) => Object.assign(SUBJECT_GRADE_RULES[i], b));
+  }
+  if (Array.isArray(s.customQuestions)) appApplyQuestions(s.customQuestions);
+}
+
+// ── تحميل الإعدادات عند الدخول (لو فشل التحميل بيكمل بالقيم الافتراضية) ──
+async function loadAppSettings() {
+  appCaptureDefaults();
+  try {
+    const doc = await dbFs.collection('appSettings').doc('main').get();
+    if (doc.exists) {
+      appSettingsRaw = doc.data();
+      appApplySettings(appSettingsRaw);
+    }
+  } catch (e) {
+    console.warn('تعذّر تحميل إعدادات النظام (هتُستخدم القيم الافتراضية):', e.message);
+  }
+}
+
+// ════════ واجهة اللوحة ════════
+function appSettingsHtml() {
+  const grid = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;';
+  const title = t => `<div style="font-size:13px;font-weight:bold;color:#b06ef3;margin-bottom:10px;">${t}</div>`;
+  const hint = t => `<div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.7;">${t}</div>`;
+  const field = (label, id, value, extra) =>
+    `<label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text2);">${escapeHtml(label)}` +
+    `<input id="${id}" type="number" step="any" value="${Number(value)}" ${extra || ''} style="${APP_INPUT_STYLE}"></label>`;
+  const text = (label, id, value, max) =>
+    `<label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text2);">${escapeHtml(label)}` +
+    `<input id="${id}" type="text" maxlength="${max}" value="${escapeHtml(value)}" style="${APP_INPUT_STYLE}"></label>`;
+  let h = '';
+
+  h += `<div style="${APP_CARD_STYLE}">${title('🎯 ثوابت النقاط والإنذارات')}<div style="${grid}">` +
+    APP_NUM_FIELDS.map(f => field(f.l, 'as-n-' + f.k, f.get())).join('') + `</div></div>`;
+
+  h += `<div style="${APP_CARD_STYLE}">${title('📋 نقاط المهام اليومية')}${hint('بتتطبّق على المهام اللي بتتولّد بعد الحفظ.')}<div style="${grid}">` +
+    field('سهلة', 'as-t-easy', TASK_POINTS.easy) + field('متوسطة', 'as-t-medium', TASK_POINTS.medium) + field('صعبة', 'as-t-hard', TASK_POINTS.hard) + `</div></div>`;
+
+  h += `<div style="${APP_CARD_STYLE}">${title('🏅 رتب الترقي (بنقاط الوحدة)')}${hint('الرتبة الأولى تبدأ من 0 والحدود لازم تتزايد.')}` +
+    TIER_LADDER.map((t, i) => `<div style="display:grid;grid-template-columns:64px 1fr 1fr;gap:8px;margin-bottom:8px;align-items:end;">` +
+      text('رمز', 'as-te-' + t.id, t.emoji, 8) + text('الاسم', 'as-tl-' + t.id, t.label, 24) +
+      field('من نقطة', 'as-tp-' + t.id, t.minPts, i === 0 ? 'readonly' : '') + `</div>`).join('') + `</div>`;
+
+  h += `<div style="${APP_CARD_STYLE}">${title('🎖️ رتب النقاط (F → SSS)')}${hint('النقاط الحالية للمحلل مقابل الرتبة. الحدود لازم تتزايد.')}` +
+    RANK_LADDER.map((r, i) => `<div style="display:grid;grid-template-columns:44px 1fr 96px;gap:8px;margin-bottom:8px;align-items:end;">` +
+      `<div style="font-family:var(--mono);font-weight:bold;color:var(--gold);padding-bottom:9px;">${escapeHtml(r.r)}</div>` +
+      text('الوصف', 'as-rl-' + r.r, r.l, 80) + field('من نقطة', 'as-rm-' + r.r, r.min, i === 0 ? 'readonly' : '') + `</div>`).join('') + `</div>`;
+
+  h += `<div style="${APP_CARD_STYLE}">${title('📚 درجات المواد ومضاعف الروابط')}${hint('نسبة نتيجة الاختبار ← درجة المادة ← نقاط وحدة. الحدود لازم تتزايد.')}` +
+    SUBJECT_GRADE_RULES.map((g, i) => `<div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:end;">` +
+      `<div style="font-family:var(--mono);font-weight:bold;color:var(--gold);padding-bottom:9px;">${escapeHtml(g.grade)}</div>` +
+      field('من %', 'as-gs-' + g.grade, g.minScore, i === 0 ? 'readonly' : '') + field('نقاط وحدة', 'as-gu-' + g.grade, g.unitPts) +
+      field('مضاعف', 'as-gm-' + g.grade, LINK_UNIT_PTS_MULTIPLIER[g.grade] || 0) + `</div>`).join('') + `</div>`;
+
+  h += `<div style="${APP_CARD_STYLE}">${title('📝 أسئلة مخصصة للاختبار')}${hint('بتتضاف لبنك الأسئلة بعد الحفظ، وبتظهر عشوائي مع باقي الأسئلة.')}` +
+    `<div style="display:flex;flex-direction:column;gap:8px;">` +
+    `<select id="as-q-cat" style="${APP_INPUT_STYLE}">` + Object.keys(APP_Q_CATS).map(c => `<option value="${c}">${APP_Q_CATS[c]}</option>`).join('') + `</select>` +
+    `<textarea id="as-q-text" rows="2" placeholder="نص السؤال" style="${APP_INPUT_STYLE}font-family:var(--sans);"></textarea>` +
+    [0, 1, 2, 3].map(i => `<input id="as-q-o${i}" type="text" placeholder="الخيار ${i + 1}" style="${APP_INPUT_STYLE}font-family:var(--sans);">`).join('') +
+    `<select id="as-q-a" style="${APP_INPUT_STYLE}">` + [0, 1, 2, 3].map(i => `<option value="${i}">الإجابة الصحيحة: الخيار ${i + 1}</option>`).join('') + `</select>` +
+    `<button onclick="appAddQuestion()" style="background:transparent;color:#b06ef3;border:1px solid #b06ef3;border-radius:8px;padding:9px;cursor:pointer;font-size:12px;">➕ إضافة السؤال للقائمة</button>` +
+    `</div><div id="as-q-list" style="margin-top:12px;"></div></div>`;
+
+  h += `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">` +
+    `<button onclick="appSaveSettings()" style="background:#b06ef3;color:#000;border:none;border-radius:8px;padding:11px 22px;cursor:pointer;font-weight:bold;font-size:13px;">💾 حفظ كل الإعدادات</button>` +
+    `<button onclick="appResetSettings()" style="background:transparent;color:#f87171;border:1px solid #f87171;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:12px;">↩️ رجوع للافتراضي</button>` +
+    `<div id="as-status" style="font-size:11px;color:var(--text3);min-width:140px;"></div></div>`;
+  return h;
+}
+
+function appSetStatus(msg, ok) {
+  const el = document.getElementById('as-status');
+  if (!el) return;
+  el.style.color = ok === false ? '#f87171' : (ok === true ? '#b06ef3' : 'var(--text3)');
+  el.textContent = msg;
+}
+
+function appRenderQuestionList() {
+  const el = document.getElementById('as-q-list');
+  if (!el) return;
+  if (!appEditQuestions.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text3);">لا توجد أسئلة مخصصة بعد.</div>'; return; }
+  el.innerHTML = appEditQuestions.map((q, i) =>
+    `<div style="display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border-top:1px solid var(--border);padding:8px 0;">` +
+    `<div style="font-size:11px;line-height:1.7;color:var(--text);"><span style="color:#b06ef3;">[${escapeHtml(APP_Q_CATS[q.cat])}]</span> ${escapeHtml(q.q)}` +
+    `<div style="color:var(--text3);">✓ ${escapeHtml(q.o[q.a])}</div></div>` +
+    `<button onclick="appDeleteQuestion(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;flex-shrink:0;">🗑</button></div>`
+  ).join('');
+}
+
+function appAddQuestion() {
+  if (!isAdmin()) return;
+  const g = id => ((document.getElementById(id) || {}).value || '');
+  const q = { cat: g('as-q-cat'), q: g('as-q-text').trim(), o: [0, 1, 2, 3].map(i => g('as-q-o' + i).trim()), a: parseInt(g('as-q-a'), 10) };
+  if (!appValidQuestion(q)) { appSetStatus('أكمل نص السؤال (5 حروف على الأقل) والخيارات الأربعة', false); return; }
+  appEditQuestions.push(q);
+  ['as-q-text', 'as-q-o0', 'as-q-o1', 'as-q-o2', 'as-q-o3'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  appRenderQuestionList();
+  appSetStatus('اتضاف السؤال للقائمة — اضغط "حفظ كل الإعدادات" لتطبيقه', null);
+}
+
+function appDeleteQuestion(i) {
+  if (!isAdmin()) return;
+  appEditQuestions.splice(i, 1);
+  appRenderQuestionList();
+  appSetStatus('اتحذف السؤال من القائمة — اضغط "حفظ كل الإعدادات" لتطبيقه', null);
+}
+
+// ── قراءة النموذج والتحقق منه (getVal قابلة للاستبدال عشان الاختبار) ──
+function appCollectSettings(getVal) {
+  getVal = getVal || (id => { const el = document.getElementById(id); return el ? el.value : undefined; });
+  const out = {
+    nums: {}, taskPts: {}, tiers: [], ranks: [], grades: [], linkMult: {},
+    customQuestions: appEditQuestions.filter(appValidQuestion).map(q => ({ cat: q.cat, q: q.q, o: q.o.slice(), a: q.a }))
+  };
+  const readNum = (id, label, lo, hi, int) => {
+    const raw = getVal(id);
+    const n = Number(raw);
+    if (raw === undefined || raw === null || String(raw).trim() === '' || !isFinite(n) || n < lo || n > hi)
+      throw new Error(label + ': لازم رقم بين ' + lo + ' و ' + hi);
+    return int ? Math.round(n) : n;
+  };
+  const readText = (id, label, max) => {
+    const v = String(getVal(id) || '').trim();
+    if (!v) throw new Error(label + ': مينفعش يبقى فاضي');
+    return v.slice(0, max);
+  };
+  try {
+    APP_NUM_FIELDS.forEach(f => { out.nums[f.k] = readNum('as-n-' + f.k, f.l, f.min, f.max, f.int); });
+    if (out.nums.PROBATION_RESTART_POINTS > out.nums.MAX_POINTS) throw new Error('نقاط البداية بعد الإنذار لازم تكون أقل من أو تساوي الحد الأقصى للنقاط');
+    ['easy', 'medium', 'hard'].forEach(k => { out.taskPts[k] = readNum('as-t-' + k, 'نقاط المهمة ' + k, 0, 1000); });
+    TIER_LADDER.forEach((t, i) => {
+      out.tiers.push({
+        id: t.id,
+        emoji: readText('as-te-' + t.id, 'رمز الرتبة ' + t.id, 8),
+        label: readText('as-tl-' + t.id, 'اسم الرتبة ' + t.id, 24),
+        minPts: i === 0 ? 0 : readNum('as-tp-' + t.id, 'حد الرتبة ' + t.label, 0, 100000000)
+      });
+    });
+    if (!appAscending(out.tiers, 'minPts')) throw new Error('حدود رتب الترقي لازم تتزايد من الأقل للأعلى');
+    RANK_LADDER.forEach((r, i) => {
+      out.ranks.push({
+        r: r.r,
+        l: readText('as-rl-' + r.r, 'وصف الرتبة ' + r.r, 80),
+        min: i === 0 ? 0 : readNum('as-rm-' + r.r, 'حد الرتبة ' + r.r, 0, 100000000)
+      });
+    });
+    if (!appAscending(out.ranks, 'min')) throw new Error('حدود رتب النقاط لازم تتزايد من الأقل للأعلى');
+    SUBJECT_GRADE_RULES.forEach((g, i) => {
+      out.grades.push({
+        grade: g.grade,
+        minScore: i === 0 ? 0 : readNum('as-gs-' + g.grade, 'حد درجة ' + g.grade, 0, 100),
+        unitPts: readNum('as-gu-' + g.grade, 'نقاط وحدة درجة ' + g.grade, 0, 100000)
+      });
+      out.linkMult[g.grade] = readNum('as-gm-' + g.grade, 'مضاعف درجة ' + g.grade, 0, 10);
+    });
+    if (!appAscending(out.grades, 'minScore')) throw new Error('حدود درجات المواد لازم تتزايد من الأقل للأعلى');
+  } catch (e) {
+    return { error: e.message };
+  }
+  return { settings: out };
+}
+
+function appRefreshUi() {
+  try { if (typeof updateStatusBar === 'function') updateStatusBar(); } catch (e) {}
+  try { if (typeof updateTierDisplay === 'function') updateTierDisplay(); } catch (e) {}
+}
+
+async function appSaveSettings() {
+  if (!isAdmin()) return;
+  const res = appCollectSettings();
+  if (res.error) { appSetStatus('⚠ ' + res.error, false); return; }
+  appSetStatus('⏳ جاري الحفظ...', null);
+  try {
+    await dbFs.collection('appSettings').doc('main').set(Object.assign({}, res.settings, { updatedAt: Date.now(), updatedBy: mySysId }));
+    appSettingsRaw = res.settings;
+    appApplySettings(res.settings);
+    appRefreshUi();
+    const topRank = res.settings.ranks[res.settings.ranks.length - 1].min;
+    const warn = topRank > res.settings.nums.MAX_POINTS ? ' (تنبيه: أعلى رتبة نقاط أعلى من الحد الأقصى — محدش هيوصلها)' : '';
+    appSetStatus('✓ اتحفظت واتطبّقت. المستخدمين هياخدوها عند فتح الموقع.' + warn, true);
+  } catch (e) {
+    appSetStatus('فشل الحفظ: ' + e.message, false);
+  }
+}
+
+async function appResetSettings() {
+  if (!isAdmin()) return;
+  if (!confirm('هترجّع كل الإعدادات للقيم الافتراضية اللي في الكود وتمسح الأسئلة المخصصة. متأكد؟')) return;
+  try {
+    await dbFs.collection('appSettings').doc('main').delete();
+    appSettingsRaw = null;
+    appApplySettings(appCaptureDefaults());
+    renderAdminSettings(true);
+    appRefreshUi();
+    appSetStatus('✓ رجعت القيم الافتراضية', true);
+  } catch (e) {
+    appSetStatus('فشل الرجوع للافتراضي: ' + e.message, false);
+  }
+}
+
+function renderAdminSettings(force) {
+  if (!isAdmin()) return;
+  const body = document.getElementById('admin-settings-body');
+  if (!body) return;
+  if (_appSettingsRendered && !force) return;
+  appEditQuestions = (appSettingsRaw && Array.isArray(appSettingsRaw.customQuestions) ? appSettingsRaw.customQuestions : [])
+    .filter(appValidQuestion).map(q => ({ cat: q.cat, q: q.q, o: q.o.slice(), a: q.a }));
+  body.innerHTML = appSettingsHtml();
+  appRenderQuestionList();
+  _appSettingsRendered = true;
+}
+
 function checkAuth() {
   auth.onAuthStateChanged(async (user) => {
     if (registrationPending) return; // لسه واقفين في خطوة تأكيد التسجيل
@@ -8042,6 +8386,7 @@ function checkAuth() {
 async function loadUserSession(user, attemptsLeft) {
     try {
       mySysId = await getSysIdForUid(user.uid);
+      await loadAppSettings();
       const doc = await dbFs.collection('users').doc(mySysId).get();
       const me = doc.data();
 
@@ -12291,7 +12636,7 @@ async function adminGenerateAllDailyTasks() {
   ];
   const nowMs = Date.now();
   const todayTheme = TASK_THEMES[nowMs % TASK_THEMES.length];
-  const TASK_PTS = { easy:10, medium:25, hard:50 };
+  const TASK_PTS = TASK_POINTS;
 
   let done = 0, failed = 0;
   for (const u of rows) {
@@ -12392,6 +12737,7 @@ function switchAdminTab(tab, btn) {
   if (tab === 'chat') loadAdminChatList();
   if (tab === 'actions') loadAdminActionsList();
   if (tab === 'reports') loadAdminReports();
+  if (tab === 'settings') renderAdminSettings();
 }
 
 async function loadAdminChatList() {
@@ -12973,9 +13319,9 @@ Labs المكتملة: ${labsDone}
 {"tasks":[{"title":"عنوان المهمة","desc":"وصف مختصر للمهمة (جملتان)","difficulty":"easy|medium|hard","category":"تصنيف المهمة"}]}
 
 صعوبات المهام:
-- easy: مهام بسيطة (قراءة، مراجعة) = 10 نقاط
-- medium: مهام متوسطة (تطبيق، بحث) = 25 نقاط  
-- hard: مهام صعبة (تحدي عملي، مشروع) = 50 نقاط
+- easy: مهام بسيطة (قراءة، مراجعة) = ${TASK_POINTS.easy} نقاط
+- medium: مهام متوسطة (تطبيق، بحث) = ${TASK_POINTS.medium} نقاط  
+- hard: مهام صعبة (تحدي عملي، مشروع) = ${TASK_POINTS.hard} نقاط
 
 وزع المهام: 2 سهلة، 2 متوسطة، 1 صعبة.`;
 
