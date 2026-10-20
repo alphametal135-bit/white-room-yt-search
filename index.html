@@ -2842,7 +2842,7 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
   <!-- ══ إدارة موسيقى الخلفية ══ -->
   <div id="admin-music-panel" style="background:rgba(8,26,38,0.7);border:1px solid rgba(62,166,255,0.30);border-right:3px solid #3ea6ff;border-radius:12px;padding:16px 18px;margin-bottom:16px;">
     <div style="font-size:12px;font-weight:bold;color:#3ea6ff;margin-bottom:4px;">🎵 إدارة موسيقى الخلفية</div>
-    <div style="font-size:10px;color:#4a6a80;margin-bottom:14px;">ارفع ملف موسيقى ليشتغل تلقائياً كموسيقى خلفية لكل المحللين بعد تسجيل الدخول (بديل عن buried-theme.mp3). الملف بيتحفظ في قاعدة البيانات، فالحجم الأقصى تقريباً <b>700 كيلوبايت</b> — يفضّل مقطع قصير أو مضغوط بجودة أقل.</div>
+    <div style="font-size:10px;color:#4a6a80;margin-bottom:14px;">ارفع ملف موسيقى ليشتغل تلقائياً كموسيقى خلفية لكل المحللين بعد تسجيل الدخول (بديل عن buried-theme.mp3). الحجم الأقصى <b>5 جيجابايت</b>: الملف الأصغر من 700 كيلوبايت بيتحفظ في قاعدة البيانات مباشرة، والأكبر بيترفع على <b>Firebase Storage</b> (محتاج Storage متفعّل على خطة Blaze وقواعد تسمح بالرفع). بعد الحفظ بيتم التأكد إن المتصفح بيشغّل الملف فعلاً.</div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <input id="admin-music-file-input" type="file" accept="audio/*"
@@ -7292,6 +7292,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 
 <script>
 // ════ 1) الصق إعدادات مشروعك من Firebase Console هنا (انظر FIREBASE_SETUP.md) ════
@@ -7755,9 +7756,12 @@ async function startBgMusic() {
   const btn = document.getElementById('bg-music-toggle');
   if (!music || !btn) return;
   // لو فيه موسيقى مخصصة رفعها الأدمن (محفوظة في config/music)، استخدمها بدل الملف الافتراضي
+  // (url = ملف كبير على Firebase Storage، dataUrl = ملف صغير متخزن Base64 جوه Firestore)
   try {
     const musicDoc = await dbFs.collection('config').doc('music').get();
-    if (musicDoc.exists && musicDoc.data().dataUrl) music.src = musicDoc.data().dataUrl;
+    const md = musicDoc.exists ? musicDoc.data() : null;
+    const customSrc = md && (md.url || md.dataUrl);
+    if (customSrc) music.src = customSrc;
   } catch(e) { /* أي خطأ (أو عدم وجود موسيقى مخصصة) → يفضل يشتغل الملف الافتراضي buried-theme.mp3 */ }
   btn.style.display = 'flex';
   music.volume = 0.35;
@@ -12446,63 +12450,195 @@ async function adminLoadSavedKeys() {
   }
 }
 
-// ── إدارة موسيقى الخلفية المخصصة (تُحفظ Base64 داخل Firestore: config/music) ──
-const MUSIC_MAX_BYTES = 700 * 1024; // ~700KB — عشان تفضل جوه حد حجم مستند Firestore (1MB) بعد ترميز Base64
+// ── إدارة موسيقى الخلفية المخصصة (المستند: config/music) ──
+// • ملف صغير (≤ 700KB): بيتحفظ Base64 جوه Firestore في الحقل dataUrl — من غير أي إعداد إضافي.
+// • ملف أكبر (لحد MUSIC_MAX_BYTES): بيترفع على Firebase Storage (المسار music/...) وبيتحفظ رابطه في الحقل url
+//   + storagePath عشان نقدر نمسحه بعدين. ده محتاج Storage متفعّل (خطة Blaze) وقواعد تسمح بالكتابة على music/.
+const MUSIC_MAX_BYTES = 5 * 1024 * 1024 * 1024;   // الحد الأقصى للملف: 5 جيجابايت (غيّر الرقم ده لو عايز حد تاني)
+const MUSIC_FIRESTORE_MAX_BYTES = 700 * 1024;     // أكبر حجم يتحمل في مستند Firestore (حده 1MB بعد ترميز Base64)
+let _musicBusy = false;                           // يمنع ضغطتين حفظ ورا بعض أثناء رفع طويل
+
+function fmtBytes(n) {
+  if (typeof n !== 'number' || !isFinite(n) || n < 0) return '?';
+  if (n >= 1024 * 1024 * 1024) return (n / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+  if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB';
+  return Math.round(n / 1024) + ' KB';
+}
+
+// بعض المتصفحات بترجّع file.type فاضي أو غريب لملفات صوت (flac / m4a مثلاً) — نكمّل بالامتداد
+function musicContentType(file) {
+  if (file.type && file.type.startsWith('audio/')) return file.type;
+  const ext = ((file.name || '').split('.').pop() || '').toLowerCase();
+  const byExt = { mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg',
+                  m4a: 'audio/mp4', aac: 'audio/aac', flac: 'audio/flac', weba: 'audio/webm' };
+  return byExt[ext] || '';
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('فشلت قراءة الملف'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// تأكد فعلي إن المتصفح بيقدر يحمّل الملف ويشغّله (بيرجع true / false / 'timeout')
+function verifyAudioPlayable(src, timeoutMs) {
+  return new Promise(resolve => {
+    const a = new Audio();
+    let done = false, timer = null;
+    const finish = (v) => {
+      if (done) return; done = true; clearTimeout(timer);
+      try { a.removeAttribute('src'); a.load(); } catch(e) { /* بنوقف التحميل بس */ }
+      resolve(v);
+    };
+    timer = setTimeout(() => finish('timeout'), timeoutMs || 25000);
+    a.preload = 'metadata';
+    a.addEventListener('loadedmetadata', () => finish(true));
+    a.addEventListener('canplay', () => finish(true));
+    a.addEventListener('error', () => finish(false));
+    a.src = src;
+  });
+}
+
+function getMusicStorage() {
+  if (typeof firebase === 'undefined' || typeof firebase.storage !== 'function') {
+    throw new Error('مكتبة Firebase Storage ماتحمّلتش — تأكد من الاتصال وإن gstatic.com مش محجوب');
+  }
+  return firebase.storage();
+}
+
+// رسالة مفهومة لأخطاء Storage الشائعة (الأسباب الحقيقية بتفرق بين Rules والخطة)
+function explainStorageError(e) {
+  const code = (e && e.code) || '';
+  const raw = (e && e.message) ? e.message : String(e);
+  if (code === 'storage/unauthorized')
+    return 'Storage رفض العملية (403). غالباً قواعد Storage مش مسموح فيها بالكتابة على music/ للمستخدمين المسجّلين (Firebase Console ← Storage ← Rules)، أو المشروع مش على خطة Blaze.';
+  if (code === 'storage/unauthenticated')
+    return 'لازم تكون مسجّل دخول عشان ترفع على Storage — سجّل دخول تاني وجرب.';
+  if (code === 'storage/quota-exceeded')
+    return 'Storage رجّع خطأ حصة/دفع (402). غالباً المشروع على خطة Spark ومحتاج Blaze، أو الحصة خلصت.';
+  if (code === 'storage/retry-limit-exceeded')
+    return 'الرفع اتقطع كتير والاتصال ضعيف — جرّب تاني على اتصال أحسن.';
+  if (code === 'storage/canceled') return 'الرفع اتلغى.';
+  if (code === 'storage/bucket-not-found' || code === 'storage/project-not-found')
+    return 'Cloud Storage مش متفعّل على المشروع ده — فعّله من Firebase Console ← Storage.';
+  return raw;
+}
 
 async function adminSaveMusic() {
   if (!isAdmin()) return;
+  if (_musicBusy) return;
   const inp = document.getElementById('admin-music-file-input');
   const statusEl = document.getElementById('admin-music-status');
+  const setStatus = (msg, color) => { statusEl.style.color = color || '#4a6a80'; statusEl.textContent = msg; };
   const file = inp && inp.files && inp.files[0];
-  if (!file) { statusEl.style.color = '#f87171'; statusEl.textContent = '⚠ اختر ملف موسيقى أولاً'; return; }
-  if (!file.type.startsWith('audio/')) { statusEl.style.color = '#f87171'; statusEl.textContent = '⚠ الملف المختار مش ملف صوتي'; return; }
+  if (!file) { setStatus('⚠ اختر ملف موسيقى أولاً', '#f87171'); return; }
+  const contentType = musicContentType(file);
+  if (!contentType) { setStatus('⚠ الملف المختار مش ملف صوتي (الصيغ المدعومة: mp3, wav, ogg, m4a, aac, flac, opus)', '#f87171'); return; }
+  if (!file.size) { setStatus('⚠ الملف فاضي', '#f87171'); return; }
   if (file.size > MUSIC_MAX_BYTES) {
-    statusEl.style.color = '#f87171';
-    statusEl.textContent = `⚠ الملف كبير (${Math.round(file.size/1024)} كيلوبايت) — الحد الأقصى تقريباً 700 كيلوبايت. جرب ملف أقصر أو بجودة/بتريت أقل`;
+    setStatus(`⚠ الملف كبير (${fmtBytes(file.size)}) — الحد الأقصى ${fmtBytes(MUSIC_MAX_BYTES)}.`, '#f87171');
     return;
   }
-  statusEl.style.color = '#4a6a80';
-  statusEl.textContent = '⏳ جاري الرفع والحفظ...';
+
+  _musicBusy = true;
+  const beforeUnload = (ev) => { ev.preventDefault(); ev.returnValue = ''; };
+  window.addEventListener('beforeunload', beforeUnload); // تحذير لو قفل الصفحة والرفع شغال
+  let uploadedPath = null; // لو حصل فشل بعد الرفع نمسح الملف اليتيم
   try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('فشلت قراءة الملف'));
-      reader.readAsDataURL(file);
-    });
-    await dbFs.collection('config').doc('music').set({
-      dataUrl, fileName: file.name, size: file.size, updatedAt: Date.now()
-    });
+    // ملف الموسيقى السابق (لو كان على Storage) — بنمسحه بعد نجاح الجديد
+    let prevPath = null;
+    try {
+      const prev = await dbFs.collection('config').doc('music').get();
+      if (prev.exists) prevPath = prev.data().storagePath || null;
+    } catch(e) { /* مش مشكلة — بس مش هنقدر نمسح القديم */ }
+
+    let docData, playSrc;
+    if (file.size <= MUSIC_FIRESTORE_MAX_BYTES) {
+      setStatus('⏳ جاري الحفظ...');
+      const dataUrl = await readFileAsDataURL(file);
+      docData = { dataUrl, fileName: file.name, size: file.size, contentType, updatedAt: Date.now() };
+      playSrc = dataUrl;
+    } else {
+      const storage = getMusicStorage();
+      storage.setMaxUploadRetryTime(30 * 60 * 1000); // الرفع الطويل يستحمل انقطاعات لحد نص ساعة
+      const safeName = (file.name || 'music').replace(/[^\w.\-]+/g, '_').slice(-80);
+      const path = 'music/' + Date.now() + '_' + safeName;
+      setStatus('⏳ بدء الرفع على Firebase Storage...');
+      const task = storage.ref(path).put(file, { contentType });
+      await new Promise((resolve, reject) => {
+        task.on('state_changed', (snap) => {
+          const pct = snap.totalBytes ? (snap.bytesTransferred / snap.totalBytes * 100) : 0;
+          setStatus(`⏳ جاري الرفع… ${pct.toFixed(1)}% (${fmtBytes(snap.bytesTransferred)} / ${fmtBytes(snap.totalBytes)}) — متقفلش الصفحة`);
+        }, reject, resolve);
+      });
+      uploadedPath = path; // الملف اترفع كامل — لو اللي بعده فشل نمسحه
+      const url = await task.snapshot.ref.getDownloadURL();
+      docData = { url, storagePath: path, fileName: file.name, size: file.size, contentType, updatedAt: Date.now() };
+      playSrc = url;
+    }
+
+    // set بيستبدل المستند كله — فأي dataUrl/url قديم بيتشال تلقائياً
+    await dbFs.collection('config').doc('music').set(docData);
+    const keptPath = docData.storagePath || null;
+    uploadedPath = null; // اتحفظ بنجاح — مفيش حاجة تتنضف
+
+    if (prevPath && prevPath !== keptPath) {
+      try { await getMusicStorage().ref(prevPath).delete(); } catch(e) { console.warn('تعذّر مسح ملف الموسيقى القديم من Storage:', e); }
+    }
+
     // تحديث فوري للموسيقى الشغالة دلوقتي بدون الحاجة لإعادة تحميل الصفحة
     const music = document.getElementById('bg-theme-music');
     if (music) {
       const wasPlaying = !music.paused;
-      music.src = dataUrl;
-      if (wasPlaying) music.play().catch(()=>{});
+      music.src = playSrc;
+      if (wasPlaying) music.play().catch(() => {});
     }
-    statusEl.style.color = '#3ea6ff';
-    statusEl.textContent = '✓ تم حفظ الموسيقى بنجاح!';
     inp.value = '';
     adminLoadMusicStatus();
+
+    // تأكد فعلي إن الملف المحفوظ بيتحمّل ويتشغّل
+    setStatus(`⏳ اتحفظت (${fmtBytes(file.size)}) — بتأكد إن المتصفح بيشغّلها...`);
+    const playable = await verifyAudioPlayable(playSrc, 25000);
+    if (playable === true) setStatus(`✓ اتحفظت (${fmtBytes(file.size)}) والمتصفح قدر يحمّلها ويشغّلها`, '#3ea6ff');
+    else if (playable === false) setStatus('⚠ اتحفظت بس المتصفح مش قادر يشغّل الملف (غالباً الصيغة أو الترميز مش مدعوم) — جرّب نسخة mp3 أو m4a', '#fbbf24');
+    else setStatus(`✓ اتحفظت (${fmtBytes(file.size)}) — بس ماقدرتش أتأكد من التشغيل خلال 25 ثانية (اتصال بطيء؟). جرّب الزرار 🔊 تحت يمين الشاشة`, '#fbbf24');
   } catch(e) {
-    statusEl.style.color = '#f87171';
-    statusEl.textContent = 'فشل الحفظ: ' + e.message;
+    if (uploadedPath) { // الرفع نجح لكن حفظ المستند فشل — منسيبش ملف يتيم على Storage
+      try { await getMusicStorage().ref(uploadedPath).delete(); } catch(_) { /* تجاهل */ }
+    }
+    const msg = (e && typeof e.code === 'string' && e.code.startsWith('storage/')) ? explainStorageError(e) : (e && e.message ? e.message : String(e));
+    setStatus('فشل الحفظ: ' + msg, '#f87171');
+    console.warn('فشل حفظ الموسيقى:', e);
+  } finally {
+    window.removeEventListener('beforeunload', beforeUnload);
+    _musicBusy = false;
   }
 }
 
 async function adminDeleteMusic() {
   if (!isAdmin()) return;
   if (!confirm('هل تريد حذف الموسيقى المخصصة والرجوع للموسيقى الافتراضية؟')) return;
+  const statusEl = document.getElementById('admin-music-status');
   try {
-    await dbFs.collection('config').doc('music').delete();
+    const ref = dbFs.collection('config').doc('music');
+    let storagePath = null;
+    try { const d = await ref.get(); if (d.exists) storagePath = d.data().storagePath || null; } catch(e) { /* نكمّل */ }
+    await ref.delete();
     const music = document.getElementById('bg-theme-music');
     if (music) {
       const wasPlaying = !music.paused;
       music.src = 'buried-theme.mp3';
-      if (wasPlaying) music.play().catch(()=>{});
+      if (wasPlaying) music.play().catch(() => {});
     }
-    const statusEl = document.getElementById('admin-music-status');
-    if (statusEl) { statusEl.style.color = '#3ea6ff'; statusEl.textContent = '✓ تم الحذف — رجعت الموسيقى الافتراضية'; }
+    let note = '';
+    if (storagePath) {
+      try { await getMusicStorage().ref(storagePath).delete(); }
+      catch(e) { if (!e || e.code !== 'storage/object-not-found') note = ' (الملف على Storage ماتمسحش: ' + explainStorageError(e) + ')'; }
+    }
+    if (statusEl) { statusEl.style.color = note ? '#fbbf24' : '#3ea6ff'; statusEl.textContent = '✓ تم الحذف — رجعت الموسيقى الافتراضية' + note; }
     adminLoadMusicStatus();
   } catch(e) { alert('فشل الحذف: ' + e.message); }
 }
@@ -12513,18 +12649,18 @@ async function adminLoadMusicStatus() {
   el.innerHTML = '<div style="font-size:10px;color:#3a5a70;">⏳ جاري التحميل...</div>';
   try {
     const doc = await dbFs.collection('config').doc('music').get();
-    if (!doc.exists || !doc.data().dataUrl) {
+    const d = doc.exists ? doc.data() : null;
+    if (!d || !(d.url || d.dataUrl)) {
       el.innerHTML = '<div style="font-size:10px;color:#3a5a70;">لا توجد موسيقى مخصصة حالياً — الموسيقى الافتراضية (buried-theme.mp3) شغالة</div>';
       return;
     }
-    const d = doc.data();
     const date = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('ar-SA') : '';
-    const sizeKb = d.size ? Math.round(d.size/1024) : '?';
+    const where = d.url ? 'Firebase Storage' : 'Firestore';
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(10,10,20,0.6);border:1px solid rgba(62,166,255,0.18);border-radius:8px;padding:8px 12px;">
       <span style="font-size:13px;">🎵</span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:11px;font-weight:bold;color:#3ea6ff;">${escapeHtml(d.fileName || 'موسيقى مخصصة')}</div>
-        <div style="font-size:10px;font-family:monospace;color:#4a6a80;">${sizeKb} KB ${date ? '· ' + date : ''}</div>
+        <div style="font-size:10px;font-family:monospace;color:#4a6a80;">${fmtBytes(d.size)} · ${where} ${date ? '· ' + date : ''}</div>
       </div>
       <button onclick="adminDeleteMusic()"
         style="background:transparent;border:1px solid rgba(248,113,113,0.4);color:#f87171;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:10px;flex-shrink:0;">
@@ -12532,15 +12668,41 @@ async function adminLoadMusicStatus() {
       </button>
     </div>`;
   } catch(e) {
-    el.innerHTML = '<div style="font-size:10px;color:#f87171;">فشل التحميل: ' + e.message + '</div>';
+    el.innerHTML = '<div style="font-size:10px;color:#f87171;">فشل التحميل: ' + escapeHtml(e.message) + '</div>';
   }
 }
 
 async function adminCheckApiKey() {
   const statusEl = document.getElementById('admin-api-key-status');
+  // مزوّد مخصص مكتوب رابطه وموديله في الحقول → نختبره هو بالذات (من غير ما نحفظه ومن غير ما نعدّي على الـ Proxy)
+  if (_adminCurrentKeyType === 'custom') {
+    const epEl = document.getElementById('admin-custom-key-endpoint');
+    const mdEl = document.getElementById('admin-custom-key-model');
+    const keyEl = document.getElementById('admin-api-key-input');
+    const endpoint = (epEl ? epEl.value : '').trim();
+    const model = (mdEl ? mdEl.value : '').trim();
+    if (endpoint) {
+      if (!/^https?:\/\//i.test(endpoint) || !model) {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = '⚠ الرابط لازم يبدأ بـ http:// أو https:// وكمان لازم تكتب اسم الموديل';
+        return;
+      }
+      statusEl.style.color = '#5a4a7a';
+      statusEl.textContent = '⏳ جاري اختبار المزوّد المخصص المكتوب فوق (من غير حفظ)...';
+      try {
+        const reply = await callCustomProvider({ id: 'test', endpoint, model, key: (keyEl ? keyEl.value : '').trim() }, 'قل "زعتر جاهز" بالعربية فقط');
+        statusEl.style.color = '#b06ef3';
+        statusEl.textContent = '✓ المزوّد المخصص رد: ' + reply;
+      } catch(e) {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = '✗ فشل: ' + e.message;
+      }
+      return;
+    }
+  }
   if (_adminCurrentKeyType === 'vercel' || _adminCurrentKeyType === 'custom') {
     statusEl.style.color = '#5a4a7a';
-    statusEl.textContent = 'ℹ ملحوظة: التبويب المحدد حالياً ("' + (_adminCurrentKeyType === 'vercel' ? 'Vercel' : 'مخصص') + '") مش هو اللي بيشغّل اختبارات AI — ده منفصل. جاري اختبار نظام AI الفعلي (Proxy + مفتاح Anthropic الاحتياطي)...';
+    statusEl.textContent = 'ℹ ملحوظة: التبويب المحدد حالياً ("' + (_adminCurrentKeyType === 'vercel' ? 'Vercel' : 'مخصص') + '") من غير رابط وموديل مش بيشغّل اختبارات AI. جاري اختبار نظام AI الفعلي (Proxy ← مفتاح Anthropic ← المزوّدين المخصصين المحفوظين)...';
   } else {
     statusEl.style.color = '#5a4a7a';
     statusEl.textContent = '⏳ جاري الاختبار...';
