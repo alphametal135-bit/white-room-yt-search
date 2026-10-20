@@ -2848,6 +2848,7 @@ select.lang-sel{background:var(--bg-2);color:var(--white);border:var(--border);b
       <input id="admin-music-file-input" type="file" accept="audio/*"
         style="flex:1;min-width:220px;background:rgba(10,10,20,0.9);border:1px solid rgba(62,166,255,0.4);border-radius:8px;color:#e8f4ff;font-size:12px;padding:8px 10px;outline:none;">
       <button onclick="adminSaveMusic()" style="background:#3ea6ff;color:#000;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-weight:bold;font-size:12px;white-space:nowrap;">💾 حفظ الموسيقى</button>
+      <button id="admin-music-cancel-btn" onclick="adminCancelMusicUpload()" style="display:none;background:transparent;color:#f87171;border:1px solid rgba(248,113,113,0.5);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:12px;white-space:nowrap;">✖ إلغاء الرفع</button>
     </div>
     <div id="admin-music-status" style="font-size:11px;color:#4a6a80;margin-top:8px;"></div>
 
@@ -12457,6 +12458,15 @@ async function adminLoadSavedKeys() {
 const MUSIC_MAX_BYTES = 5 * 1024 * 1024 * 1024;   // الحد الأقصى للملف: 5 جيجابايت (غيّر الرقم ده لو عايز حد تاني)
 const MUSIC_FIRESTORE_MAX_BYTES = 700 * 1024;     // أكبر حجم يتحمل في مستند Firestore (حده 1MB بعد ترميز Base64)
 let _musicBusy = false;                           // يمنع ضغطتين حفظ ورا بعض أثناء رفع طويل
+let _musicTask = null;                            // مهمة الرفع الجارية (عشان زرار الإلغاء)
+// مهَل المراقبة: لو الرفع ما بدأش ينقل ولا بايت خلال MUSIC_START_STALL_MS نلغيه ونقول السبب بدل ما يفضل معلّق
+const MUSIC_START_STALL_MS = 45000;
+const MUSIC_STALL_NOTICE_MS = 45000;              // لو وقف التقدم في النص نظهر تنبيه (الرفع بيكمّل يحاول)
+const MUSIC_GUARD_TICK_MS = 3000;
+
+function adminCancelMusicUpload() {
+  if (_musicTask) { try { _musicTask.cancel(); } catch(e) { /* تجاهل */ } }
+}
 
 function fmtBytes(n) {
   if (typeof n !== 'number' || !isFinite(n) || n < 0) return '?';
@@ -12507,6 +12517,32 @@ function getMusicStorage() {
     throw new Error('مكتبة Firebase Storage ماتحمّلتش — تأكد من الاتصال وإن gstatic.com مش محجوب');
   }
   return firebase.storage();
+}
+
+// فحص سريع قبل الرفع: هل Storage شغال ومتاح من المتصفح ده؟
+// ليه ضروري: مكتبة Firebase بتعيد المحاولة بصمت لو الطلب فشل على مستوى الشبكة (ومنها لما Storage مش
+// متفعّل أو المشروع مش على Blaze، لأن رد الخطأ بيجي من غير ترويسات CORS فالمتصفح بيشوفه "خطأ شبكة")،
+// فالرفع كان بيفضل واقف على 0% من غير أي رسالة. هنا بنحدد المشكلة في ثواني ونقولها بوضوح.
+async function probeMusicStorage(storage) {
+  const bucket = (storage.app && storage.app.options && storage.app.options.storageBucket) || '(غير محدد)';
+  storage.setMaxOperationRetryTime(10000);
+  try {
+    await storage.ref('music/.probe').getMetadata();
+  } catch (e) {
+    const code = (e && e.code) || '';
+    const server = String((e && e.serverResponse) || '');
+    const bucketMissing = /could not access bucket|enable firebase storage|get started/i.test(server);
+    if (code === 'storage/object-not-found' && !bucketMissing) return; // الـ bucket شغال والملف الاختباري مش موجود = طبيعي
+    if (code === 'storage/bucket-not-found' || bucketMissing || code === 'storage/object-not-found') {
+      throw new Error('الـ bucket "' + bucket + '" مش موجود أو Storage مش متفعّل على المشروع — افتح Firebase Console ← Storage واضغط Get started، وتأكد إن اسم الـ bucket هناك مطابق للاسم ده.');
+    }
+    if (code === 'storage/retry-limit-exceeded' || code === 'storage/unknown' || !code) {
+      throw new Error('مفيش رد من Firebase Storage خلال 10 ثواني (bucket: ' + bucket + '). الأسباب المحتملة: (1) Storage مش متفعّل أو المشروع مش على خطة Blaze، (2) اسم الـ bucket في إعدادات Firebase غلط، (3) الشبكة أو حاجب إعلانات/DNS بيحجب firebasestorage.googleapis.com. افتح console المتصفح وشوف أول خطأ أحمر لتحديد السبب.');
+    }
+    throw e; // unauthorized / quota-exceeded / ... → explainStorageError بيشرحها
+  } finally {
+    storage.setMaxOperationRetryTime(120000); // نرجّع المهلة الافتراضية لباقي العمليات (getDownloadURL / delete)
+  }
 }
 
 // رسالة مفهومة لأخطاء Storage الشائعة (الأسباب الحقيقية بتفرق بين Rules والخطة)
@@ -12563,16 +12599,37 @@ async function adminSaveMusic() {
       playSrc = dataUrl;
     } else {
       const storage = getMusicStorage();
+      setStatus('⏳ بتأكد إن Firebase Storage شغال ومتاح...');
+      await probeMusicStorage(storage);
       storage.setMaxUploadRetryTime(30 * 60 * 1000); // الرفع الطويل يستحمل انقطاعات لحد نص ساعة
       const safeName = (file.name || 'music').replace(/[^\w.\-]+/g, '_').slice(-80);
       const path = 'music/' + Date.now() + '_' + safeName;
       setStatus('⏳ بدء الرفع على Firebase Storage...');
       const task = storage.ref(path).put(file, { contentType });
+      _musicTask = task;
+      const cancelBtn = document.getElementById('admin-music-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      let lastBytes = 0, lastProgressAt = Date.now(), stalledAtStart = false;
       await new Promise((resolve, reject) => {
+        // مراقب: لو الرفع ما نقلش ولا بايت خلال المهلة نلغيه بدل ما يفضل واقف على 0%
+        const guard = setInterval(() => {
+          const idle = Date.now() - lastProgressAt;
+          if (lastBytes === 0 && idle >= MUSIC_START_STALL_MS) {
+            stalledAtStart = true; clearInterval(guard); task.cancel();
+          } else if (lastBytes > 0 && idle >= MUSIC_STALL_NOTICE_MS) {
+            setStatus(`⚠ مفيش تقدم من ${Math.round(idle / 1000)} ثانية (${fmtBytes(lastBytes)} من ${fmtBytes(file.size)}) — الاتصال ضعيف أو واقف، الرفع بيحاول تاني تلقائياً. تقدر تضغط "إلغاء الرفع".`, '#fbbf24');
+          }
+        }, MUSIC_GUARD_TICK_MS);
         task.on('state_changed', (snap) => {
+          if (snap.bytesTransferred !== lastBytes) { lastBytes = snap.bytesTransferred; lastProgressAt = Date.now(); }
           const pct = snap.totalBytes ? (snap.bytesTransferred / snap.totalBytes * 100) : 0;
           setStatus(`⏳ جاري الرفع… ${pct.toFixed(1)}% (${fmtBytes(snap.bytesTransferred)} / ${fmtBytes(snap.totalBytes)}) — متقفلش الصفحة`);
-        }, reject, resolve);
+        }, (err) => {
+          clearInterval(guard);
+          reject(stalledAtStart
+            ? new Error('الرفع ما بدأش ينقل بيانات خلال ' + Math.round(MUSIC_START_STALL_MS / 1000) + ' ثانية واتلغى. غالباً الطلب مش بيوصل لـ Firebase Storage (Storage مش متفعّل أو المشروع مش على Blaze، أو شبكة/حاجب بيحجب firebasestorage.googleapis.com). افتح console المتصفح وشوف أول خطأ أحمر.')
+            : err);
+        }, () => { clearInterval(guard); resolve(); });
       });
       uploadedPath = path; // الملف اترفع كامل — لو اللي بعده فشل نمسحه
       const url = await task.snapshot.ref.getDownloadURL();
@@ -12614,6 +12671,9 @@ async function adminSaveMusic() {
     console.warn('فشل حفظ الموسيقى:', e);
   } finally {
     window.removeEventListener('beforeunload', beforeUnload);
+    _musicTask = null;
+    const cb = document.getElementById('admin-music-cancel-btn');
+    if (cb) cb.style.display = 'none';
     _musicBusy = false;
   }
 }
